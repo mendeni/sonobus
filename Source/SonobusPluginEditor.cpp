@@ -4004,13 +4004,15 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
             String statstr;
             if (ev.success) {
                 statstr = TRANS("Left Group: ") + ev.group;
+                mChatView->addNewChatMessage(SBChatEvent(SBChatEvent::SystemType, ev.group, "", "", "", statstr));
             } else {
-                statstr = TRANS("Failed to leave group: ") + ev.message;
+                // this situation is frequent but inactionable by users
+                // statstr = TRANS("Failed to leave group: ") + ev.message;
             }
 
             //AccessibilityHandler::postAnnouncement(statstr, AccessibilityHandler::AnnouncementPriority::high);
 
-            mChatView->addNewChatMessage(SBChatEvent(SBChatEvent::SystemType, ev.group, "", "", "", statstr));
+            // mChatView->addNewChatMessage(SBChatEvent(SBChatEvent::SystemType, ev.group, "", "", "", statstr));
 
             mPeerContainer->resetPendingUsers();
             updateServerStatusLabel(statstr);
