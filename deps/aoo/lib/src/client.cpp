@@ -267,9 +267,9 @@ int32_t aoo::net::client::connect(const char *host, int port,
     auto state = state_.load();
     if (state != client_state::disconnected){
         if (state == client_state::connected){
-            LOG_ERROR("aoo_client: already connected!");
+            LOG_DEBUG("aoo_client: already connected!");
         } else {
-            LOG_ERROR("aoo_client: already connecting!");
+            LOG_DEBUG("aoo_client: already connecting!");
         }
         return 0;
     }
@@ -293,7 +293,7 @@ int32_t aoonet_client_disconnect(aoonet_client *client){
 int32_t aoo::net::client::disconnect(){
     auto state = state_.load();
     if (state != client_state::connected){
-        LOG_WARNING("aoo_client: not connected");
+        LOG_DEBUG("aoo_client: not connected");
         return 0;
     }
 
@@ -1086,7 +1086,7 @@ void client::handle_group_leave(const osc::ReceivedMessage& msg){
         std::string errmsg;
         if (msg.ArgumentCount() > 2){
             errmsg = (it++)->AsString();
-            LOG_WARNING("aoo_client: couldn't leave group "
+            LOG_DEBUG("aoo_client: couldn't leave group "
                         << group << ": " << errmsg);
         } else {
             errmsg = "unknown error";

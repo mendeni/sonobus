@@ -77,7 +77,7 @@ void validate_format(aoo_format_opus& f)
     }
     // validate channels (LATER support multichannel!)
     if (f.header.nchannels < 1 || f.header.nchannels > 255){
-        LOG_WARNING("Opus: channel count " << f.header.nchannels <<
+        LOG_DEBUG("Opus: channel count " << f.header.nchannels <<
                     " out of range - using 1 channels");
         f.header.nchannels = 1;
     }
