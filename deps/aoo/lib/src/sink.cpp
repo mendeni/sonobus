@@ -1165,7 +1165,7 @@ bool source_desc::check_packet(const data_packet &d){
         while (audioqueue_.write_available() > 1 && infoqueue_.write_available() > 1){
             auto ptr = audioqueue_.write_data();
             if (!decoder_->decode(nullptr, 0, ptr, nsamples)) {
-                LOG_WARNING("decode failed nsamples: " << nsamples << " audioqavail: " << audioqueue_.write_available());
+                LOG_DEBUG("decode failed nsamples: " << nsamples << " audioqavail: " << audioqueue_.write_available());
             }
             audioqueue_.write_commit();
             // push nominal samplerate + current channel
