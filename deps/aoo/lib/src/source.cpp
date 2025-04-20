@@ -417,7 +417,7 @@ int32_t aoo::source::remove_sink(void *endpoint, int32_t id){
                 }
             }
         }
-        LOG_WARNING("aoo_source: sink not found!");
+        LOG_DEBUG("aoo_source: sink not found!");
         return 0;
     }
 }
