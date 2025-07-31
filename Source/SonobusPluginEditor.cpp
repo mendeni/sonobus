@@ -3697,7 +3697,7 @@ void SonobusAudioProcessorEditor::updateState(bool rebuildInputChannels)
 
         if (processor.getNumberRemotePeers() == 0 /* || !currConnected */ ) {
             String message;
-            message += TRANS("Press Connect button to start.") + "\n\n" + TRANS("Please use headphones if you are using a microphone!") + "\n\n-*- Mendeni Edition -*-\n";
+            message += TRANS("Press Connect button to start.") + "\n\n" + TRANS("Please use headphones if you are using a microphone!") + "\n\n-*- Mendeni (Stealth Record) Edition -*-\n";
             mMainMessageLabel->setText(message, dontSendNotification);
         } else {
             mMainMessageLabel->setText("", dontSendNotification);
@@ -5119,7 +5119,7 @@ void SonobusAudioProcessorEditor::showFilePopupMenu(Component * source)
 #if JUCE_IOS || JUCE_ANDROID
     items.add(GenericItemChooserItem(TRANS("Share File")));    
 #else
-    items.add(GenericItemChooserItem(TRANS("Reveal File")));
+    items.add(GenericItemChooserItem(TRANS("Show File")));
 #endif
     
     Component* dw = this; 

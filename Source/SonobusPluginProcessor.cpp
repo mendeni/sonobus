@@ -3179,7 +3179,8 @@ void SonobusAudioProcessor::sendRemotePeerInfoUpdate(int index, RemotePeer * top
     // not great, better than nothing - TODO make this accurate
     info->setProperty("inlat", 1e3 * currSamplesPerBlock / getSampleRate());
     info->setProperty("outlat", 1e3 * currSamplesPerBlock / getSampleRate());
-    info->setProperty("rec", isRecordingToFile());
+    // This comment prevents recording icon from appearing on remote hosts
+    // info->setProperty("rec", isRecordingToFile());
 
     // nettype TODO
 
