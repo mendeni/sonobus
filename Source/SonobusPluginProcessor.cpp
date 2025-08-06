@@ -93,6 +93,7 @@ static String defRecordBitsKey("DefaultRecordingBitsPerSample");
 static String recordSelfPreFxKey("RecordSelfPreFx");
 static String recordSelfSilenceMutedKey("RecordSelfSilenceWhenMuted");
 static String recordFinishOpenKey("RecordFinishOpen");
+static String recordStealthKey("RecordStealth");
 static String defRecordDirKey("DefaultRecordDir");
 static String defRecordDirURLKey("DefaultRecordDirURL");
 static String lastBrowseDirKey("LastBrowseDir");
@@ -3179,8 +3180,11 @@ void SonobusAudioProcessor::sendRemotePeerInfoUpdate(int index, RemotePeer * top
     // not great, better than nothing - TODO make this accurate
     info->setProperty("inlat", 1e3 * currSamplesPerBlock / getSampleRate());
     info->setProperty("outlat", 1e3 * currSamplesPerBlock / getSampleRate());
-    // This comment prevents recording icon from appearing on remote hosts
-    // info->setProperty("rec", isRecordingToFile());
+
+    // make the recording icon appear on remote hosts unless we're stealth
+    if (!mRecordStealth){
+      info->setProperty("rec", isRecordingToFile());
+    }
 
     // nettype TODO
 
@@ -8521,6 +8525,7 @@ void SonobusAudioProcessor::getStateInformationWithOptions(MemoryBlock& destData
     extraTree.setProperty(recordSelfPreFxKey, mRecordInputPreFX, nullptr);
     extraTree.setProperty(recordSelfSilenceMutedKey, mRecordInputSilenceWhenMuted, nullptr);
     extraTree.setProperty(recordFinishOpenKey, mRecordFinishOpens, nullptr);
+    extraTree.setProperty(recordStealthKey, mRecordStealth, nullptr);
 
     if (mDefaultRecordDir.isLocalFile()) {
         // backwards compat
@@ -8669,6 +8674,7 @@ void SonobusAudioProcessor::setStateInformationWithOptions (const void* data, in
 
 
             setRecordFinishOpens(extraTree.getProperty(recordFinishOpenKey, mRecordFinishOpens));
+            setRecordStealth(extraTree.getProperty(recordStealthKey, mRecordStealth));
 
 
 #if !(JUCE_IOS)

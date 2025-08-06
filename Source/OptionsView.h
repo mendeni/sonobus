@@ -164,6 +164,7 @@ protected:
     std::unique_ptr<Label> mRecLocationStaticLabel;
     std::unique_ptr<TextButton> mRecLocationButton;
     std::unique_ptr<ToggleButton> mOptionsRecFinishOpenButton;
+    std::unique_ptr<ToggleButton> mOptionsRecStealth;
 
 
     FlexBox mainBox;

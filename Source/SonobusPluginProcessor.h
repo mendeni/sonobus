@@ -770,6 +770,9 @@ public:
     bool getRecordFinishOpens() const { return mRecordFinishOpens; }
     void setRecordFinishOpens(bool flag) { mRecordFinishOpens = flag; }
 
+    bool getRecordStealth() const { return mRecordStealth; }
+    void setRecordStealth(bool flag) { mRecordStealth = flag; }
+
     bool getReconnectAfterServerLoss() const { return mReconnectAfterServerLoss.get(); }
     void setReconnectAfterServerLoss(bool flag) { mReconnectAfterServerLoss = flag; }
 
@@ -1216,6 +1219,7 @@ private:
     bool mRecordInputPreFX = true;
     bool mRecordInputSilenceWhenMuted = true;
     bool mRecordFinishOpens = true;
+    bool mRecordStealth = false;
     URL mDefaultRecordDir;
     String mLastError;
     int mSelfRecordChannels = 2;
