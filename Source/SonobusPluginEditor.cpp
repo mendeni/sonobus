@@ -2432,6 +2432,7 @@ void SonobusAudioProcessorEditor::recordRoundtripLatencyForAll()
 
     std::cout << std::endl;
     std::cout << "*** Begin Capturing Latency ***" << std::endl;
+    std::cout << Time::getCurrentTime().formatted("%Y-%m-%d_%H.%M.%S") << std::endl;
 
     // do it for everyone
     for (int j=0; j < processor.getNumberRemotePeers(); ++j)
