@@ -22,6 +22,7 @@
 #include "SuggestNewGroupView.h"
 #include "SonoCallOutBox.h"
 #include <sstream>
+#include <iostream>
 
 #if JUCE_ANDROID
 #include "juce_core/native/juce_BasicNativeHeaders.h"
@@ -2212,6 +2213,9 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
             }
 #endif
             
+            // capture the round-trip latency for each peer
+            recordRoundtripLatencyForAll();
+
             // create new timestamped filename
             String filename = (currGroup.isEmpty() ? "SonoBusSession" : currGroup) + String("_") + Time::getCurrentTime().formatted("%Y-%m-%d_%H.%M.%S");
 
@@ -2420,6 +2424,30 @@ void SonobusAudioProcessorEditor::resetJitterBufferForAll()
             processor.setRemotePeerBufferTime(j, buftime);
         }
     }
+}
+
+void SonobusAudioProcessorEditor::recordRoundtripLatencyForAll()
+{
+    SonobusAudioProcessor::LatencyInfo latinfo;
+
+    std::cout << std::endl;
+    std::cout << "*** Begin Capturing Latency ***" << std::endl;
+
+    // do it for everyone
+    for (int j=0; j < processor.getNumberRemotePeers(); ++j)
+    {
+
+        processor.getRemotePeerLatencyInfo(j, latinfo);
+
+        String username = processor.getRemotePeerUserName(j);
+        std::cout << std::endl;
+        std::cout << "User:" << username << std::endl;
+        std::cout << "totalRoundtripMs:" << latinfo.totalRoundtripMs << std::endl;
+    }
+
+    std::cout << std::endl;
+    std::cout << "*** End Capturing Latency ***" << std::endl;
+    std::cout << std::endl;
 }
 
 
