@@ -5,3 +5,4 @@ buildXcode
 release/1.*
 mobile/Builds
 .DS_store
+*.swp
