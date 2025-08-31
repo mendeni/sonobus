@@ -364,6 +364,7 @@ private:
     std::unique_ptr<WaveformTransportComponent> mWaveformThumbnail;
 
     std::unique_ptr<Drawable> mPeerRecImage;
+    std::unique_ptr<Drawable> mPeerRecStealthImage;
 
 
     // effects

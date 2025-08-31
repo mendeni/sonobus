@@ -1033,6 +1033,8 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     
     mPeerRecImage = Drawable::createFromImageData(BinaryData::rectape_svg, BinaryData::rectape_svgSize);
     mPeerRecImage->setInterceptsMouseClicks(false, false);
+    mPeerRecStealthImage = Drawable::createFromImageData(BinaryData::rectapestealth_svg, BinaryData::rectapestealth_svgSize);
+    mPeerRecStealthImage->setInterceptsMouseClicks(false, false);
 
     {
         mRecordingButton = std::make_unique<SonoDrawableButton>("record", DrawableButton::ButtonStyle::ImageFitted);
@@ -1165,6 +1167,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mTopLevelContainer->addAndMakeVisible(mMainPersonImage.get());
     mTopLevelContainer->addAndMakeVisible(mMainGroupImage.get());
     mTopLevelContainer->addChildComponent(mPeerRecImage.get());
+    mTopLevelContainer->addChildComponent(mPeerRecStealthImage.get());
     mTopLevelContainer->addAndMakeVisible(mPeerLayoutFullButton.get());
     mTopLevelContainer->addAndMakeVisible(mPeerLayoutMinimalButton.get());
 
@@ -1917,10 +1920,19 @@ void SonobusAudioProcessorEditor::timerCallback(int timerid)
 
         mChatButton->setToggleState(mChatView->haveNewSinceLastView(), dontSendNotification);
 
-        auto anyrec = processor.isAnyRemotePeerRecording() || processor.isRecordingToFile();
+        // determine if peer is recording to show red rectape
+        auto anyrec = processor.isAnyRemotePeerRecording();
         if (mPeerRecImage->isVisible() != anyrec) {
             mPeerRecImage->setVisible(anyrec);
             mPeerRecImage->repaint();
+            resized();
+        }
+
+        // determine if we're recording locally to show purple rectape
+        auto anyrecfile = processor.isRecordingToFile();
+        if (mPeerRecStealthImage->isVisible() != anyrecfile) {
+            mPeerRecStealthImage->setVisible(anyrecfile);
+            mPeerRecStealthImage->repaint();
             resized();
         }
 
@@ -3722,6 +3734,7 @@ void SonobusAudioProcessorEditor::updateState(bool rebuildInputChannels)
         mMainLinkArrow->setVisible(false);
 
         mPeerRecImage->setVisible(false);
+        mPeerRecStealthImage->setVisible(false);
 
         mMainMessageLabel->setVisible(true);
 
@@ -4611,6 +4624,9 @@ void SonobusAudioProcessorEditor::resized()
     const auto precwidth = 20;
     auto peerrecbounds = Rectangle<int>(mMainLinkButton->getRight() - precwidth - 4, mMainLinkButton->getY() + mMainLinkButton->getHeight()/2 - precwidth/2, precwidth,  precwidth);
     mPeerRecImage->setTransformToFit(peerrecbounds.toFloat(), RectanglePlacement::fillDestination);
+
+    auto peerrecboundss = Rectangle<int>(mMainLinkButton->getRight() - precwidth - 40, mMainLinkButton->getY() + mMainLinkButton->getHeight()/2 - precwidth/2, precwidth,  precwidth);
+    mPeerRecStealthImage->setTransformToFit(peerrecboundss.toFloat(), RectanglePlacement::fillDestination);
 
 
     mDragDropBg->setRectangle (getLocalBounds().toFloat());

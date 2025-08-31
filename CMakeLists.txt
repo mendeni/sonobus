@@ -540,6 +540,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         images/record_active.svg
         images/record_active_alt.svg
         images/rectape.svg
+        images/rectapestealth.svg
         images/reset_buffer_icon.svg
         images/send.svg
         images/send_group.svg
