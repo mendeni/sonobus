@@ -22,7 +22,7 @@
 #include "SuggestNewGroupView.h"
 #include "SonoCallOutBox.h"
 #include <sstream>
-#include <iostream>
+#include <string>
 
 #if JUCE_ANDROID
 #include "juce_core/native/juce_BasicNativeHeaders.h"
@@ -2225,9 +2225,6 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
             }
 #endif
             
-            // capture the round-trip latency for each peer
-            recordRoundtripLatencyForAll();
-
             // create new timestamped filename
             String filename = (currGroup.isEmpty() ? "SonoBusSession" : currGroup) + String("_") + Time::getCurrentTime().formatted("%Y-%m-%d_%H.%M.%S");
 
@@ -2265,6 +2262,9 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
                 parentDir = parentDirUrl.getLocalFile();
                 parentDir.createDirectory();
             }
+
+            // capture the round-trip latency for each peer
+            recordRoundtripLatencyForAll(parentDir.getFullPathName() + "/" + filename);
 
             filename += ".flac";
             
@@ -2438,30 +2438,46 @@ void SonobusAudioProcessorEditor::resetJitterBufferForAll()
     }
 }
 
-void SonobusAudioProcessorEditor::recordRoundtripLatencyForAll()
+void SonobusAudioProcessorEditor::recordRoundtripLatencyForAll(const String & filename)
 {
+ 
+    // fetch latency from all peers
     SonobusAudioProcessor::LatencyInfo latinfo;
 
-    std::cout << std::endl;
-    std::cout << "*** Begin Capturing Latency ***" << std::endl;
-    std::cout << "Session:" << processor.getCurrentJoinedGroup() << std::endl;
-    std::cout << "Date:" << Time::getCurrentTime().formatted("%Y-%m-%d_%H.%M.%S") << std::endl;
+    // open a .out file in same path as recording
+    juce::String fullPath = filename + ".out";
+    juce::File file(fullPath);
+    std::unique_ptr<juce::FileOutputStream> outputStream(file.createOutputStream());
 
-    // do it for everyone
+    if ((outputStream == nullptr) || (! outputStream->openedOk()))
+    {
+        DBG("Error: Could not open file " + fullPath + " for writing.");
+    } else {
+       std::unique_ptr<juce::FileInputStream> inputStream(file.createInputStream());
+       // append to the end of file
+       outputStream->setPosition (inputStream->getTotalLength());
+    }
+
+    // write session header info
+    outputStream->writeText("*** Begin Capturing Latency ***\n", false, false, "\n");
+    outputStream->writeText("Session:" + processor.getCurrentJoinedGroup() + "\n", false, false, "\n");
+    outputStream->writeText("Date:" + Time::getCurrentTime().formatted("%Y-%m-%d_%H.%M.%S") + "\n", false, false, "\n");
+
+    // loop through all remote peers and record username and totalRoundtripMs
     for (int j=0; j < processor.getNumberRemotePeers(); ++j)
     {
 
         processor.getRemotePeerLatencyInfo(j, latinfo);
 
         String username = processor.getRemotePeerUserName(j);
-        std::cout << std::endl;
-        std::cout << "User:" << username << std::endl;
-        std::cout << "totalRoundtripMs:" << latinfo.totalRoundtripMs << std::endl;
+        String userlate = std::to_string(latinfo.totalRoundtripMs);
+        outputStream->writeText("\nUser:" + username + "\n", false, false, "\n");
+        outputStream->writeText("\ntotalRoundtripMs:" + userlate + "\n", false, false, "\n");
     }
 
-    std::cout << std::endl;
-    std::cout << "*** End Capturing Latency ***" << std::endl;
-    std::cout << std::endl;
+    // close record and file
+    outputStream->writeText("\n*** End Capturing Latency ***\n", false, false, "\n");
+    outputStream->flush();
 }
 
 
