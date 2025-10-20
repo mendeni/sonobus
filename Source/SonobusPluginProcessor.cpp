@@ -7776,19 +7776,12 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
             inputRevBuffer.applyGainRamp(0, numSamples, sgain, egain);
         }
 
-        // mix it into send workbuffer for each channel up to 4
-        // for (int channel = 0; channel < sendPanChannels && channel < 4; ++channel) {
-
+        // mix it into send workbuffer for each channel
+        // this may be cpu intensive for > 2 channels (i.e. multi-channel)
         for (int channel = 0; channel < sendPanChannels; ++channel) {
               sendWorkBuffer.addFrom(channel, 0, inputRevBuffer, channel, 0, numSamples);
         }
 
-        /* if (sendCh == 1 || sendCh == 2) {
-            // mix it into send workbuffer
-            for (int channel = 0; channel < sendPanChannels && channel < 2; ++channel) {
-                sendWorkBuffer.addFrom(channel, 0, inputRevBuffer, channel, 0, numSamples);
-            }
-        } */
     }
 
     mLastInputReverbEnabled = inReverbEnabled;
