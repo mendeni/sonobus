@@ -2264,7 +2264,8 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
             }
 
             // capture the round-trip latency for each peer
-            recordRoundtripLatencyForAll(parentDir.getFullPathName() + "/" + filename);
+            // recordRoundtripLatencyForAll(parentDir.getFullPathName() + "/" + filename);
+            recordRoundtripLatencyForAll(parentDir.getFullPathName(), filename);
 
             filename += ".flac";
             
@@ -2438,14 +2439,14 @@ void SonobusAudioProcessorEditor::resetJitterBufferForAll()
     }
 }
 
-void SonobusAudioProcessorEditor::recordRoundtripLatencyForAll(const String & filename)
+void SonobusAudioProcessorEditor::recordRoundtripLatencyForAll(const String & fullpath, const String & filename)
 {
  
     // fetch latency from all peers
     SonobusAudioProcessor::LatencyInfo latinfo;
 
     // open a .out file in same path as recording
-    juce::String fullPath = filename + ".out";
+    juce::String fullPath = fullpath + "/" + filename + ".rtms";
     juce::File file(fullPath);
     std::unique_ptr<juce::FileOutputStream> outputStream(file.createOutputStream());
 
@@ -2459,11 +2460,10 @@ void SonobusAudioProcessorEditor::recordRoundtripLatencyForAll(const String & fi
     }
 
     // write session header info
-    outputStream->writeText("*** Begin Capturing Latency ***\n", false, false, "\n");
-    outputStream->writeText("Session:" + processor.getCurrentJoinedGroup() + "\n", false, false, "\n");
-    outputStream->writeText("Date:" + Time::getCurrentTime().formatted("%Y-%m-%d_%H.%M.%S") + "\n", false, false, "\n");
+    outputStream->writeText("*** Begin totalRoundtripMs Capture ***\n", false, false, "\n");
+    outputStream->writeText("Session:" + filename + "\n", false, false, "\n");
 
-    // loop through all remote peers and record username and totalRoundtripMs
+    // loop through all remote peers and capture username and totalRoundtripMs
     for (int j=0; j < processor.getNumberRemotePeers(); ++j)
     {
 
@@ -2476,7 +2476,7 @@ void SonobusAudioProcessorEditor::recordRoundtripLatencyForAll(const String & fi
     }
 
     // close record and file
-    outputStream->writeText("\n*** End Capturing Latency ***\n", false, false, "\n");
+    outputStream->writeText("\n*** End totalRoundtripMs Capture ***\n", false, false, "\n");
     outputStream->flush();
 }
 

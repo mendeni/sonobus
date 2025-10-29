@@ -242,7 +242,7 @@ private:
     void copyGroupLink();
 
     void resetJitterBufferForAll();
-    void recordRoundtripLatencyForAll(const String & filename);
+    void recordRoundtripLatencyForAll(const String & fullpath, const String & filename);
 
     void requestRecordDir(std::function<void (URL)> callback);
     
