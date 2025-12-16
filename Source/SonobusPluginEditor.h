@@ -375,6 +375,7 @@ private:
     std::unique_ptr<MonitorDelayView> mMonitorDelayView;
 
     std::unique_ptr<SonoDrawableButton> mBufferMinButton;
+    std::unique_ptr<SonoDrawableButton> mRecvSyncButton;
 
 
     

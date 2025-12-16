@@ -896,6 +896,14 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mEffectsButton->addListener(this);
     mEffectsButton->setColour(TextButton::buttonOnColourId, Colour::fromFloatRGBA(0.2, 0.5, 0.7, 0.5));
 
+    mRecvSyncButton = std::make_unique<SonoDrawableButton>("", DrawableButton::ButtonStyle::ImageFitted);
+    std::unique_ptr<Drawable> recvimg(Drawable::createFromImageData(BinaryData::receive_sync_svg, BinaryData::receive_sync_svgSize));
+    mRecvSyncButton->setImages(recvimg.get());
+    mRecvSyncButton->addListener(this);
+    mRecvSyncButton->setTooltip(TRANS("Synchronize receive latency for all."));
+    mRecvSyncButton->setTitle(TRANS("Synchronize Receive"));
+    mRecvSyncButton->setAlpha(0.8f);
+
     mBufferMinButton = std::make_unique<SonoDrawableButton>("", DrawableButton::ButtonStyle::ImageFitted);
     std::unique_ptr<Drawable> backimg(Drawable::createFromImageData(BinaryData::reset_buffer_icon_svg, BinaryData::reset_buffer_icon_svgSize));
     mBufferMinButton->setImages(backimg.get());
@@ -1197,6 +1205,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     mTopLevelContainer->addAndMakeVisible(mFileAreaBg.get());
     mTopLevelContainer->addAndMakeVisible(mMetEnableButton.get());
     mTopLevelContainer->addAndMakeVisible(mMetConfigButton.get());
+    mTopLevelContainer->addAndMakeVisible(mRecvSyncButton.get());
     mTopLevelContainer->addAndMakeVisible(mEffectsButton.get());
     mTopLevelContainer->addAndMakeVisible(mBufferMinButton.get());
 
@@ -2075,6 +2084,30 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
     }
     else if (buttonThatWasClicked == mBufferMinButton.get()) {
         resetJitterBufferForAll();
+    }
+    else if (buttonThatWasClicked == mRecvSyncButton.get()) {
+        SonobusAudioProcessor::LatencyInfo latinfo;
+        float maxrecvMs = 0;
+
+        // determine maxrecvMs value from peers
+        for (int j=0; j < processor.getNumberRemotePeers(); ++j) {
+            processor.getRemotePeerLatencyInfo(j, latinfo);
+            if (latinfo.incomingMs > maxrecvMs){
+                maxrecvMs = latinfo.incomingMs;
+            }
+        }
+
+        // add another 2ms to maxrecMs for good measure
+        maxrecvMs = maxrecvMs + 2;
+
+        // add the delta between maxrecvMs and incomingMs to jitter buffer
+        for (int j=0; j < processor.getNumberRemotePeers(); ++j) {
+            processor.getRemotePeerLatencyInfo(j, latinfo);
+            float deltaMs = maxrecvMs - latinfo.incomingMs;
+
+            // set peer jitter buffer to new value
+            processor.setRemotePeerBufferTime(j, processor.getRemotePeerBufferTime(j) + deltaMs);
+        }
     }
     else if (buttonThatWasClicked == mMainMuteButton.get()) {
         // allow or disallow sending to all peers, handled by button attachment
@@ -4795,6 +4828,8 @@ void SonobusAudioProcessorEditor::updateLayout()
     outputMainBox.items.clear();
     outputMainBox.flexDirection = FlexBox::Direction::row;
     outputMainBox.items.add(FlexItem(7, 6).withMargin(0).withFlex(0));
+    outputMainBox.items.add(FlexItem(toolwidth, minitemheight, *mRecvSyncButton).withMargin(0).withFlex(0));
+    outputMainBox.items.add(FlexItem(4, 6).withMargin(0).withFlex(0));
     outputMainBox.items.add(FlexItem(toolwidth, minitemheight, *mBufferMinButton).withMargin(0).withFlex(0));
     outputMainBox.items.add(FlexItem(4, 6).withMargin(0).withFlex(0));
     outputMainBox.items.add(FlexItem(toolwidth, minitemheight, *mEffectsButton).withMargin(0).withFlex(0));
