@@ -2,7 +2,7 @@ name: Build Windows (SONOBUS)
 
 on:
   push:
-    branches: [ main ]
+    branches: [ 1.7.4-gh-actions ]
   pull_request:
 
 jobs:
