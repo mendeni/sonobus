@@ -1,4 +1,4 @@
-name: Build Windows (SONOBUS)
+name: Build Windows (SonoBus)
 
 on:
   push:
@@ -6,32 +6,49 @@ on:
   pull_request:
 
 jobs:
-  build-win64:
-    name: Build & Package Windows (x64)
+  build-windows:
     runs-on: windows-latest
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Set up CMake
       uses: jwlawson/actions-setup-cmake@v2
       with:
-        cmake-version: "3.24"
+        cmake-version: "3.22"
 
-    - name: Configure build
+    - name: Install MSVC v141 toolset
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        toolset: "14.16"
+
+    - name: Install Cygwin
+      uses: cygwin/cygwin-install-action@v4
+      with:
+        packages: >
+          make
+          gcc-core
+          gcc-g++
+          perl
+          python3
+          git
+
+    - name: Configure
+      shell: cmd
       run: |
         mkdir build
         cd build
-        cmake -DCMAKE_BUILD_TYPE=Release ..
+        cmake -G "Visual Studio 15 2017" -A x64 ..
 
     - name: Build
+      shell: cmd
       run: |
         cd build
         cmake --build . --config Release
 
-    - name: Upload Windows build artifact
-      uses: actions/upload-artifact@v3
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
       with:
         name: sonobus-windows-release
         path: build/SonoBus_artefacts/Release
