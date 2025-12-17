@@ -18,14 +18,22 @@ jobs:
       with:
         cmake-version: "3.22"
 
-    # Install VS 2017 (v141) build tools
-    - name: Install MSVC v141 toolset
-      uses: microsoft/setup-msbuild@v2
+    # Enable VS environment (VS 2022)
+    - name: Enable MSVC environment
+      uses: ilammy/msvc-dev-cmd@v1
       with:
-        vs-version: '[15.0,16.0)'   # Visual Studio 2017
-        msbuild-architecture: x64
+        arch: x64
 
-    # Install Cygwin (required by SonoBus)
+    # Install v141 (VS 2017) toolset into VS 2022
+    - name: Install MSVC v141 toolset
+      shell: powershell
+      run: |
+        & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" modify `
+          --installPath "C:\Program Files\Microsoft Visual Studio\2022\Enterprise" `
+          --add Microsoft.VisualStudio.Component.VC.v141.x86.x64 `
+          --quiet --norestart --nocache
+
+    # Install Cygwin (required)
     - name: Install Cygwin
       uses: cygwin/cygwin-install-action@v4
       with:
@@ -42,7 +50,7 @@ jobs:
       run: |
         mkdir build
         cd build
-        cmake -G "Visual Studio 15 2017" -A x64 ..
+        cmake -G "Visual Studio 17 2022" -A x64 -T v141 ..
 
     - name: Build
       shell: cmd
