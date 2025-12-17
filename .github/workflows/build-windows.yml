@@ -13,27 +13,34 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    # Ensure compatible CMake version
     - name: Set up CMake
       uses: jwlawson/actions-setup-cmake@v2
       with:
         cmake-version: "3.22"
 
-    # Enable VS environment (VS 2022)
+    # Install required Visual Studio components:
+    # - VC++ workload (VCTargetsPath)
+    # - Windows SDK
+    # - v141 (VS 2017) toolset
+    - name: Install MSVC components (C++ + SDK + v141)
+      shell: powershell
+      run: |
+        & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" modify `
+          --installPath "C:\Program Files\Microsoft Visual Studio\2022\Enterprise" `
+          --add Microsoft.VisualStudio.Workload.VCTools `
+          --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 `
+          --add Microsoft.VisualStudio.Component.Windows10SDK.19041 `
+          --add Microsoft.VisualStudio.Component.VC.v141.x86.x64 `
+          --quiet --norestart --nocache
+
+    # Initialize MSVC environment variables for CMake/MSBuild
     - name: Enable MSVC environment
       uses: ilammy/msvc-dev-cmd@v1
       with:
         arch: x64
 
-    # Install v141 (VS 2017) toolset into VS 2022
-    - name: Install MSVC v141 toolset
-      shell: powershell
-      run: |
-        & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" modify `
-          --installPath "C:\Program Files\Microsoft Visual Studio\2022\Enterprise" `
-          --add Microsoft.VisualStudio.Component.VC.v141.x86.x64 `
-          --quiet --norestart --nocache
-
-    # Install Cygwin (required)
+    # Install Cygwin (required by SonoBus build scripts)
     - name: Install Cygwin
       uses: cygwin/cygwin-install-action@v4
       with:
@@ -45,6 +52,7 @@ jobs:
           python3
           git
 
+    # Configure the project
     - name: Configure
       shell: cmd
       run: |
@@ -52,12 +60,14 @@ jobs:
         cd build
         cmake -G "Visual Studio 17 2022" -A x64 -T v141 ..
 
+    # Build Release configuration
     - name: Build
       shell: cmd
       run: |
         cd build
         cmake --build . --config Release
 
+    # Upload build artifacts
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
