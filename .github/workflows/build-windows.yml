@@ -1,0 +1,38 @@
+name: Build Windows (SONOBUS)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  build-win64:
+    name: Build & Package Windows (x64)
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up CMake
+      uses: jwlawson/actions-setup-cmake@v2
+      with:
+        cmake-version: "3.24"
+
+    - name: Configure build
+      run: |
+        mkdir build
+        cd build
+        cmake -DCMAKE_BUILD_TYPE=Release ..
+
+    - name: Build
+      run: |
+        cd build
+        cmake --build . --config Release
+
+    - name: Upload Windows build artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: sonobus-windows-release
+        path: build/SonoBus_artefacts/Release
+
