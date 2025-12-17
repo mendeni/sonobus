@@ -1,4 +1,4 @@
-name: Build Windows (SonoBus)
+name: Build Windows (SonoBus 1.7.4)
 
 on:
   push:
@@ -18,11 +18,14 @@ jobs:
       with:
         cmake-version: "3.22"
 
+    # Install VS 2017 (v141) build tools
     - name: Install MSVC v141 toolset
-      uses: ilammy/msvc-dev-cmd@v1
+      uses: microsoft/setup-msbuild@v2
       with:
-        toolset: "14.16"
+        vs-version: '[15.0,16.0)'   # Visual Studio 2017
+        msbuild-architecture: x64
 
+    # Install Cygwin (required by SonoBus)
     - name: Install Cygwin
       uses: cygwin/cygwin-install-action@v4
       with:
