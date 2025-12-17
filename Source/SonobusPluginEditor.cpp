@@ -2097,8 +2097,10 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
             }
         }
 
-        // add another 2ms to maxrecMs for good measure
-        maxrecvMs = maxrecvMs + 2;
+        // add another 2ms to maxrecMs for good measure (if we have peers)
+        if (processor.getNumberRemotePeers() > 1){
+            maxrecvMs = maxrecvMs + 2;
+        }
 
         // add the delta between maxrecvMs and incomingMs to jitter buffer
         for (int j=0; j < processor.getNumberRemotePeers(); ++j) {
