@@ -38,6 +38,7 @@ jobs:
       - name: Debug workspace & run make (MSYS2)
         shell: msys2 {0}
         run: |
+          cmake --version
           ./setupcmakewin.sh
           ./buildcmake.sh
 
