@@ -2,8 +2,7 @@ name: SonoBus — Build on Linux
 
 on:
   push:
-    branches:
-      - main
+    branches: [ 1.7.4-gh-actions ]
   pull_request:
 
 jobs:
