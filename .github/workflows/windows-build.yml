@@ -15,6 +15,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install MSVC toolset
+        uses: ilammy/msvc-dev-cmd@v1
+
       - name: Setup MSYS2 and install build tools
         uses: msys2/setup-msys2@v2
         with:
