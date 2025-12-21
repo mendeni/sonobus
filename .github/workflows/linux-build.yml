@@ -21,26 +21,18 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y build-essential cmake git libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libfreetype-dev libopus-dev libasound2-dev libjack-jackd2-dev
 
-      # Configure CMake
-      # - name: Configure CMake
-      #   run: |
-      #     ./configure CC="gcc" --enable-deep-plc
-
       # Build & Test
       - name: Build
         run: |
           ./setupcmake.sh
           ./buildcmake.sh
 
-      # Move libopus.a for packaging
-      # - name: Move libopus.a
-      #   run: |
-      #     mv -v .libs/libopus.a libopus.a
-
       # Upload libopus.a and headers
       - name: Upload Sonobus_artefacts
         uses: actions/upload-artifact@v4
         with:
           name: SonoBusMendeni-${{ runner.os }}
-          path: build/SonoBus_artefacts/Release
+          path: |
+             build/SonoBus_artefacts/Release/Standalone
+             build/SonoBus_artefacts/Release/VST3
 
