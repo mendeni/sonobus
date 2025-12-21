@@ -28,7 +28,6 @@ jobs:
             autoconf
             automake
             cmake
-            ninja
             gcc
             m4
             perl
