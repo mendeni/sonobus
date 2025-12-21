@@ -1,0 +1,47 @@
+name: SonoBus — Build on Linux
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build:
+    name: Build (Linux)
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repo
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Install dependencies
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake git
+
+      # Configure CMake
+      # - name: Configure CMake
+      #   run: |
+      #     ./configure CC="gcc" --enable-deep-plc
+
+      # Build & Test
+      - name: Build
+        run: |
+          ./setupcmakewin.sh
+          ./buildcmake.sh
+
+      # Move libopus.a for packaging
+      # - name: Move libopus.a
+      #   run: |
+      #     mv -v .libs/libopus.a libopus.a
+
+      # Upload libopus.a and headers
+      - name: Upload Sonobus_artefacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: SonoBusMendeni-${{ runner.os }}
+          path: build/SonoBus_artefacts/Release
+
