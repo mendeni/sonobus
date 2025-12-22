@@ -15,8 +15,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install MSVC toolset
+        uses: ilammy/msvc-dev-cmd@v1
+
       - name: Configure CMake
-        run: cmake -S . -B build
+        run: cmake -G "Visual Studio 17 2022" -A "x64" -B build
 
       # Build
       - name: Build
