@@ -1,4 +1,4 @@
-name: SonoBus — Build on MacOS
+name: SonoBus — Build on Windows
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    name: Build (MacOS)
+    name: Build (Windows)
     runs-on: macos-latest
 
     steps:
@@ -15,8 +15,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Build & Test
+      # Build
       - name: Build
+        shell: bash
         run: |
           ./setupcmake.sh
           ./buildcmake.sh
