@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     name: Build (Windows)
-    runs-on: macos-latest
+    runs-on: windows-latest
 
     steps:
       # Checkout the repo
