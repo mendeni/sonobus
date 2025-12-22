@@ -15,16 +15,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Configure CMake
+      - name: Configure CMake & Build
         run: >
           cmake -B build -S . 
-          -DJUCE_ENABLE_STANDALONE_APPLICATION=ON
+          cmake --build build --config Release --target SonoBus_Standalone
 
       # Build
       - name: Build
         shell: bash
         run: |
-          ./buildcmake.sh
           ./find.sh
 
       # Upload Standalone and VST3
