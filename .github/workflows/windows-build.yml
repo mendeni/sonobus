@@ -15,7 +15,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Configure Cmake
-        run: cmake -S . -B build -DJUCE_ENABLE_STANDALONE_APPLICATION:BOOL=ON -DJUCE_ASIO:BOOL=OFf
+        run: cmake -S . -B build -DJUCE_ENABLE_STANDALONE_APPLICATION:BOOL=ON -DJUCE_ASIO:BOOL=OFF
 
       - name: Dump CMake cache
         run: |
