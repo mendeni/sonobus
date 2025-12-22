@@ -20,6 +20,7 @@ jobs:
         run: |
           ./setupcmakewin.sh
           ./buildcmake.sh
+          ./find.sh
 
       # Upload Standalone and VST3
       - name: Upload Sonobus_artefacts
