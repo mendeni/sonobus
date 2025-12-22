@@ -15,13 +15,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Configure CMake & Build
-        run: >
-          cmake -B build -S . 
-          -DJUCE_ENABLE_STANDALONE_APPLICATION=ON
-          cmake --build build --config Release --target SonoBus_Standalone
+      - name: Configure
+        run: cmake -S . -B build -DJUCE_ENABLE_STANDALONE_APPLICATION=ON
 
-      # Build
+      - name: Build Standalone
+        run: cmake --build build --config Release --target SonoBus
+
+      # Find
       - name: Build
         shell: bash
         run: |
