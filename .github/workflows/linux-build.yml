@@ -1,0 +1,38 @@
+name: SonoBus — Build on Linux
+
+on:
+  push:
+    branches: [ 1.7.4-gh-actions ]
+  pull_request:
+
+jobs:
+  build:
+    name: Build (Linux)
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repo
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Install dependencies
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake git libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libfreetype-dev libopus-dev libasound2-dev libjack-jackd2-dev
+
+      # Build & Test
+      - name: Build
+        run: |
+          ./setupcmake.sh
+          ./buildcmake.sh
+
+      # Upload Standalone and VST3
+      - name: Upload Sonobus_artefacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: SonoBusMendeni-${{ runner.os }}
+          path: |
+             build/SonoBus_artefacts/Release/Standalone
+             build/SonoBus_artefacts/Release/VST3
+
