@@ -16,15 +16,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install ASIO SDK
-        run: |
-          git clone https://github.com/steinbergmedia/asiosdk.git C:\asiosdk
+        run: git clone https://github.com/steinbergmedia/asiosdk.git C:\asiosdk
 
       - name: Configure Cmake
-         run: >
-           cmake -S . -B build
-           -DJUCE_ENABLE_STANDALONE_APPLICATION=ON
-           -DJUCE_ASIO=ON
-           -DJUCE_ASIO_SDK_PATH=C:\asiosdk
+        run: cmake -S . -B build -DJUCE_ENABLE_STANDALONE_APPLICATION=ON -DJUCE_ASIO=ON -DJUCE_ASIO_SDK_PATH=C:\asiosdk
 
       - name: Build Standalone
         run: cmake --build build --config Release --target SonoBus
