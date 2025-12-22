@@ -19,7 +19,7 @@ jobs:
       - name: Build
         shell: bash
         run: |
-          ./setupcmake.sh
+          ./setupcmakewin.sh
           ./buildcmake.sh
 
       # Upload Standalone and VST3
