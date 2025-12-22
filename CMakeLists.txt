@@ -188,6 +188,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
     set (HEADER_INCLUDES
         deps/aoo/lib
         deps/aoo/deps
+        deps/asio
     )
 
     set (LIB_PATHS  "")
