@@ -11,7 +11,6 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      # Checkout the repo
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -22,14 +21,14 @@ jobs:
         run: |
           findstr JUCE_ASIO build\CMakeCache.txt
 
-      - name: Build Standalone
-        run: cmake --build build --config Release --target SonoBus
-
-      # Find
       - name: Find
         shell: bash
         run: |
           ./find.sh
+
+      - name: Build Standalone
+        run: cmake --build build --config Release --target SonoBus
+
 
       # Upload Standalone and VST3
       - name: Upload Sonobus_artefacts
