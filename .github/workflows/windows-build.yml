@@ -18,6 +18,10 @@ jobs:
       - name: Configure Cmake
         run: cmake -S . -B build -DJUCE_ENABLE_STANDALONE_APPLICATION=ON -DJUCE_ASIO=ON "-DJUCE_ASIO_SDK_PATH=${{ github.workspace }}/deps/asio"
 
+      - name: Dump CMake cache
+        run: |
+          findstr JUCE_ASIO build\CMakeCache.txt
+
       - name: Build Standalone
         run: cmake --build build --config Release --target SonoBus
 
