@@ -22,7 +22,6 @@ jobs:
       - name: Build
         shell: bash
         run: |
-           cmake --build build --target help
           ./buildcmake.sh
           ./find.sh
 
