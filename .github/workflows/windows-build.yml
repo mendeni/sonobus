@@ -15,10 +15,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Build & Test
+      - name: Configure CMake
+        run: cmake -S . -B build
+
+      # Build
       - name: Build
+        shell: bash
         run: |
-          ./setupcmakewin.sh
           ./buildcmake.sh
 
       # Upload Standalone and VST3
@@ -29,3 +32,4 @@ jobs:
           path: |
              build/SonoBus_artefacts/Release/Standalone
              build/SonoBus_artefacts/Release/VST3
+
