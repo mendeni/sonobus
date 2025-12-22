@@ -1,5 +1,5 @@
 #!/bin/sh -x
 
 echo 999999999999999999999999999999999999
-find . -name 'SonoBus.exe'
+find . -name 'iasiodrv.h'
 echo 999999999999999999999999999999999999
