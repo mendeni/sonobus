@@ -1,4 +1,4 @@
-name: SonoBus — Build on ${{ runner.os }}
+name: SonoBus — Build on MacOS
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    name: Build ${{ runner.os }}
+    name: Build MacOS
     runs-on: macos-latest
 
     steps:

@@ -1,4 +1,4 @@
-name: SonoBus — Build on ${{ runner.os }}
+name: SonoBus — Build on MacOS
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    name: Build ${{ runner.os }}
+    name: Build MacOS
     runs-on: windows-latest
 
     steps:
@@ -17,19 +17,10 @@ jobs:
       - name: Configure Cmake
         run: cmake -S . -B build -DJUCE_ENABLE_STANDALONE_APPLICATION:BOOL=ON -DJUCE_ASIO:BOOL=ON
 
-      # - name: Dump CMake cache
-      #   run: |
-      #     findstr JUCE_ASIO build\CMakeCache.txt
-
       - name: Build Standalone
         run: |
           cmake --build build --config Release --target SonoBus_Standalone
           cmake --build build --config Release --target SonoBus_VST3
-
-      # - name: Find
-      #   shell: bash
-      #   run: |
-      #     ./find.sh
 
       - name: Upload Sonobus_artefacts
         uses: actions/upload-artifact@v4
