@@ -8,28 +8,21 @@ on:
 jobs:
   build:
     name: Build ${{ runner.os }}
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Configure Cmake
-        run: cmake -S . -B build -DJUCE_ENABLE_STANDALONE_APPLICATION:BOOL=ON -DJUCE_ASIO:BOOL=ON
-
-      # - name: Dump CMake cache
-      #   run: |
-      #     findstr JUCE_ASIO build\CMakeCache.txt
-
-      - name: Build Standalone
+      - name: Install dependencies
         run: |
-          cmake --build build --config Release --target SonoBus_Standalone
-          cmake --build build --config Release --target SonoBus_VST3
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake git libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libfreetype-dev libopus-dev libasound2-dev libjack-jackd2-dev
 
-      # - name: Find
-      #   shell: bash
-      #   run: |
-      #     ./find.sh
+      - name: Build
+        run: |
+          ./setupcmake.sh
+          ./buildcmake.sh
 
       - name: Upload Sonobus_artefacts
         uses: actions/upload-artifact@v4

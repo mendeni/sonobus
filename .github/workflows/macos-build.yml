@@ -1,0 +1,29 @@
+name: SonoBus — Build on ${{ runner.os }}
+
+on:
+  push:
+    branches: [ 1.7.4-gh-actions ]
+  pull_request:
+
+jobs:
+  build:
+    name: Build ${{ runner.os }}
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build
+        run: |
+          ./setupcmake.sh
+          ./buildcmake.sh
+
+      - name: Upload Sonobus_artefacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: SonoBusMendeni-${{ runner.os }}
+          path: |
+             build/SonoBus_artefacts/Release/Standalone
+             build/SonoBus_artefacts/Release/VST3
+
