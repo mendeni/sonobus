@@ -22,7 +22,9 @@ jobs:
           findstr JUCE_ASIO build\CMakeCache.txt
 
       - name: Build Standalone
-        run: cmake --build build --config Release --target SonoBus_Standalone
+        run: |
+          cmake --build build --config Release --target SonoBus_Standalone
+          cmake --build build --config Release --target SonoBus_VST3
 
       - name: Find
         shell: bash
