@@ -2,7 +2,7 @@ name: SonoBus — Build on Windows
 
 on:
   push:
-    branches: [ 1.7.4-gh-actions ]
+    branches: [ 1.7.4-gh-actions-opus ]
   pull_request:
 
 jobs:
