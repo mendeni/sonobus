@@ -2,7 +2,7 @@ name: SonoBus — Build on MacOS
 
 on:
   push:
-    branches: [ 1.7.4-gh-actions-opus ]
+    branches:
   pull_request:
 
 jobs:
