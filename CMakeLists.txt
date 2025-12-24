@@ -191,10 +191,11 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         deps/asio
         deps/asio/common
         deps/asio/host
+        deps/linux/include
     )
 
     set (LIB_PATHS
-        deps/linux/opus/lib/opus
+        deps/linux/opus/lib
     )
 
     set (PLAT_COMPILE_DEFS
