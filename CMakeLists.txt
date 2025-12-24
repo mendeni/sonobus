@@ -193,7 +193,9 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         deps/asio/host
     )
 
-    set (LIB_PATHS  "")
+    set (LIB_PATHS
+        deps/linux/opus/lib/opus
+    )
 
     set (PLAT_COMPILE_DEFS
         $<$<CONFIG:Debug>:LOGLEVEL=2>
