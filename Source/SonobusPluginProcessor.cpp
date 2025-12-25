@@ -8213,21 +8213,25 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
 
     // mix input reverb into main buffer
     if (doinreverb) {
-        for (int channel = 0; channel < mainBusOutputChannels && channel < 2; ++channel) {
-            if (drynow > 0.0f || dryrampit) {
-                // attenuate reverb with monitor level if used
-                if (dryrampit) {
-                    buffer.addFromWithRamp(channel, 0, inputRevBuffer.getReadPointer(channel), numSamples, mLastDry, drynow);
-                }
-                else {
-                    buffer.addFrom(channel, 0, inputRevBuffer.getReadPointer(channel), numSamples, drynow);
-                }
-            }
-            else if (inrevdirect) {
-                // add the full input reverb to mix, if monitoring is off
-                buffer.addFrom(channel, 0, inputRevBuffer.getReadPointer(channel), numSamples);
-            }
+
+        if (inReverbEnabled != mLastInputReverbEnabled && inReverbEnabled) {
+            mInputReverb.reset();
         }
+
+        mInputReverb.process((float **)inputRevBuffer.getArrayOfWritePointers(), (float **)inputRevBuffer.getArrayOfWritePointers(), numSamples);
+
+        if (inReverbEnabled != mLastInputReverbEnabled ) {
+            float sgain = inReverbEnabled ? 0.0f : 1.0f;
+            float egain = inReverbEnabled ? 1.0f : 0.0f;
+
+            inputRevBuffer.applyGainRamp(0, numSamples, sgain, egain);
+        }
+
+        // mix it into send workbuffer for each channel up to 4
+        for (int channel = 0; channel < sendPanChannels && channel < 4; ++channel) {
+              sendWorkBuffer.addFrom(channel, 0, inputRevBuffer, channel, 0, numSamples);
+        }
+
     }
 
     // add from file playback buffer
