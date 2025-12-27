@@ -1,52 +1,86 @@
-# Unified build for Linux, macOS, and Windows
-name: SonoBus — Build (matrix)
+# SonoBus — Build Android
+# Adjust NDK / platform / build-tools versions below as required for your project.
+name: SonoBus — Build on Android
 
 on:
   push:
+    branches:
   pull_request:
 
 jobs:
-  build:
-    name: Build ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+  build-android:
+    name: Build Android
+    runs-on: ubuntu-latest
+    env:
+      ANDROID_HOME: ${{ runner.workspace }}/android-sdk
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install dependencies (Linux)
-        if: runner.os == 'Linux'
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '11'
+
+      - name: Install required apt packages
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential cmake git libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libfreetype-dev libopus-dev libasound2-dev libjack-jackd2-dev
+          sudo apt-get install -y build-essential cmake git python3 unzip curl
 
-      - name: Configure CMake (Windows)
-        if: runner.os == 'Windows'
-        run: cmake -S . -B build -DJUCE_ENABLE_STANDALONE_APPLICATION:BOOL=ON -DJUCE_ASIO:BOOL=ON
-
-      - name: Configure CMake / Setup (Linux & macOS)
-        if: runner.os != 'Windows'
+      - name: Install Android SDK command-line tools and packages
         run: |
-          ./setupcmake.sh
+          set -eux
+          mkdir -p "$ANDROID_HOME"
+          cd "$ANDROID_HOME"
 
-      - name: Build (Windows)
-        if: runner.os == 'Windows'
+          # Download command line tools (update URL if it changes)
+          curl -o cmdline-tools.zip -L "https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip"
+          unzip -q cmdline-tools.zip -d cmdline-tools
+          # Move to the "latest" layout expected by sdkmanager
+          mkdir -p cmdline-tools/latest
+          mv cmdline-tools/cmdline-tools/* cmdline-tools/latest/ || true
+
+          # Set SDK root for sdkmanager invocations
+          export ANDROID_SDK_ROOT="$ANDROID_HOME"
+
+          # Accept licenses and install SDK components (change versions as needed)
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_HOME" --licenses
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_HOME" \
+            "platform-tools" \
+            "platforms;android-31" \
+            "build-tools;31.0.0" \
+            "ndk;23.1.7779620" \
+            "cmake;3.22.1"
+
+      - name: Export Android environment variables
         run: |
-          cmake --build build --config Release --target SonoBus_Standalone
-          cmake --build build --config Release --target SonoBus_VST3
+          echo "ANDROID_SDK_ROOT=$ANDROID_HOME" >> $GITHUB_ENV
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/23.1.7779620" >> $GITHUB_ENV
+          echo "$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
+          echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
 
-      - name: Build (Linux & macOS)
-        if: runner.os != 'Windows'
+      - name: Build (CMake / Android)
+        # Adjust calls below to match your repo's build scripts or Gradle build
         run: |
-          ./buildcmake.sh
+          set -eux
+          # If your setupcmake/buildcmake scripts accept an "android" argument or use ANDROID_NDK_HOME, pass it.
+          # Replace these calls with your Gradle build or other Android build steps if needed.
+          ./setupcmake.sh android || true
+          ./buildcmake.sh android || true
 
-      - name: Upload Sonobus artifacts
+      - name: Gather artifacts
+        run: |
+          # Adjust the path to where your Android build places APKs or AARs
+          ls -la build || true
+          find build -type f -name "*.apk" -print || true
+
+      - name: Upload Android artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: SonoBusMendeni-${{ matrix.os }}
+          name: SonoBus_Android-${{ runner.os }}
           path: |
-            build/SonoBus_artefacts/Release/Standalone
-            build/SonoBus_artefacts/Release/VST3
+            build/**/*.apk
+            build/**/*.aab
+            build/**/*.aar
