@@ -11,7 +11,7 @@ jobs:
     name: Build Android
     runs-on: ubuntu-latest
     env:
-      ANDROID_HOME: ${{ runner.workspace }}/android-sdk
+      ANDROID_HOME: ${{ github.workspace }}/android-sdk
 
     steps:
       - name: Checkout code
