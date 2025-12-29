@@ -1,5 +1,4 @@
 # SonoBus — Build Android
-# Adjust NDK / platform / build-tools versions below as required for your project.
 name: SonoBus — Build on Android
 
 on:
