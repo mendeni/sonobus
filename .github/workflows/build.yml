@@ -69,6 +69,8 @@ jobs:
           ./setupcmake.sh android || true
           ./buildcmake.sh android || true
 
+      - name: Find Android artifacts run: | echo "Looking for APK/AAB/AAR files under mobile/Builds/Android and app/build ..." find mobile -type f -name ".apk" -o -name ".aab" -o -name ".aar" || true find app -type f -name ".apk" -o -name ".aab" -o -name ".aar" || true
+
       - name: Gather artifacts
         run: |
           # Adjust the path to where your Android build places APKs or AARs
