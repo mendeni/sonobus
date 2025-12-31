@@ -5,6 +5,7 @@
 
 #include "SonobusPluginProcessor.h"
 #include "SonobusPluginEditor.h"
+#include "OSCController.h"
 
 #include "RunCumulantor.h"
 
@@ -836,6 +837,9 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     mFormatManager.registerBasicFormats();    
     
     initializeAoo();
+
+    // Initialize OSC controller
+    mOSCController = std::make_unique<OSCController>(*this);
 
     mFreshInit = false; // need to ensure this before loaddefaultpluginstate
 
@@ -8587,6 +8591,11 @@ void SonobusAudioProcessor::getStateInformationWithOptions(MemoryBlock& destData
     sbcg.setProperty("chgID", "soundboard", nullptr);
     extraChannelGroupsTree.appendChild(sbcg, nullptr);
 
+    // Save OSC state
+    if (mOSCController)
+    {
+        mOSCController->saveState(tempstate);
+    }
     
     ValueTree peerCacheTree = tempstate.getOrCreateChildWithName(peerStateCacheMapKey, nullptr);
     if (includecache) {
@@ -8794,6 +8803,12 @@ void SonobusAudioProcessor::setStateInformationWithOptions (const void* data, in
 
         // don't recover main solo
         mState.getParameter(paramMainMonitorSolo)->setValueNotifyingHost(0.0f);
+        
+        // Load OSC state
+        if (mOSCController)
+        {
+            mOSCController->loadState(mState.state);
+        }
         
         if (mFreshInit) {
             // only do initial auto reconnect on the first state restore

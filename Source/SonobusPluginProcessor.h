@@ -22,6 +22,8 @@
 
 #include "SoundboardChannelProcessor.h"
 
+class OSCController;
+
 typedef MVerb<float> MVerbFloat;
 
 namespace SonoAudio {
@@ -831,6 +833,9 @@ public:
     void setUseUniversalFont(bool flag) { mUseUniversalFont = flag; }
     bool getUseUniversalFont() const { return mUseUniversalFont; }
 
+    // OSC
+    OSCController* getOSCController() { return mOSCController.get(); }
+
 private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SonobusAudioProcessor)
@@ -1255,6 +1260,9 @@ private:
     // metronome
     std::unique_ptr<SonoAudio::Metronome> mMetronome;
    
+    // OSC controller
+    std::unique_ptr<OSCController> mOSCController;
+    
     // misc
     bool mSliderSnapToMouse = true;
     bool mDisableKeyboardShortcuts = false;
