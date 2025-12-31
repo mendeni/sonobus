@@ -240,9 +240,32 @@ void OSCController::loadState(const juce::ValueTree& parentTree)
         return;
     
     mReceiveEnabled = oscTree.getProperty("receiveEnabled", false);
-    mReceivePort = oscTree.getProperty("receivePort", 9951);
+    
+    // Validate and load receive port
+    int loadedReceivePort = oscTree.getProperty("receivePort", 9951);
+    if (loadedReceivePort >= 1024 && loadedReceivePort <= 65535)
+    {
+        mReceivePort = loadedReceivePort;
+    }
+    else
+    {
+        DBG("OSC: Invalid receive port in saved state, using default");
+        mReceivePort = 9951;
+    }
+    
     mSendHost = oscTree.getProperty("sendHost", "127.0.0.1").toString();
-    mSendPort = oscTree.getProperty("sendPort", 9952);
+    
+    // Validate and load send port
+    int loadedSendPort = oscTree.getProperty("sendPort", 9952);
+    if (loadedSendPort >= 1024 && loadedSendPort <= 65535)
+    {
+        mSendPort = loadedSendPort;
+    }
+    else
+    {
+        DBG("OSC: Invalid send port in saved state, using default");
+        mSendPort = 9952;
+    }
     
     // Apply the loaded state
     if (mReceiveEnabled)

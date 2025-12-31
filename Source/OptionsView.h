@@ -89,6 +89,11 @@ protected:
 
     void changeUdpPort(int port);
     void chooseRecDirBrowser();
+    
+    // OSC validation helpers
+    void validateAndSetOscReceivePort();
+    void validateAndSetOscSendPort();
+    void validateAndSetOscSendHost();
 
 
     SonobusAudioProcessor& processor;

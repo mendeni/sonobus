@@ -1111,40 +1111,13 @@ void OptionsView::textEditorReturnKeyPressed (TextEditor& ed)
         changeUdpPort(port);
     }
     else if (&ed == mOptionsOscReceivePortEditor.get()) {
-        int port = mOptionsOscReceivePortEditor->getText().getIntValue();
-        if (port < 1024 || port > 65535) {
-            showPopTip(TRANS("Port must be between 1024 and 65535"), 2000, mOptionsOscReceivePortEditor.get(), 180);
-            updateState(true); // Restore previous valid value
-            return;
-        }
-        if (auto* oscController = processor.getOSCController()) {
-            if (!oscController->setReceivePort(port)) {
-                showPopTip(TRANS("Failed to set OSC receive port"), 2000, mOptionsOscReceivePortEditor.get(), 180);
-                updateState(true); // Restore previous valid value
-            }
-        }
+        validateAndSetOscReceivePort();
     }
     else if (&ed == mOptionsOscSendHostEditor.get()) {
-        String host = mOptionsOscSendHostEditor->getText();
-        if (host.isEmpty()) {
-            showPopTip(TRANS("Host cannot be empty"), 2000, mOptionsOscSendHostEditor.get(), 120);
-            updateState(true); // Restore previous valid value
-            return;
-        }
-        if (auto* oscController = processor.getOSCController()) {
-            oscController->setSendHost(host);
-        }
+        validateAndSetOscSendHost();
     }
     else if (&ed == mOptionsOscSendPortEditor.get()) {
-        int port = mOptionsOscSendPortEditor->getText().getIntValue();
-        if (port < 1024 || port > 65535) {
-            showPopTip(TRANS("Port must be between 1024 and 65535"), 2000, mOptionsOscSendPortEditor.get(), 180);
-            updateState(true); // Restore previous valid value
-            return;
-        }
-        if (auto* oscController = processor.getOSCController()) {
-            oscController->setSendPort(port);
-        }
+        validateAndSetOscSendPort();
     }
 }
 
@@ -1167,40 +1140,55 @@ void OptionsView::textEditorFocusLost (TextEditor& ed)
         changeUdpPort(port);
     }
     else if (&ed == mOptionsOscReceivePortEditor.get()) {
-        int port = mOptionsOscReceivePortEditor->getText().getIntValue();
-        if (port < 1024 || port > 65535) {
-            showPopTip(TRANS("Port must be between 1024 and 65535"), 2000, mOptionsOscReceivePortEditor.get(), 180);
-            updateState(true); // Restore previous valid value
-            return;
-        }
-        if (auto* oscController = processor.getOSCController()) {
-            if (!oscController->setReceivePort(port)) {
-                showPopTip(TRANS("Failed to set OSC receive port"), 2000, mOptionsOscReceivePortEditor.get(), 180);
-                updateState(true); // Restore previous valid value
-            }
-        }
+        validateAndSetOscReceivePort();
     }
     else if (&ed == mOptionsOscSendHostEditor.get()) {
-        String host = mOptionsOscSendHostEditor->getText();
-        if (host.isEmpty()) {
-            showPopTip(TRANS("Host cannot be empty"), 2000, mOptionsOscSendHostEditor.get(), 120);
-            updateState(true); // Restore previous valid value
-            return;
-        }
-        if (auto* oscController = processor.getOSCController()) {
-            oscController->setSendHost(host);
-        }
+        validateAndSetOscSendHost();
     }
     else if (&ed == mOptionsOscSendPortEditor.get()) {
-        int port = mOptionsOscSendPortEditor->getText().getIntValue();
-        if (port < 1024 || port > 65535) {
-            showPopTip(TRANS("Port must be between 1024 and 65535"), 2000, mOptionsOscSendPortEditor.get(), 180);
+        validateAndSetOscSendPort();
+    }
+}
+
+void OptionsView::validateAndSetOscReceivePort()
+{
+    int port = mOptionsOscReceivePortEditor->getText().getIntValue();
+    if (port < 1024 || port > 65535) {
+        showPopTip(TRANS("Port must be between 1024 and 65535"), 2000, mOptionsOscReceivePortEditor.get(), 180);
+        updateState(true); // Restore previous valid value
+        return;
+    }
+    if (auto* oscController = processor.getOSCController()) {
+        if (!oscController->setReceivePort(port)) {
+            showPopTip(TRANS("Failed to set OSC receive port"), 2000, mOptionsOscReceivePortEditor.get(), 180);
             updateState(true); // Restore previous valid value
-            return;
         }
-        if (auto* oscController = processor.getOSCController()) {
-            oscController->setSendPort(port);
-        }
+    }
+}
+
+void OptionsView::validateAndSetOscSendPort()
+{
+    int port = mOptionsOscSendPortEditor->getText().getIntValue();
+    if (port < 1024 || port > 65535) {
+        showPopTip(TRANS("Port must be between 1024 and 65535"), 2000, mOptionsOscSendPortEditor.get(), 180);
+        updateState(true); // Restore previous valid value
+        return;
+    }
+    if (auto* oscController = processor.getOSCController()) {
+        oscController->setSendPort(port);
+    }
+}
+
+void OptionsView::validateAndSetOscSendHost()
+{
+    String host = mOptionsOscSendHostEditor->getText();
+    if (host.isEmpty()) {
+        showPopTip(TRANS("Host cannot be empty"), 2000, mOptionsOscSendHostEditor.get(), 120);
+        updateState(true); // Restore previous valid value
+        return;
+    }
+    if (auto* oscController = processor.getOSCController()) {
+        oscController->setSendHost(host);
     }
 }
 
