@@ -127,6 +127,15 @@ protected:
     std::unique_ptr<Label> mVersionLabel;
     std::unique_ptr<ToggleButton> mOptionsChangeAllFormatButton;
 
+    // OSC settings
+    std::unique_ptr<ToggleButton> mOptionsOscEnableButton;
+    std::unique_ptr<TextEditor>  mOptionsOscReceivePortEditor;
+    std::unique_ptr<Label>  mOptionsOscReceivePortLabel;
+    std::unique_ptr<TextEditor>  mOptionsOscSendHostEditor;
+    std::unique_ptr<Label>  mOptionsOscSendHostLabel;
+    std::unique_ptr<TextEditor>  mOptionsOscSendPortEditor;
+    std::unique_ptr<Label>  mOptionsOscSendPortLabel;
+
     std::unique_ptr<ToggleButton> mOptionsHearLatencyButton;
     std::unique_ptr<ToggleButton> mOptionsMetRecordedButton;
     std::unique_ptr<ToggleButton> mOptionsDynamicResamplingButton;
@@ -174,6 +183,9 @@ protected:
     FlexBox optionsSendQualBox;
     FlexBox optionsHearlatBox;
     FlexBox optionsUdpBox;
+    FlexBox optionsOscEnableBox;
+    FlexBox optionsOscReceivePortBox;
+    FlexBox optionsOscSendBox;
     FlexBox optionsDynResampleBox;
     FlexBox optionsOverrideSamplerateBox;
     FlexBox optionsCheckForUpdateBox;

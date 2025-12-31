@@ -2,6 +2,7 @@
 // Copyright (C) 2021 Jesse Chappell
 
 #include "OptionsView.h"
+#include "OSCController.h"
 
 #if JUCE_ANDROID
 #include "juce_core/native/juce_BasicNativeHeaders.h"
@@ -255,6 +256,33 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mOptionsUseSpecificUdpPortButton = std::make_unique<ToggleButton>(TRANS("Use Specific UDP Port"));
     mOptionsUseSpecificUdpPortButton->addListener(this);
 
+    // OSC controls
+    mOptionsOscEnableButton = std::make_unique<ToggleButton>(TRANS("Enable OSC Control"));
+    mOptionsOscEnableButton->addListener(this);
+    
+    mOptionsOscReceivePortLabel = std::make_unique<Label>("", TRANS("OSC Receive Port:"));
+    configLabel(mOptionsOscReceivePortLabel.get());
+    mOptionsOscReceivePortEditor = std::make_unique<TextEditor>();
+    configEditor(mOptionsOscReceivePortEditor.get());
+    mOptionsOscReceivePortEditor->addListener(this);
+    mOptionsOscReceivePortEditor->setInputRestrictions(5, "0123456789");
+    mOptionsOscReceivePortEditor->setText("9951");
+    
+    mOptionsOscSendHostLabel = std::make_unique<Label>("", TRANS("OSC Send Host:"));
+    configLabel(mOptionsOscSendHostLabel.get());
+    mOptionsOscSendHostEditor = std::make_unique<TextEditor>();
+    configEditor(mOptionsOscSendHostEditor.get());
+    mOptionsOscSendHostEditor->addListener(this);
+    mOptionsOscSendHostEditor->setText("127.0.0.1");
+    
+    mOptionsOscSendPortLabel = std::make_unique<Label>("", TRANS("OSC Send Port:"));
+    configLabel(mOptionsOscSendPortLabel.get());
+    mOptionsOscSendPortEditor = std::make_unique<TextEditor>();
+    configEditor(mOptionsOscSendPortEditor.get());
+    mOptionsOscSendPortEditor->addListener(this);
+    mOptionsOscSendPortEditor->setInputRestrictions(5, "0123456789");
+    mOptionsOscSendPortEditor->setText("9952");
+
     mOptionsDynamicResamplingButton = std::make_unique<ToggleButton>(TRANS("Use Drift Correction (NOT RECOMMENDED)"));
     mDynamicResamplingAttachment = std::make_unique<AudioProcessorValueTreeState::ButtonAttachment> (processor.getValueTreeState(), SonobusAudioProcessor::paramDynamicResampling, *mOptionsDynamicResamplingButton);
 
@@ -370,6 +398,16 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     //mOptionsComponent->addAndMakeVisible(mOptionsHearLatencyButton.get());
     mOptionsComponent->addAndMakeVisible(mOptionsUdpPortEditor.get());
     mOptionsComponent->addAndMakeVisible(mOptionsUseSpecificUdpPortButton.get());
+    
+    // Add OSC controls
+    mOptionsComponent->addAndMakeVisible(mOptionsOscEnableButton.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsOscReceivePortLabel.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsOscReceivePortEditor.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsOscSendHostLabel.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsOscSendHostEditor.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsOscSendPortLabel.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsOscSendPortEditor.get());
+    
     mOptionsComponent->addAndMakeVisible(mOptionsDynamicResamplingButton.get());
     mOptionsComponent->addAndMakeVisible(mOptionsAutoReconnectButton.get());
     mOptionsComponent->addAndMakeVisible(mOptionsInputLimiterButton.get());
@@ -621,6 +659,24 @@ void OptionsView::updateState(bool ignorecheck)
         }
     }
 
+    // Update OSC settings
+    if (auto* oscController = processor.getOSCController())
+    {
+        mOptionsOscEnableButton->setToggleState(oscController->isReceiveEnabled(), dontSendNotification);
+        mOptionsOscReceivePortEditor->setText(String(oscController->getReceivePort()), dontSendNotification);
+        mOptionsOscSendHostEditor->setText(oscController->getSendHost(), dontSendNotification);
+        mOptionsOscSendPortEditor->setText(String(oscController->getSendPort()), dontSendNotification);
+        
+        // Enable/disable OSC editors based on OSC enable state
+        bool oscEnabled = oscController->isReceiveEnabled();
+        mOptionsOscReceivePortEditor->setEnabled(oscEnabled);
+        mOptionsOscSendHostEditor->setEnabled(oscEnabled);
+        mOptionsOscSendPortEditor->setEnabled(oscEnabled);
+        mOptionsOscReceivePortLabel->setEnabled(oscEnabled);
+        mOptionsOscSendHostLabel->setEnabled(oscEnabled);
+        mOptionsOscSendPortLabel->setEnabled(oscEnabled);
+    }
+
 
     if (JUCEApplication::isStandaloneApp()) {
         if (getShouldOverrideSampleRateValue) {
@@ -759,6 +815,30 @@ void OptionsView::updateLayout()
     optionsUdpBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsUseSpecificUdpPortButton).withMargin(0).withFlex(1));
     optionsUdpBox.items.add(FlexItem(90, minitemheight, *mOptionsUdpPortEditor).withMargin(0).withFlex(0));
 
+    // OSC boxes
+    optionsOscEnableBox.items.clear();
+    optionsOscEnableBox.flexDirection = FlexBox::Direction::row;
+    optionsOscEnableBox.items.add(FlexItem(10, 12).withFlex(0));
+    optionsOscEnableBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsOscEnableButton).withMargin(0).withFlex(1));
+
+    optionsOscReceivePortBox.items.clear();
+    optionsOscReceivePortBox.flexDirection = FlexBox::Direction::row;
+    optionsOscReceivePortBox.items.add(FlexItem(25, 12));
+    optionsOscReceivePortBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsOscReceivePortLabel).withMargin(0).withFlex(0).withMaxWidth(120));
+    optionsOscReceivePortBox.items.add(FlexItem(4, 12));
+    optionsOscReceivePortBox.items.add(FlexItem(60, minitemheight, *mOptionsOscReceivePortEditor).withMargin(0).withFlex(0).withMaxWidth(90));
+
+    optionsOscSendBox.items.clear();
+    optionsOscSendBox.flexDirection = FlexBox::Direction::row;
+    optionsOscSendBox.items.add(FlexItem(25, 12));
+    optionsOscSendBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsOscSendHostLabel).withMargin(0).withFlex(0).withMaxWidth(100));
+    optionsOscSendBox.items.add(FlexItem(4, 12));
+    optionsOscSendBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOptionsOscSendHostEditor).withMargin(0).withFlex(1));
+    optionsOscSendBox.items.add(FlexItem(8, 12));
+    optionsOscSendBox.items.add(FlexItem(40, minitemheight, *mOptionsOscSendPortLabel).withMargin(0).withFlex(0).withMaxWidth(50));
+    optionsOscSendBox.items.add(FlexItem(4, 12));
+    optionsOscSendBox.items.add(FlexItem(60, minitemheight, *mOptionsOscSendPortEditor).withMargin(0).withFlex(0).withMaxWidth(90));
+
     optionsDynResampleBox.items.clear();
     optionsDynResampleBox.flexDirection = FlexBox::Direction::row;
     optionsDynResampleBox.items.add(FlexItem(10, 12).withFlex(0));
@@ -836,6 +916,13 @@ void OptionsView::updateLayout()
     optionsBox.items.add(FlexItem(100, minpassheight, optionsSnapToMouseBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(100, minpassheight, optionsAutoReconnectBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(100, minitemheight, optionsUdpBox).withMargin(2).withFlex(0));
+    
+    // Add OSC UI
+    optionsBox.items.add(FlexItem(4, 4));
+    optionsBox.items.add(FlexItem(100, minpassheight, optionsOscEnableBox).withMargin(2).withFlex(0));
+    optionsBox.items.add(FlexItem(100, minitemheight, optionsOscReceivePortBox).withMargin(2).withFlex(0));
+    optionsBox.items.add(FlexItem(100, minitemheight, optionsOscSendBox).withMargin(2).withFlex(0));
+    
     if (JUCEApplicationBase::isStandaloneApp()) {
         optionsBox.items.add(FlexItem(100, minpassheight, optionsOverrideSamplerateBox).withMargin(2).withFlex(0));
         if (mOptionsAllowBluetoothInput) {
@@ -1023,6 +1110,24 @@ void OptionsView::textEditorReturnKeyPressed (TextEditor& ed)
         int port = mOptionsUdpPortEditor->getText().getIntValue();
         changeUdpPort(port);
     }
+    else if (&ed == mOptionsOscReceivePortEditor.get()) {
+        int port = mOptionsOscReceivePortEditor->getText().getIntValue();
+        if (auto* oscController = processor.getOSCController()) {
+            oscController->setReceivePort(port);
+        }
+    }
+    else if (&ed == mOptionsOscSendHostEditor.get()) {
+        String host = mOptionsOscSendHostEditor->getText();
+        if (auto* oscController = processor.getOSCController()) {
+            oscController->setSendHost(host);
+        }
+    }
+    else if (&ed == mOptionsOscSendPortEditor.get()) {
+        int port = mOptionsOscSendPortEditor->getText().getIntValue();
+        if (auto* oscController = processor.getOSCController()) {
+            oscController->setSendPort(port);
+        }
+    }
 }
 
 void OptionsView::textEditorEscapeKeyPressed (TextEditor& ed)
@@ -1042,6 +1147,24 @@ void OptionsView::textEditorFocusLost (TextEditor& ed)
     if (&ed == mOptionsUdpPortEditor.get()) {
         int port = mOptionsUdpPortEditor->getText().getIntValue();
         changeUdpPort(port);
+    }
+    else if (&ed == mOptionsOscReceivePortEditor.get()) {
+        int port = mOptionsOscReceivePortEditor->getText().getIntValue();
+        if (auto* oscController = processor.getOSCController()) {
+            oscController->setReceivePort(port);
+        }
+    }
+    else if (&ed == mOptionsOscSendHostEditor.get()) {
+        String host = mOptionsOscSendHostEditor->getText();
+        if (auto* oscController = processor.getOSCController()) {
+            oscController->setSendHost(host);
+        }
+    }
+    else if (&ed == mOptionsOscSendPortEditor.get()) {
+        int port = mOptionsOscSendPortEditor->getText().getIntValue();
+        if (auto* oscController = processor.getOSCController()) {
+            oscController->setSendPort(port);
+        }
     }
 }
 
@@ -1129,6 +1252,21 @@ void OptionsView::buttonClicked (Button* buttonThatWasClicked)
             changeUdpPort(0);
         } else {
             updateState(true);
+        }
+    }
+    else if (buttonThatWasClicked == mOptionsOscEnableButton.get()) {
+        if (auto* oscController = processor.getOSCController())
+        {
+            bool enabled = mOptionsOscEnableButton->getToggleState();
+            oscController->setReceiveEnabled(enabled);
+            
+            // Update UI enable state
+            mOptionsOscReceivePortEditor->setEnabled(enabled);
+            mOptionsOscSendHostEditor->setEnabled(enabled);
+            mOptionsOscSendPortEditor->setEnabled(enabled);
+            mOptionsOscReceivePortLabel->setEnabled(enabled);
+            mOptionsOscSendHostLabel->setEnabled(enabled);
+            mOptionsOscSendPortLabel->setEnabled(enabled);
         }
     }
     else if (buttonThatWasClicked == mOptionsOverrideSamplerateButton.get()) {
