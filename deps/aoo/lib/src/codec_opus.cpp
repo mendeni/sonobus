@@ -314,8 +314,16 @@ struct decoder : codec {
         if (state){
             opus_multistream_decoder_destroy(state);
         }
+        if (dred_decoder){
+            opus_dred_decoder_destroy(dred_decoder);
+        }
+        if (dred_state){
+            opus_dred_free(dred_state);
+        }
     }
     OpusMSDecoder * state = nullptr;
+    OpusDREDDecoder * dred_decoder = nullptr;
+    OpusDRED * dred_state = nullptr;
 };
 
 void *decoder_new(){
@@ -383,6 +391,38 @@ bool decoder_dosetformat(decoder *c, aoo_format_opus& f){
         opus_multistream_decoder_ctl(c->state, OPUS_SET_SIGNAL(f.signal_type));
         opus_multistream_decoder_ctl(c->state, OPUS_GET_SIGNAL(&f.signal_type));
     #endif
+        // Initialize DRED if enabled
+        if (f.dred_duration > 0) {
+            // Clean up existing DRED resources if any
+            if (c->dred_decoder) {
+                opus_dred_decoder_destroy(c->dred_decoder);
+                c->dred_decoder = nullptr;
+            }
+            if (c->dred_state) {
+                opus_dred_free(c->dred_state);
+                c->dred_state = nullptr;
+            }
+            
+            // Create DRED decoder
+            int dred_error = OPUS_OK;
+            c->dred_decoder = opus_dred_decoder_create(&dred_error);
+            if (dred_error == OPUS_OK && c->dred_decoder) {
+                // Allocate DRED state
+                c->dred_state = opus_dred_alloc(&dred_error);
+                if (dred_error == OPUS_OK && c->dred_state) {
+                    LOG_VERBOSE("Opus: DRED decoder initialized successfully");
+                } else {
+                    LOG_ERROR("Opus: opus_dred_alloc() failed with error code " << dred_error);
+                    if (c->dred_decoder) {
+                        opus_dred_decoder_destroy(c->dred_decoder);
+                        c->dred_decoder = nullptr;
+                    }
+                }
+            } else {
+                LOG_ERROR("Opus: opus_dred_decoder_create() failed with error code " << dred_error);
+            }
+        }
+        
         // save and print settings
         memcpy(&c->format, &f, sizeof(aoo_format_opus));
         c->format.header.codec = AOO_CODEC_OPUS; // !
