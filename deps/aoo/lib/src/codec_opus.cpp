@@ -11,6 +11,9 @@
 
 namespace {
 
+// Opus format serialization size (in bytes)
+constexpr int32_t AOO_OPUS_FORMAT_SIZE = 20; // includes DRED duration
+
 void print_settings(const aoo_format_opus& f){
     const char *type;
     switch (f.signal_type){
@@ -47,7 +50,8 @@ void print_settings(const aoo_format_opus& f){
                 << ", bitrate = " << f.bitrate
                 << ", complexity = " << f.complexity
                 << ", application = " << apptype
-                << ", signal type = " << type);
+                << ", signal type = " << type
+                << ", DRED duration = " << f.dred_duration);
 }
 
 /*/////////////////////// codec base ////////////////////////*/
@@ -99,6 +103,14 @@ void validate_format(aoo_format_opus& f)
     // validate application type, default to AUDIO
     if (f.application_type == 0) {
         f.application_type = OPUS_APPLICATION_AUDIO;
+    }
+    // validate DRED duration (0 = disabled, 1-100 = number of 10ms frames)
+    if (f.dred_duration < 0) {
+        LOG_WARNING("Opus: DRED duration " << f.dred_duration << " out of range - disabling DRED");
+        f.dred_duration = 0;
+    } else if (f.dred_duration > 100) {
+        LOG_WARNING("Opus: DRED duration " << f.dred_duration << " too high - limiting to 100");
+        f.dred_duration = 100;
     }
     // bitrate, complexity and signal type should be validated by opus
 }
@@ -195,6 +207,14 @@ int32_t encoder_setformat(void *enc, aoo_format *f){
         // signal type
         opus_multistream_encoder_ctl(c->state, OPUS_SET_SIGNAL(fmt->signal_type));
         opus_multistream_encoder_ctl(c->state, OPUS_GET_SIGNAL(&fmt->signal_type));
+        // DRED duration
+        if (fmt->dred_duration > 0) {
+            opus_multistream_encoder_ctl(c->state, OPUS_SET_DRED_DURATION(fmt->dred_duration));
+            opus_multistream_encoder_ctl(c->state, OPUS_GET_DRED_DURATION(&fmt->dred_duration));
+            LOG_VERBOSE("Opus: DRED enabled with duration " << fmt->dred_duration);
+        } else {
+            fmt->dred_duration = 0; // ensure it's 0 if disabled
+        }
     } else {
         LOG_ERROR("Opus: opus_encoder_create() failed with error code " << error);
         return 0;
@@ -212,7 +232,7 @@ int32_t encoder_setformat(void *enc, aoo_format *f){
 
 int32_t encoder_writeformat(void *enc, aoo_format *fmt,
                             char *buf, int32_t size){
-    if (size >= 16){
+    if (size >= AOO_OPUS_FORMAT_SIZE){
         // if encoder is null we assume the format passed in
         // is actually a reference to an aoo_format_opus,
         // and this call is used for serialization purposes
@@ -229,7 +249,8 @@ int32_t encoder_writeformat(void *enc, aoo_format *fmt,
         aoo::to_bytes<int32_t>(ofmt->complexity, buf + 4);
         aoo::to_bytes<int32_t>(ofmt->signal_type, buf + 8);
         aoo::to_bytes<int32_t>(ofmt->application_type, buf + 12);
-        return 16;
+        aoo::to_bytes<int32_t>(ofmt->dred_duration, buf + 16);
+        return AOO_OPUS_FORMAT_SIZE;
     } else {
         LOG_WARNING("Opus: couldn't write settings");
         return -1;
@@ -245,17 +266,26 @@ int32_t encoder_readformat(void *enc, aoo_format *fmt,
     if (size >= 12){
         auto c = static_cast<encoder *>(enc);
         aoo_format_opus f;
-        int32_t retsize = 12;
         // opus will validate for us
         memcpy(&f.header, fmt, sizeof(aoo_format));
         f.bitrate = aoo::from_bytes<int32_t>(buf);
         f.complexity = aoo::from_bytes<int32_t>(buf + 4);
         f.signal_type = aoo::from_bytes<int32_t>(buf + 8);
+        
+        // Read optional fields and determine actual format size
+        int32_t retsize = 12;
         if (size >= 16) {
             f.application_type = aoo::from_bytes<int32_t>(buf + 12);
             retsize = 16;
+            if (size >= AOO_OPUS_FORMAT_SIZE) {
+                f.dred_duration = aoo::from_bytes<int32_t>(buf + 16);
+                retsize = AOO_OPUS_FORMAT_SIZE;
+            } else {
+                f.dred_duration = 0;
+            }
         } else {
             f.application_type = OPUS_APPLICATION_AUDIO;
+            f.dred_duration = 0;
         }
         
         if (encoder_setformat(c, reinterpret_cast<aoo_format *>(&f))){
@@ -290,8 +320,16 @@ struct decoder : codec {
         if (state){
             opus_multistream_decoder_destroy(state);
         }
+        if (dred_decoder){
+            opus_dred_decoder_destroy(dred_decoder);
+        }
+        if (dred_state){
+            opus_dred_free(dred_state);
+        }
     }
     OpusMSDecoder * state = nullptr;
+    OpusDREDDecoder * dred_decoder = nullptr;
+    OpusDRED * dred_state = nullptr;
 };
 
 void *decoder_new(){
@@ -359,6 +397,38 @@ bool decoder_dosetformat(decoder *c, aoo_format_opus& f){
         opus_multistream_decoder_ctl(c->state, OPUS_SET_SIGNAL(f.signal_type));
         opus_multistream_decoder_ctl(c->state, OPUS_GET_SIGNAL(&f.signal_type));
     #endif
+        // Initialize DRED if enabled
+        if (f.dred_duration > 0) {
+            // Clean up existing DRED resources if any
+            if (c->dred_decoder) {
+                opus_dred_decoder_destroy(c->dred_decoder);
+                c->dred_decoder = nullptr;
+            }
+            if (c->dred_state) {
+                opus_dred_free(c->dred_state);
+                c->dred_state = nullptr;
+            }
+            
+            // Create DRED decoder
+            int dred_error = OPUS_OK;
+            c->dred_decoder = opus_dred_decoder_create(&dred_error);
+            if (dred_error == OPUS_OK && c->dred_decoder) {
+                // Allocate DRED state
+                c->dred_state = opus_dred_alloc(&dred_error);
+                if (dred_error == OPUS_OK && c->dred_state) {
+                    LOG_VERBOSE("Opus: DRED decoder initialized successfully");
+                } else {
+                    LOG_ERROR("Opus: opus_dred_alloc() failed with error code " << dred_error);
+                    if (c->dred_decoder) {
+                        opus_dred_decoder_destroy(c->dred_decoder);
+                        c->dred_decoder = nullptr;
+                    }
+                }
+            } else {
+                LOG_ERROR("Opus: opus_dred_decoder_create() failed with error code " << dred_error);
+            }
+        }
+        
         // save and print settings
         memcpy(&c->format, &f, sizeof(aoo_format_opus));
         c->format.header.codec = AOO_CODEC_OPUS; // !
@@ -395,17 +465,26 @@ int32_t decoder_readformat(void *dec, aoo_format *fmt,
     if (size >= 12){
         auto c = static_cast<decoder *>(dec);
         aoo_format_opus f;
-        int32_t retsize = 12;
         // opus will validate for us
         memcpy(&f.header, fmt, sizeof(aoo_format));
         f.bitrate = aoo::from_bytes<int32_t>(buf);
         f.complexity = aoo::from_bytes<int32_t>(buf + 4);
         f.signal_type = aoo::from_bytes<int32_t>(buf + 8);
+        
+        // Read optional fields and determine actual format size
+        int32_t retsize = 12;
         if (size >= 16) {
             f.application_type = aoo::from_bytes<int32_t>(buf + 12);
             retsize = 16;
+            if (size >= AOO_OPUS_FORMAT_SIZE) {
+                f.dred_duration = aoo::from_bytes<int32_t>(buf + 16);
+                retsize = AOO_OPUS_FORMAT_SIZE;
+            } else {
+                f.dred_duration = 0;
+            }
         } else {
             f.application_type = OPUS_APPLICATION_AUDIO;
+            f.dred_duration = 0;
         }
         
         if (decoder_dosetformat(c, f)){
