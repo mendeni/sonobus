@@ -11,6 +11,9 @@
 
 namespace {
 
+// Opus format serialization size (in bytes)
+constexpr int32_t AOO_OPUS_FORMAT_SIZE = 20; // includes DRED duration
+
 void print_settings(const aoo_format_opus& f){
     const char *type;
     switch (f.signal_type){
@@ -229,7 +232,7 @@ int32_t encoder_setformat(void *enc, aoo_format *f){
 
 int32_t encoder_writeformat(void *enc, aoo_format *fmt,
                             char *buf, int32_t size){
-    if (size >= 20){
+    if (size >= AOO_OPUS_FORMAT_SIZE){
         // if encoder is null we assume the format passed in
         // is actually a reference to an aoo_format_opus,
         // and this call is used for serialization purposes
@@ -247,7 +250,7 @@ int32_t encoder_writeformat(void *enc, aoo_format *fmt,
         aoo::to_bytes<int32_t>(ofmt->signal_type, buf + 8);
         aoo::to_bytes<int32_t>(ofmt->application_type, buf + 12);
         aoo::to_bytes<int32_t>(ofmt->dred_duration, buf + 16);
-        return 20;
+        return AOO_OPUS_FORMAT_SIZE;
     } else {
         LOG_WARNING("Opus: couldn't write settings");
         return -1;
@@ -263,22 +266,25 @@ int32_t encoder_readformat(void *enc, aoo_format *fmt,
     if (size >= 12){
         auto c = static_cast<encoder *>(enc);
         aoo_format_opus f;
-        int32_t retsize = 12;
         // opus will validate for us
         memcpy(&f.header, fmt, sizeof(aoo_format));
         f.bitrate = aoo::from_bytes<int32_t>(buf);
         f.complexity = aoo::from_bytes<int32_t>(buf + 4);
         f.signal_type = aoo::from_bytes<int32_t>(buf + 8);
+        
+        // Read optional fields and determine actual format size
+        int32_t retsize = 12;
         if (size >= 16) {
             f.application_type = aoo::from_bytes<int32_t>(buf + 12);
             retsize = 16;
+            if (size >= AOO_OPUS_FORMAT_SIZE) {
+                f.dred_duration = aoo::from_bytes<int32_t>(buf + 16);
+                retsize = AOO_OPUS_FORMAT_SIZE;
+            } else {
+                f.dred_duration = 0;
+            }
         } else {
             f.application_type = OPUS_APPLICATION_AUDIO;
-        }
-        if (size >= 20) {
-            f.dred_duration = aoo::from_bytes<int32_t>(buf + 16);
-            retsize = 20;
-        } else {
             f.dred_duration = 0;
         }
         
@@ -459,22 +465,25 @@ int32_t decoder_readformat(void *dec, aoo_format *fmt,
     if (size >= 12){
         auto c = static_cast<decoder *>(dec);
         aoo_format_opus f;
-        int32_t retsize = 12;
         // opus will validate for us
         memcpy(&f.header, fmt, sizeof(aoo_format));
         f.bitrate = aoo::from_bytes<int32_t>(buf);
         f.complexity = aoo::from_bytes<int32_t>(buf + 4);
         f.signal_type = aoo::from_bytes<int32_t>(buf + 8);
+        
+        // Read optional fields and determine actual format size
+        int32_t retsize = 12;
         if (size >= 16) {
             f.application_type = aoo::from_bytes<int32_t>(buf + 12);
             retsize = 16;
+            if (size >= AOO_OPUS_FORMAT_SIZE) {
+                f.dred_duration = aoo::from_bytes<int32_t>(buf + 16);
+                retsize = AOO_OPUS_FORMAT_SIZE;
+            } else {
+                f.dred_duration = 0;
+            }
         } else {
             f.application_type = OPUS_APPLICATION_AUDIO;
-        }
-        if (size >= 20) {
-            f.dred_duration = aoo::from_bytes<int32_t>(buf + 16);
-            retsize = 20;
-        } else {
             f.dred_duration = 0;
         }
         
