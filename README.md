@@ -39,7 +39,96 @@ There are binary releases for macOS and Windows available at [sonobus.net](https
 
 There are packages available for Debian-based Linux distributions as well as a Snap package. See installation instructions at [sonobus.net/linux.html](https://sonobus.net/linux.html).
 
-Or if you prefer, you can build it yourself following the [build instructions](#on-linux) below.
+Or if you prefer, you can build it yourself following the [build instructions](#building) below.
+
+
+# OSC (Open Sound Control) Support
+
+SonoBus includes support for Open Sound Control (OSC), enabling remote control and integration with other OSC-compatible applications and hardware like TouchOSC, Max/MSP, Pure Data, and more.
+
+## Enabling OSC
+
+To enable OSC support:
+
+1. Open the **Options** panel in SonoBus
+2. Navigate to the **Options** tab
+3. Check the **Enable OSC Control** option
+4. Configure the OSC ports and host settings as needed
+
+## OSC Settings
+
+- **OSC Receive Port** (default: 9951): The UDP port SonoBus listens on for incoming OSC messages
+- **OSC Send Host** (default: 127.0.0.1): The IP address where SonoBus sends OSC feedback messages
+- **OSC Send Port** (default: 9952): The UDP port where SonoBus sends OSC feedback messages
+
+## OSC Address Format
+
+SonoBus parameters can be controlled via OSC using the following address pattern:
+
+```
+/sonobus/<parameter_name>
+```
+
+Where `<parameter_name>` is one of the SonoBus parameter names (e.g., `ingain`, `wet`, `dry`, `metgain`, `mettempo`, etc.).
+
+### Example OSC Messages
+
+- Set input gain: `/sonobus/ingain 0.8` (float value 0.0-1.0)
+- Set output level: `/sonobus/wet 1.0` (float value 0.0-2.0)
+- Enable metronome: `/sonobus/metenabled 1` (integer 0 or 1)
+- Set metronome tempo: `/sonobus/mettempo 120.0` (float BPM)
+
+### OSC Feedback
+
+When SonoBus receives an OSC message and successfully updates a parameter, it sends a feedback message to the configured send host/port:
+
+```
+/sonobus/<parameter_name>/feedback <value>
+```
+
+### Testing OSC Connection
+
+You can test if OSC is working by sending a ping message:
+
+```
+/sonobus/ping
+```
+
+SonoBus will respond with:
+
+```
+/sonobus/pong "SonoBus OSC"
+```
+
+## Using OSC with External Tools
+
+### TouchOSC
+1. Configure TouchOSC to send to the IP address and receive port of your SonoBus instance
+2. Create controls that send messages to `/sonobus/` addresses
+3. Enable OSC feedback in TouchOSC to receive parameter updates
+
+### Max/MSP or Pure Data
+Use the `udpsend` and `udpreceive` objects to communicate with SonoBus:
+```
+[udpsend 127.0.0.1 9951]  // Send to SonoBus
+[udpreceive 9952]         // Receive from SonoBus
+```
+
+### Python (python-osc)
+```python
+from pythonosc import udp_client
+
+client = udp_client.SimpleUDPClient("127.0.0.1", 9951)
+client.send_message("/sonobus/ingain", 0.75)
+```
+
+## Notes
+
+- OSC settings are saved with your SonoBus session and persist across restarts
+- OSC operates independently of the SonoBus audio connection
+- All OSC communication uses UDP protocol
+- Parameter values should be normalized to their expected ranges (typically 0.0-1.0)
+
 
 # Building
 
