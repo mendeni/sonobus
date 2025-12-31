@@ -23,30 +23,43 @@ SonoBus supports OSC for remote control and automation. OSC messages can control
 
 All SonoBus OSC messages use the namespace: `/sonobus/`
 
+## Parameter Value Format
+
+**Important**: All parameter values in OSC messages should be sent as **normalized float values between 0.0 and 1.0**, following the standard audio industry practice. JUCE parameters internally use normalized values, and this OSC implementation passes values directly to the parameter system.
+
+- `0.0` = minimum value for the parameter
+- `1.0` = maximum value for the parameter
+- Intermediate values are linearly scaled
+
+For example:
+- Input gain (range 0-4x): Send `0.5` for 2x gain, `1.0` for 4x gain
+- Metronome tempo (range 10-400 BPM): Send `0.0` for 10 BPM, `0.5` for ~205 BPM, `1.0` for 400 BPM
+- Boolean/toggle parameters: Send `0.0` for off/false, `1.0` for on/true
+
 ## Supported Parameters
 
 ### Audio Controls
 
-| OSC Address | Type | Range | Description |
-|------------|------|-------|-------------|
-| `/sonobus/ingain` | float | 0.0 - 4.0 | Input gain level |
+| OSC Address | Type | Normalized Range | Description |
+|------------|------|------------------|-------------|
+| `/sonobus/ingain` | float | 0.0 - 1.0 | Input gain level (0=min, 1=4x gain) |
 | `/sonobus/dry` | float | 0.0 - 1.0 | Dry (monitor) level |
-| `/sonobus/wet` | float | 0.0 - 2.0 | Output (wet) level |
-| `/sonobus/inmonmonopan` | float | -1.0 - 1.0 | Input mono pan (-1=left, 0=center, 1=right) |
-| `/sonobus/inmonpan1` | float | -1.0 - 1.0 | Input channel 1 pan |
-| `/sonobus/inmonpan2` | float | -1.0 - 1.0 | Input channel 2 pan |
+| `/sonobus/wet` | float | 0.0 - 1.0 | Output (wet) level (0=mute, 0.5=unity, 1=2x) |
+| `/sonobus/inmonmonopan` | float | 0.0 - 1.0 | Input mono pan (0=left, 0.5=center, 1=right) |
+| `/sonobus/inmonpan1` | float | 0.0 - 1.0 | Input channel 1 pan (0=left, 0.5=center, 1=right) |
+| `/sonobus/inmonpan2` | float | 0.0 - 1.0 | Input channel 2 pan (0=left, 0.5=center, 1=right) |
 
 ### Metronome Controls
 
-| OSC Address | Type | Range | Description |
-|------------|------|-------|-------------|
-| `/sonobus/metenabled` | int/float | 0 or 1 | Enable/disable metronome |
+| OSC Address | Type | Normalized Range | Description |
+|------------|------|------------------|-------------|
+| `/sonobus/metenabled` | float | 0.0 or 1.0 | Enable/disable metronome |
 | `/sonobus/metgain` | float | 0.0 - 1.0 | Metronome volume |
-| `/sonobus/mettempo` | float | 10.0 - 400.0 | Metronome tempo (BPM) |
-| `/sonobus/sendmetaudio` | int/float | 0 or 1 | Send metronome to others |
-| `/sonobus/metisrecorded` | int/float | 0 or 1 | Record metronome to file |
-| `/sonobus/syncMetHost` | int/float | 0 or 1 | Sync metronome to host (plugin mode) |
-| `/sonobus/syncMetFile` | int/float | 0 or 1 | Sync metronome to file playback |
+| `/sonobus/mettempo` | float | 0.0 - 1.0 | Metronome tempo (0=10 BPM, 1=400 BPM) |
+| `/sonobus/sendmetaudio` | float | 0.0 or 1.0 | Send metronome to others |
+| `/sonobus/metisrecorded` | float | 0.0 or 1.0 | Record metronome to file |
+| `/sonobus/syncMetHost` | float | 0.0 or 1.0 | Sync metronome to host (plugin mode) |
+| `/sonobus/syncMetFile` | float | 0.0 or 1.0 | Sync metronome to file playback |
 
 ### Main Bus Controls
 

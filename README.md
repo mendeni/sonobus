@@ -71,12 +71,17 @@ SonoBus parameters can be controlled via OSC using the following address pattern
 
 Where `<parameter_name>` is one of the SonoBus parameter names (e.g., `ingain`, `wet`, `dry`, `metgain`, `mettempo`, etc.).
 
+**Important**: All parameter values should be sent as **normalized float values between 0.0 and 1.0**. This is the standard in professional audio applications and maps linearly to each parameter's native range.
+
 ### Example OSC Messages
 
-- Set input gain: `/sonobus/ingain 0.8` (float value 0.0-1.0)
-- Set output level: `/sonobus/wet 1.0` (float value 0.0-2.0)
-- Enable metronome: `/sonobus/metenabled 1` (integer 0 or 1)
-- Set metronome tempo: `/sonobus/mettempo 120.0` (float BPM)
+- Set input gain to 50%: `/sonobus/ingain 0.5` (0.0=min, 1.0=max/4x gain)
+- Set output level to unity: `/sonobus/wet 0.5` (0.0=mute, 0.5=unity, 1.0=2x)
+- Enable metronome: `/sonobus/metenabled 1.0` (0.0=off, 1.0=on)
+- Set metronome to 120 BPM: `/sonobus/mettempo 0.282` (0.0=10 BPM, 1.0=400 BPM)
+- Center pan: `/sonobus/inmonmonopan 0.5` (0.0=left, 0.5=center, 1.0=right)
+
+For a complete list of all supported parameters and their ranges, see [doc/OSC_COMMANDS.md](doc/OSC_COMMANDS.md).
 
 ### OSC Feedback
 
