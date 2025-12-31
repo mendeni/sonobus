@@ -195,7 +195,7 @@ void OSCController::handleIncomingMessage(const juce::OSCMessage& message)
                 auto* param = mProcessor.getValueTreeState().getParameter(paramName);
                 if (param != nullptr)
                 {
-                    // Normalize integer to 0-1 range if needed
+                    // Pass integer as float directly (for boolean/choice parameters)
                     param->setValueNotifyingHost(value);
                     DBG("OSC: Set parameter " << paramName << " to " << value);
                     
