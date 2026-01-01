@@ -234,6 +234,9 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
             _WIN32_WINNT=0x0601)
     else()
         # Linux
+	message(${CMAKE_CURRENT_SOURCE_DIR})
+        list (APPEND HEADER_INCLUDES deps/linux/include)
+        list (APPEND LIB_PATHS ${CMAKE_CURRENT_SOURCE_DIR}/deps/linux/lib)
         list (APPEND PlatSourceFiles  Source/CrossPlatformUtilsLinux.cpp)
 	list ( APPEND PLAT_COMPILE_DEFS
 		JUCE_USE_MP3AUDIOFORMAT=1 )
@@ -277,8 +280,6 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         Source/MonitorDelayView.h
         Source/OptionsView.cpp
         Source/OptionsView.h
-        Source/OSCController.cpp
-        Source/OSCController.h
         Source/ParametricEqView.h
         Source/PeersContainerView.cpp
         Source/PeersContainerView.h
@@ -578,7 +579,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
          -fPIC
        )
 
-       find_library(OPUS_LIB opus)
+       find_library(OPUS_LIB opus deps/linux/lib deps/mac/lib deps/windows/Release)
        if (NOT OPUS_LIB)
 	 message(FATAL_ERROR "opus library not found, please install libopus develop package")
        endif()
@@ -613,7 +614,6 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
             juce::juce_dsp
 	    juce::juce_cryptography
             juce::juce_audio_plugin_client
-            juce::juce_osc
             
             ff_meters
             
