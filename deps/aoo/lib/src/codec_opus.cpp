@@ -213,8 +213,10 @@ int32_t encoder_setformat(void *enc, aoo_format *f){
             opus_multistream_encoder_ctl(c->state, OPUS_SET_DRED_DURATION(fmt->dred_duration));
             opus_multistream_encoder_ctl(c->state, OPUS_GET_DRED_DURATION(&fmt->dred_duration));
             LOG_VERBOSE("Opus: DRED enabled with duration " << fmt->dred_duration);
+            std::cout << "Opus DRED: ENCODER INITIALIZED - DRED enabled with " << fmt->dred_duration << " frames (10ms each)" << std::endl;
         } else {
             fmt->dred_duration = 0; // ensure it's 0 if disabled
+            std::cout << "Opus DRED: ENCODER DISABLED - No DRED redundancy" << std::endl;
         }
     } else {
         LOG_ERROR("Opus: opus_encoder_create() failed with error code " << error);
@@ -429,6 +431,7 @@ bool decoder_dosetformat(decoder *c, aoo_format_opus& f){
                 c->dred_state = opus_dred_alloc(&dred_error);
                 if (dred_error == OPUS_OK && c->dred_state) {
                     LOG_VERBOSE("Opus: DRED decoder initialized successfully");
+                    std::cout << "Opus DRED: DECODER INITIALIZED - DRED ready for " << f.dred_duration << " frames of redundancy" << std::endl;
                 } else {
                     LOG_ERROR("Opus: opus_dred_alloc() failed with error code " << dred_error);
                     if (c->dred_decoder) {
@@ -439,6 +442,8 @@ bool decoder_dosetformat(decoder *c, aoo_format_opus& f){
             } else {
                 LOG_ERROR("Opus: opus_dred_decoder_create() failed with error code " << dred_error);
             }
+        } else {
+            std::cout << "Opus DRED: DECODER DISABLED - No DRED redundancy" << std::endl;
         }
         
         // save and print settings
