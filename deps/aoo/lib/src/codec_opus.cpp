@@ -349,18 +349,13 @@ int32_t decoder_decode(void *dec,
     if (c->state){
         auto framesize = n / c->format.header.nchannels;
         
-        // Debug output for DRED engagement status
+        // Debug output for DRED engagement status (only on packet loss)
         if (buf == nullptr || size == 0) {
             // Packet loss concealment (PLC) is happening
             if (c->dred_decoder && c->dred_state && c->format.dred_duration > 0) {
-                std::cout << "Opus DRED: ENGAGED - Using DRED-capable PLC for lost packet" << std::endl;
+                std::cout << "Opus DRED: ENGAGED - Using DRED for packet loss concealment" << std::endl;
             } else {
-                std::cout << "Opus DRED: DISENGAGED - Using standard PLC for lost packet (DRED not enabled)" << std::endl;
-            }
-        } else {
-            // Normal decoding with received packet
-            if (c->dred_decoder && c->dred_state && c->format.dred_duration > 0) {
-                std::cout << "Opus DRED: DISENGAGED - Decoding received packet (DRED standby)" << std::endl;
+                std::cout << "Opus DRED: DISENGAGED - Using standard PLC (DRED not enabled)" << std::endl;
             }
         }
         
