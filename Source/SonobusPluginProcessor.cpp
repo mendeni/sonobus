@@ -6338,7 +6338,7 @@ bool SonobusAudioProcessor::formatInfoToAooFormat(const AudioCodecFormatInfo & i
             fmt->signal_type = info.signal_type;
             fmt->application_type = OPUS_APPLICATION_RESTRICTED_LOWDELAY;
             //fmt->application_type = OPUS_APPLICATION_AUDIO;
-            fmt->dred_duration = 20; // Enable DRED with 20 frames (200ms of redundancy)
+            fmt->dred_duration = 50; // Enable DRED with 50 frames (500ms of redundancy)
             
             return true;
         }
