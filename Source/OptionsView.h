@@ -78,6 +78,11 @@ public:
     std::function<bool(const String &)> setupLocalisation; // = []() { return 0; };
     std::function<void()> saveSettingsIfNeeded; // = []() { return 0; };
 
+    // Add accessor so external code can check recording-related toggles
+    bool isRecEachConnectedEnabled() const
+    {
+        return mOptionsRecOthersButton ? mOptionsRecOthersButton->getToggleState() : false;
+    }
 
 protected:
 

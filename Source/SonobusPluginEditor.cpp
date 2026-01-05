@@ -21,6 +21,7 @@
 #include "LatencyMatchView.h"
 #include "SuggestNewGroupView.h"
 #include "SonoCallOutBox.h"
+#include "OptionsView.h"
 #include <sstream>
 #include <string>
 
@@ -2298,9 +2299,10 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
                 parentDir.createDirectory();
             }
 
-            // capture the round-trip latency for each peer
-            // recordRoundtripLatencyForAll(parentDir.getFullPathName() + "/" + filename);
-            recordRoundtripLatencyForAll(parentDir.getFullPathName(), filename);
+            // capture the round-trip latency for each peer if recording separate tracks
+            if (mOptionsView && mOptionsView->isRecEachConnectedEnabled()) {
+                recordRoundtripLatencyForAll(parentDir.getFullPathName(), filename);
+            }
 
             filename += ".flac";
             
