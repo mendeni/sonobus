@@ -1,4 +1,4 @@
-name: "Copilot Setup Steps"
+name: "Copilot Setup Steps (Linux)"
 
 on:
   workflow_dispatch:
@@ -17,8 +17,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install dependencies (Linux)
-        if: runner.os == 'Linux'
+      - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential cmake git libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libfreetype-dev libasound2-dev libjack-jackd2-dev
@@ -27,7 +26,7 @@ jobs:
         run: |
           ./setupcmake.sh
 
-      - name: Build (Linux & macOS)
+      - name: Build
         run: |
           ./buildcmake.sh
 
