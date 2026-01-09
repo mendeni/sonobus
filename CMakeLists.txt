@@ -280,6 +280,8 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         Source/MonitorDelayView.h
         Source/OptionsView.cpp
         Source/OptionsView.h
+        Source/OSCController.cpp
+        Source/OSCController.h
         Source/ParametricEqView.h
         Source/PeersContainerView.cpp
         Source/PeersContainerView.h
