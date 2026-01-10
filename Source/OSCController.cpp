@@ -210,11 +210,14 @@ void OSCController::handleIncomingMessage(const juce::OSCMessage& message)
                 auto* param = mProcessor.getValueTreeState().getParameter(paramName);
                 if (param != nullptr)
                 {
-                    param->setValueNotifyingHost(value);
-                    DBG("OSC: Set parameter " << paramName << " to " << value);
+                    // OSC values are normalized 0.0-1.0, setValueNotifyingHost expects normalized values
+                    // Clamp to valid range
+                    float normalizedValue = juce::jlimit(0.0f, 1.0f, value);
+                    param->setValueNotifyingHost(normalizedValue);
+                    DBG("OSC: Set parameter " << paramName << " to " << normalizedValue << " (from " << value << ")");
                     
-                    // Send feedback
-                    sendFeedback(address, value);
+                    // Send feedback with the actual set value
+                    sendFeedback(address, normalizedValue);
                 }
                 else
                 {
@@ -223,16 +226,20 @@ void OSCController::handleIncomingMessage(const juce::OSCMessage& message)
             }
             else if (message[0].isInt32())
             {
-                float value = static_cast<float>(message[0].getInt32());
+                int intValue = message[0].getInt32();
                 
                 auto* param = mProcessor.getValueTreeState().getParameter(paramName);
                 if (param != nullptr)
                 {
-                    // Pass integer as float directly (for boolean/choice parameters)
-                    param->setValueNotifyingHost(value);
-                    DBG("OSC: Set parameter " << paramName << " to " << value);
+                    // For boolean parameters, treat as 0.0 or 1.0
+                    // For choice parameters, convert to normalized range
+                    float normalizedValue = static_cast<float>(intValue);
+                    // Clamp to 0.0-1.0 for booleans, or trust the value for choices
+                    normalizedValue = juce::jlimit(0.0f, 1.0f, normalizedValue);
+                    param->setValueNotifyingHost(normalizedValue);
+                    DBG("OSC: Set parameter " << paramName << " to " << normalizedValue << " (from int " << intValue << ")");
                     
-                    sendFeedback(address, value);
+                    sendFeedback(address, normalizedValue);
                 }
             }
         }
