@@ -12,8 +12,7 @@ class SonobusAudioProcessor;
  * Provides both sending and receiving OSC messages to enable remote control
  * and integration with other OSC-compatible applications and hardware.
  */
-class OSCController : public juce::OSCReceiver::Listener<juce::OSCReceiver::MessageLoopCallback>,
-                      public juce::AudioProcessorValueTreeState::Listener
+class OSCController : public juce::OSCReceiver::Listener<juce::OSCReceiver::MessageLoopCallback>
 {
 public:
     OSCController(SonobusAudioProcessor& processor);
@@ -36,18 +35,12 @@ public:
     void setSendEnabled(bool enabled);
     bool isSendEnabled() const { return mSendEnabled; }
     
-    // Initialize parameter listeners (call after processor is fully constructed)
-    void initializeParameterListeners();
-    
     // Sending OSC messages
     bool sendParameterChange(const juce::String& paramId, float value);
     bool sendMessage(const juce::String& address, const juce::OSCMessage& message);
     
     // OSC Receiver callback
     void oscMessageReceived(const juce::OSCMessage& message) override;
-    
-    // Parameter listener callback
-    void parameterChanged(const juce::String& parameterID, float newValue) override;
     
     // State persistence
     void saveState(juce::ValueTree& parentTree);
@@ -70,7 +63,6 @@ private:
     
     juce::CriticalSection mLock;
     bool mSuppressFeedback = false;
-    bool mInitialized = false;  // Track if initialization is complete
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OSCController)
 };

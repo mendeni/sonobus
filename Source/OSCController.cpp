@@ -11,37 +11,8 @@ OSCController::OSCController(SonobusAudioProcessor& processor)
     mSender = std::make_unique<juce::OSCSender>();
 }
 
-void OSCController::initializeParameterListeners()
-{
-    // Register as parameter listener for all parameters
-    auto& vts = mProcessor.getValueTreeState();
-    for (auto* param : mProcessor.getParameters())
-    {
-        if (auto* rangedParam = dynamic_cast<juce::RangedAudioParameter*>(param))
-        {
-            vts.addParameterListener(rangedParam->paramID, this);
-        }
-    }
-    
-    // Mark as initialized to enable callbacks
-    mInitialized = true;
-}
-
 OSCController::~OSCController()
 {
-    // Mark as uninitialized to prevent callbacks during destruction
-    mInitialized = false;
-    
-    // Unregister parameter listeners
-    auto& vts = mProcessor.getValueTreeState();
-    for (auto* param : mProcessor.getParameters())
-    {
-        if (auto* rangedParam = dynamic_cast<juce::RangedAudioParameter*>(param))
-        {
-            vts.removeParameterListener(rangedParam->paramID, this);
-        }
-    }
-    
     if (mReceiver)
     {
         mReceiver->disconnect();
@@ -188,24 +159,6 @@ void OSCController::setSendEnabled(bool enabled)
         mSendEnabled = false;
         DBG("OSC sender disconnected");
     }
-}
-
-void OSCController::parameterChanged(const juce::String& parameterID, float newValue)
-{
-    // Don't do anything if not fully initialized
-    if (!mInitialized)
-        return;
-    
-    // Don't send feedback if we're processing incoming OSC messages
-    if (mSuppressFeedback)
-        return;
-    
-    // Only send if OSC sending is enabled
-    if (!mSendEnabled)
-        return;
-    
-    // Send parameter change as OSC message
-    sendParameterChange(parameterID, newValue);
 }
 
 bool OSCController::sendParameterChange(const juce::String& paramId, float value)

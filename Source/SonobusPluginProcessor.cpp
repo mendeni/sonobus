@@ -840,8 +840,6 @@ mState (*this, &mUndoManager, "SonoBusAoO",
 
     // Initialize OSC controller
     mOSCController = std::make_unique<OSCController>(*this);
-    // Initialize parameter listeners after processor is fully constructed
-    mOSCController->initializeParameterListeners();
 
     mFreshInit = false; // need to ensure this before loaddefaultpluginstate
 

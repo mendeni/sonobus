@@ -1296,7 +1296,6 @@ void OptionsView::buttonClicked (Button* buttonThatWasClicked)
         {
             bool enabled = mOptionsOscEnableButton->getToggleState();
             oscController->setReceiveEnabled(enabled);
-            oscController->setSendEnabled(enabled);  // Also enable/disable sending
             
             // Update UI enable state
             mOptionsOscReceivePortEditor->setEnabled(enabled);
