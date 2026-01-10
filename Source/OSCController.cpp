@@ -12,7 +12,7 @@ OSCController::OSCController(SonobusAudioProcessor& processor)
     
     // Register as parameter listener for all parameters
     auto& vts = mProcessor.getValueTreeState();
-    for (auto* param : vts.processor.getParameters())
+    for (auto* param : mProcessor.getParameters())
     {
         if (auto* rangedParam = dynamic_cast<juce::RangedAudioParameter*>(param))
         {
@@ -25,7 +25,7 @@ OSCController::~OSCController()
 {
     // Unregister parameter listeners
     auto& vts = mProcessor.getValueTreeState();
-    for (auto* param : vts.processor.getParameters())
+    for (auto* param : mProcessor.getParameters())
     {
         if (auto* rangedParam = dynamic_cast<juce::RangedAudioParameter*>(param))
         {
