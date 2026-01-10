@@ -213,7 +213,12 @@ void OSCController::handleIncomingMessage(const juce::OSCMessage& message)
                     // OSC values are normalized 0.0-1.0, setValueNotifyingHost expects normalized values
                     // Clamp to valid range
                     float normalizedValue = juce::jlimit(0.0f, 1.0f, value);
+                    
+                    // Use gesture to ensure proper notification
+                    param->beginChangeGesture();
                     param->setValueNotifyingHost(normalizedValue);
+                    param->endChangeGesture();
+                    
                     DBG("OSC: Set parameter " << paramName << " to " << normalizedValue << " (from " << value << ")");
                     
                     // Send feedback with the actual set value
@@ -236,7 +241,12 @@ void OSCController::handleIncomingMessage(const juce::OSCMessage& message)
                     float normalizedValue = static_cast<float>(intValue);
                     // Clamp to 0.0-1.0 for booleans, or trust the value for choices
                     normalizedValue = juce::jlimit(0.0f, 1.0f, normalizedValue);
+                    
+                    // Use gesture to ensure proper notification
+                    param->beginChangeGesture();
                     param->setValueNotifyingHost(normalizedValue);
+                    param->endChangeGesture();
+                    
                     DBG("OSC: Set parameter " << paramName << " to " << normalizedValue << " (from int " << intValue << ")");
                     
                     sendFeedback(address, normalizedValue);
