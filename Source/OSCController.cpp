@@ -9,7 +9,10 @@ OSCController::OSCController(SonobusAudioProcessor& processor)
 {
     mReceiver = std::make_unique<juce::OSCReceiver>();
     mSender = std::make_unique<juce::OSCSender>();
-    
+}
+
+void OSCController::initializeParameterListeners()
+{
     // Register as parameter listener for all parameters
     auto& vts = mProcessor.getValueTreeState();
     for (auto* param : mProcessor.getParameters())

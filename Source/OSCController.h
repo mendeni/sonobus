@@ -36,6 +36,9 @@ public:
     void setSendEnabled(bool enabled);
     bool isSendEnabled() const { return mSendEnabled; }
     
+    // Initialize parameter listeners (call after processor is fully constructed)
+    void initializeParameterListeners();
+    
     // Sending OSC messages
     bool sendParameterChange(const juce::String& paramId, float value);
     bool sendMessage(const juce::String& address, const juce::OSCMessage& message);
