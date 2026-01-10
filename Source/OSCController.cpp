@@ -210,11 +210,7 @@ void OSCController::handleIncomingMessage(const juce::OSCMessage& message)
                 auto* param = mProcessor.getValueTreeState().getParameter(paramName);
                 if (param != nullptr)
                 {
-                    // Suppress feedback while setting parameter from OSC
-                    mSuppressFeedback = true;
                     param->setValueNotifyingHost(value);
-                    mSuppressFeedback = false;
-                    
                     DBG("OSC: Set parameter " << paramName << " to " << value);
                     
                     // Send feedback
@@ -232,12 +228,8 @@ void OSCController::handleIncomingMessage(const juce::OSCMessage& message)
                 auto* param = mProcessor.getValueTreeState().getParameter(paramName);
                 if (param != nullptr)
                 {
-                    // Suppress feedback while setting parameter from OSC
-                    mSuppressFeedback = true;
                     // Pass integer as float directly (for boolean/choice parameters)
                     param->setValueNotifyingHost(value);
-                    mSuppressFeedback = false;
-                    
                     DBG("OSC: Set parameter " << paramName << " to " << value);
                     
                     sendFeedback(address, value);

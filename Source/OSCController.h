@@ -62,7 +62,6 @@ private:
     int mSendPort = 9952;
     
     juce::CriticalSection mLock;
-    bool mSuppressFeedback = false;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OSCController)
 };
