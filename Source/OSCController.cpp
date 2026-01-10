@@ -22,10 +22,16 @@ void OSCController::initializeParameterListeners()
             vts.addParameterListener(rangedParam->paramID, this);
         }
     }
+    
+    // Mark as initialized to enable callbacks
+    mInitialized = true;
 }
 
 OSCController::~OSCController()
 {
+    // Mark as uninitialized to prevent callbacks during destruction
+    mInitialized = false;
+    
     // Unregister parameter listeners
     auto& vts = mProcessor.getValueTreeState();
     for (auto* param : mProcessor.getParameters())
@@ -186,6 +192,10 @@ void OSCController::setSendEnabled(bool enabled)
 
 void OSCController::parameterChanged(const juce::String& parameterID, float newValue)
 {
+    // Don't do anything if not fully initialized
+    if (!mInitialized)
+        return;
+    
     // Don't send feedback if we're processing incoming OSC messages
     if (mSuppressFeedback)
         return;

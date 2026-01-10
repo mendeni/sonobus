@@ -70,6 +70,7 @@ private:
     
     juce::CriticalSection mLock;
     bool mSuppressFeedback = false;
+    bool mInitialized = false;  // Track if initialization is complete
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OSCController)
 };
