@@ -1162,6 +1162,11 @@ void OptionsView::validateAndSetOscReceivePort()
         if (!oscController->setReceivePort(port)) {
             showPopTip(TRANS("Failed to set OSC receive port"), 2000, mOptionsOscReceivePortEditor.get(), 180);
             updateState(true); // Restore previous valid value
+        } else {
+            // Save settings
+            if (saveSettingsIfNeeded) {
+                saveSettingsIfNeeded();
+            }
         }
     }
 }
@@ -1176,6 +1181,10 @@ void OptionsView::validateAndSetOscSendPort()
     }
     if (auto* oscController = processor.getOSCController()) {
         oscController->setSendPort(port);
+        // Save settings
+        if (saveSettingsIfNeeded) {
+            saveSettingsIfNeeded();
+        }
     }
 }
 
@@ -1189,6 +1198,10 @@ void OptionsView::validateAndSetOscSendHost()
     }
     if (auto* oscController = processor.getOSCController()) {
         oscController->setSendHost(host);
+        // Save settings
+        if (saveSettingsIfNeeded) {
+            saveSettingsIfNeeded();
+        }
     }
 }
 
@@ -1283,6 +1296,7 @@ void OptionsView::buttonClicked (Button* buttonThatWasClicked)
         {
             bool enabled = mOptionsOscEnableButton->getToggleState();
             oscController->setReceiveEnabled(enabled);
+            oscController->setSendEnabled(enabled);  // Also enable/disable sending
             
             // Update UI enable state
             mOptionsOscReceivePortEditor->setEnabled(enabled);
@@ -1291,6 +1305,11 @@ void OptionsView::buttonClicked (Button* buttonThatWasClicked)
             mOptionsOscReceivePortLabel->setEnabled(enabled);
             mOptionsOscSendHostLabel->setEnabled(enabled);
             mOptionsOscSendPortLabel->setEnabled(enabled);
+            
+            // Save settings
+            if (saveSettingsIfNeeded) {
+                saveSettingsIfNeeded();
+            }
         }
     }
     else if (buttonThatWasClicked == mOptionsOverrideSamplerateButton.get()) {

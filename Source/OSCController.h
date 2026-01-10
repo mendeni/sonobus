@@ -12,7 +12,8 @@ class SonobusAudioProcessor;
  * Provides both sending and receiving OSC messages to enable remote control
  * and integration with other OSC-compatible applications and hardware.
  */
-class OSCController : public juce::OSCReceiver::Listener<juce::OSCReceiver::MessageLoopCallback>
+class OSCController : public juce::OSCReceiver::Listener<juce::OSCReceiver::MessageLoopCallback>,
+                      public juce::AudioProcessorValueTreeState::Listener
 {
 public:
     OSCController(SonobusAudioProcessor& processor);
@@ -31,12 +32,19 @@ public:
     void setSendPort(int port);
     int getSendPort() const { return mSendPort; }
     
+    // Enable/disable sending parameter changes via OSC
+    void setSendEnabled(bool enabled);
+    bool isSendEnabled() const { return mSendEnabled; }
+    
     // Sending OSC messages
     bool sendParameterChange(const juce::String& paramId, float value);
     bool sendMessage(const juce::String& address, const juce::OSCMessage& message);
     
     // OSC Receiver callback
     void oscMessageReceived(const juce::OSCMessage& message) override;
+    
+    // Parameter listener callback
+    void parameterChanged(const juce::String& parameterID, float newValue) override;
     
     // State persistence
     void saveState(juce::ValueTree& parentTree);
@@ -53,10 +61,12 @@ private:
     
     bool mReceiveEnabled = false;
     int mReceivePort = 9951;
+    bool mSendEnabled = false;
     juce::String mSendHost = "127.0.0.1";
     int mSendPort = 9952;
     
     juce::CriticalSection mLock;
+    bool mSuppressFeedback = false;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(OSCController)
 };

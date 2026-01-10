@@ -9,10 +9,30 @@ OSCController::OSCController(SonobusAudioProcessor& processor)
 {
     mReceiver = std::make_unique<juce::OSCReceiver>();
     mSender = std::make_unique<juce::OSCSender>();
+    
+    // Register as parameter listener for all parameters
+    auto& vts = mProcessor.getValueTreeState();
+    for (auto* param : vts.processor.getParameters())
+    {
+        if (auto* rangedParam = dynamic_cast<juce::RangedAudioParameter*>(param))
+        {
+            vts.addParameterListener(rangedParam->paramID, this);
+        }
+    }
 }
 
 OSCController::~OSCController()
 {
+    // Unregister parameter listeners
+    auto& vts = mProcessor.getValueTreeState();
+    for (auto* param : vts.processor.getParameters())
+    {
+        if (auto* rangedParam = dynamic_cast<juce::RangedAudioParameter*>(param))
+        {
+            vts.removeParameterListener(rangedParam->paramID, this);
+        }
+    }
+    
     if (mReceiver)
     {
         mReceiver->disconnect();
@@ -93,10 +113,12 @@ void OSCController::setSendHost(const juce::String& host)
         if (mSender->connect(mSendHost, mSendPort))
         {
             DBG("OSC sender connected to " << mSendHost << ":" << mSendPort);
+            mSendEnabled = true;
         }
         else
         {
             DBG("Failed to connect OSC sender to " << mSendHost << ":" << mSendPort);
+            mSendEnabled = false;
         }
     }
 }
@@ -120,12 +142,57 @@ void OSCController::setSendPort(int port)
         if (mSender->connect(mSendHost, mSendPort))
         {
             DBG("OSC sender connected to " << mSendHost << ":" << mSendPort);
+            mSendEnabled = true;
         }
         else
         {
             DBG("Failed to connect OSC sender to " << mSendHost << ":" << mSendPort);
+            mSendEnabled = false;
         }
     }
+}
+
+void OSCController::setSendEnabled(bool enabled)
+{
+    juce::ScopedLock sl(mLock);
+    
+    if (enabled && !mSendEnabled)
+    {
+        // Try to connect
+        if (mSendHost.isNotEmpty() && mSendPort > 0)
+        {
+            if (mSender->connect(mSendHost, mSendPort))
+            {
+                DBG("OSC sender connected to " << mSendHost << ":" << mSendPort);
+                mSendEnabled = true;
+            }
+            else
+            {
+                DBG("Failed to connect OSC sender to " << mSendHost << ":" << mSendPort);
+                mSendEnabled = false;
+            }
+        }
+    }
+    else if (!enabled && mSendEnabled)
+    {
+        mSender->disconnect();
+        mSendEnabled = false;
+        DBG("OSC sender disconnected");
+    }
+}
+
+void OSCController::parameterChanged(const juce::String& parameterID, float newValue)
+{
+    // Don't send feedback if we're processing incoming OSC messages
+    if (mSuppressFeedback)
+        return;
+    
+    // Only send if OSC sending is enabled
+    if (!mSendEnabled)
+        return;
+    
+    // Send parameter change as OSC message
+    sendParameterChange(parameterID, newValue);
 }
 
 bool OSCController::sendParameterChange(const juce::String& paramId, float value)
@@ -177,7 +244,11 @@ void OSCController::handleIncomingMessage(const juce::OSCMessage& message)
                 auto* param = mProcessor.getValueTreeState().getParameter(paramName);
                 if (param != nullptr)
                 {
+                    // Suppress feedback while setting parameter from OSC
+                    mSuppressFeedback = true;
                     param->setValueNotifyingHost(value);
+                    mSuppressFeedback = false;
+                    
                     DBG("OSC: Set parameter " << paramName << " to " << value);
                     
                     // Send feedback
@@ -195,8 +266,12 @@ void OSCController::handleIncomingMessage(const juce::OSCMessage& message)
                 auto* param = mProcessor.getValueTreeState().getParameter(paramName);
                 if (param != nullptr)
                 {
+                    // Suppress feedback while setting parameter from OSC
+                    mSuppressFeedback = true;
                     // Pass integer as float directly (for boolean/choice parameters)
                     param->setValueNotifyingHost(value);
+                    mSuppressFeedback = false;
+                    
                     DBG("OSC: Set parameter " << paramName << " to " << value);
                     
                     sendFeedback(address, value);
@@ -227,6 +302,7 @@ void OSCController::saveState(juce::ValueTree& parentTree)
     
     oscTree.setProperty("receiveEnabled", mReceiveEnabled, nullptr);
     oscTree.setProperty("receivePort", mReceivePort, nullptr);
+    oscTree.setProperty("sendEnabled", mSendEnabled, nullptr);
     oscTree.setProperty("sendHost", mSendHost, nullptr);
     oscTree.setProperty("sendPort", mSendPort, nullptr);
     
@@ -267,15 +343,26 @@ void OSCController::loadState(const juce::ValueTree& parentTree)
         mSendPort = 9952;
     }
     
+    // Load send enabled state
+    mSendEnabled = oscTree.getProperty("sendEnabled", false);
+    
     // Apply the loaded state
     if (mReceiveEnabled)
     {
         setReceiveEnabled(true);
     }
     
-    if (mSendHost.isNotEmpty() && mSendPort > 0)
+    // Connect sender if enabled
+    if (mSendEnabled && mSendHost.isNotEmpty() && mSendPort > 0)
     {
-        setSendHost(mSendHost);
-        setSendPort(mSendPort);
+        if (mSender->connect(mSendHost, mSendPort))
+        {
+            DBG("OSC sender restored connection to " << mSendHost << ":" << mSendPort);
+        }
+        else
+        {
+            DBG("Failed to restore OSC sender connection");
+            mSendEnabled = false;
+        }
     }
 }
