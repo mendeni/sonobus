@@ -40,6 +40,17 @@ project(SonoBus VERSION 1.7.4)
 
 set(BUILDVERSION 80)
 
+# Platform detection and liblo configuration for OSC support
+if(APPLE)
+    set(LO_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/deps/mac/include")
+    set(LO_LIBRARY_PATH "${CMAKE_SOURCE_DIR}/deps/mac/lib/liblo.a")
+elseif(UNIX AND NOT APPLE)
+    set(LO_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/deps/linux/include")
+    set(LO_LIBRARY_PATH "${CMAKE_SOURCE_DIR}/deps/linux/lib/liblo.a")
+elseif(WIN32)
+    set(LO_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/deps/windows/include")
+    set(LO_LIBRARY_PATH "${CMAKE_SOURCE_DIR}/deps/windows/lib/liblo.lib")
+endif()
 
 # If you've installed JUCE somehow (via a package manager, or directly using the CMake install
 # target), you'll need to tell this project that it depends on the installed copy of JUCE. If you've
@@ -620,11 +631,17 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
             ${target_name}_SBData
 
             opus
+            "${LO_LIBRARY_PATH}"
         PUBLIC
             juce::juce_recommended_config_flags
             juce::juce_recommended_lto_flags
         #   juce::juce_recommended_warning_flags
         )
+
+    # Link Windows-specific networking libraries for OSC support
+    if(WIN32)
+        target_link_libraries("${target_name}" PRIVATE ws2_32 Iphlpapi)
+    endif()
             
 endfunction()
 
