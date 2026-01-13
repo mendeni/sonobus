@@ -6,3 +6,4 @@ release/1.*
 mobile/Builds
 .DS_store
 *.swp
+build_test/
