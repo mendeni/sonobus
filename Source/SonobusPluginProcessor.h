@@ -22,6 +22,9 @@
 
 #include "SoundboardChannelProcessor.h"
 
+// Forward declaration for liblo OSC server thread type
+typedef struct lo_server_thread_ *lo_server_thread;
+
 typedef MVerb<float> MVerbFloat;
 
 namespace SonoAudio {
@@ -1255,6 +1258,9 @@ private:
     // metronome
     std::unique_ptr<SonoAudio::Metronome> mMetronome;
    
+    // OSC server
+    lo_server_thread mOscServerThread = nullptr;
+    
     // misc
     bool mSliderSnapToMouse = true;
     bool mDisableKeyboardShortcuts = false;

@@ -18,6 +18,8 @@
 
 #include "mtdm.h"
 
+#include <lo/lo.h>
+
 #include <algorithm>
 
 #include "LatencyMeasurer.h"
@@ -837,6 +839,15 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     
     initializeAoo();
 
+    // Initialize OSC server on port 7771
+    mOscServerThread = lo_server_thread_new("7771", nullptr);
+    if (mOscServerThread) {
+        lo_server_thread_start(mOscServerThread);
+        DBG("OSC server started on port 7771");
+    } else {
+        DBG("Failed to create OSC server on port 7771");
+    }
+
     mFreshInit = false; // need to ensure this before loaddefaultpluginstate
 
     if (isplugin) {
@@ -854,6 +865,14 @@ mState (*this, &mUndoManager, "SonoBusAoO",
 
 SonobusAudioProcessor::~SonobusAudioProcessor()
 {
+    // Clean up OSC server
+    if (mOscServerThread) {
+        lo_server_thread_stop(mOscServerThread);
+        lo_server_thread_free(mOscServerThread);
+        mOscServerThread = nullptr;
+        DBG("OSC server stopped and freed");
+    }
+    
     mTransportSource.setSource(nullptr);
     mTransportSource.removeChangeListener(this);
 
