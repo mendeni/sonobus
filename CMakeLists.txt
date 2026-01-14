@@ -595,6 +595,13 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
 	 message(FATAL_ERROR "opus library not found, please install libopus develop package")
        endif()
 
+       if (WIN32)
+          find_path(LO_INCLUDE_DIR lo/lo.h)
+          find_library(LO_LIBRARY lo deps/linux/lib deps/mac/lib deps/windows/Release)
+          include_directories(${LO_INCLUDE_DIR})
+          target_link_libraries(${target_name} ${LO_LIBRARY})
+       endif()
+
        if (JUCE_LINUX_TARGET_ARCHITECTURE MATCHES "arm" )
           message(STATUS "ARM platform, adding -march=native")
           target_compile_options(${target_name} PUBLIC
