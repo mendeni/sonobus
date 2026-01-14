@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: GPLv3-or-later WITH Appstore-exception
 // Copyright (C) 2020 Jesse Chappell
 
-
+// Define NOMINMAX before any Windows headers to prevent min/max macro conflicts
+#if defined(_WIN32) || defined(_WIN64)
+#define NOMINMAX
+#endif
 
 #include "SonobusPluginProcessor.h"
 #include "SonobusPluginEditor.h"
@@ -26,7 +29,6 @@
 using namespace SonoAudio;
 
 #if JUCE_WINDOWS
-#define NOMINMAX
 #include <WinSock2.h>
 #include <WS2tcpip.h>
 typedef int socklen_t;
