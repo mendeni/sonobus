@@ -2,7 +2,7 @@
 // Copyright (C) 2020 Jesse Chappell
 
 // Define NOMINMAX before any Windows headers to prevent min/max macro conflicts
-#if defined(_WIN32) || defined(_WIN64)
+#ifdef _WIN32
 #define NOMINMAX
 #endif
 
