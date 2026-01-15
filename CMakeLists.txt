@@ -600,6 +600,8 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
           find_library(LO_LIBRARY lo deps/linux/lib deps/mac/lib deps/windows/Release)
           include_directories(${LO_INCLUDE_DIR})
           target_link_libraries(${target_name} ${LO_LIBRARY})
+          target_link_libraries(${target_name} PRIVATE ws2_32)
+          target_link_libraries(${target_name} PRIVATE Iphlpapi)
        endif()
 
        if (JUCE_LINUX_TARGET_ARCHITECTURE MATCHES "arm" )
