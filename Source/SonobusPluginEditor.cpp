@@ -5,6 +5,7 @@
 
 #include "SonobusPluginProcessor.h"
 #include "SonobusPluginEditor.h"
+#include "OSCManager.h"
 
 #include "BeatToggleGrid.h"
 
@@ -6143,4 +6144,3 @@ void SonobusAudioProcessorEditor::SonobusMenuBarModel::menuItemSelected (int men
     }
 #endif
 }
-

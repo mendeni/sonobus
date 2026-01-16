@@ -22,6 +22,8 @@
 
 #include "SoundboardChannelProcessor.h"
 
+#include "OSCManager.h"
+
 typedef MVerb<float> MVerbFloat;
 
 namespace SonoAudio {
@@ -834,6 +836,8 @@ public:
 private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SonobusAudioProcessor)
+
+    OSCManager oscManager;
     
     struct PeerStateCache
     {
