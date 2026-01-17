@@ -44,7 +44,7 @@ jobs:
           ./buildcmake.sh
 
       - name: Upload Sonobus artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: SonoBusMendeni-${{ matrix.os }}
           path: |
