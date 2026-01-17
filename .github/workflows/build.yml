@@ -43,7 +43,20 @@ jobs:
         run: |
           ./buildcmake.sh
 
-      - name: Upload Sonobus artifacts
+      - name: Compress artifacts (Linux & macOS)
+        if: runner.os != 'Windows'
+        run: |
+          tar -czvf SonoBusMendeni-${{ matrix.os }}.tgz -C build/SonoBus_artefacts/Release Standalone VST3
+
+      - name: Upload Sonobus artifacts (Linux & macOS)
+        if: runner.os != 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: SonoBusMendeni-${{ matrix.os }}
+          path: SonoBusMendeni-${{ matrix.os }}.tgz
+
+      - name: Upload Sonobus artifacts (Windows)
+        if: runner.os == 'Windows'
         uses: actions/upload-artifact@v4
         with:
           name: SonoBusMendeni-${{ matrix.os }}
