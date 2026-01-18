@@ -35,8 +35,8 @@ jobs:
       - name: Build (Windows)
         if: runner.os == 'Windows'
         run: |
-          cmake --build build --config Release --target SonoBus_Standalone
-          cmake --build build --config Release --target SonoBus_VST3
+          cmake --build build --config Release --target SonoBusMendeni_Standalone
+          cmake --build build --config Release --target SonoBusMendeni_VST3
 
       - name: Build (Linux & macOS)
         if: runner.os != 'Windows'
