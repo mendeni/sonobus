@@ -43,10 +43,10 @@ jobs:
         run: |
           ./buildcmake.sh
 
-      - name: Upload Sonobus artifacts
+      - name: Upload SonoBusMendeni artifacts
         uses: actions/upload-artifact@v4
         with:
           name: SonoBusMendeni-${{ matrix.os }}
           path: |
-            build/SonoBus_artefacts/Release/Standalone
-            build/SonoBus_artefacts/Release/VST3
+            build/SonoBusMendeni_artefacts/Release/Standalone
+            build/SonoBusMendeni_artefacts/Release/VST3
