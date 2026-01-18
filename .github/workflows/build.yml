@@ -48,5 +48,5 @@ jobs:
         with:
           name: SonoBusMendeni-${{ matrix.os }}
           path: |
-            build/SonoBus_artefacts/Release/Standalone
-            build/SonoBus_artefacts/Release/VST3
+            build/SonoBusMendeni_artefacts/Release/Standalone
+            build/SonoBusMendeni_artefacts/Release/VST3
