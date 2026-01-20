@@ -344,7 +344,7 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     configLabel(mOptionsAutoDropThreshLabel.get(), false);
     mOptionsAutoDropThreshLabel->setJustificationType(Justification::centredLeft);
 
-    auto maxrecvpadname = TRANS("Max Recv Padding");
+    auto maxrecvpadname = TRANS("Sync Receive Padding");
     mOptionsMaxRecvPaddingSlider = std::make_unique<Slider>(Slider::LinearBar,  Slider::TextBoxRight);
     mOptionsMaxRecvPaddingSlider->setTitle(maxrecvpadname);
     mOptionsMaxRecvPaddingSlider->setRange(0.0, 500.0, 1.0);
