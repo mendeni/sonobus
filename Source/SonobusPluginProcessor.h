@@ -273,6 +273,7 @@ public:
     static String paramInputReverbSize;
     static String paramInputReverbDamping;
     static String paramInputReverbPreDelay;
+    static String paramMaxRecvPaddingMs;
 
     struct EndpointState;
     struct RemoteSink;
@@ -409,6 +410,8 @@ public:
 
     void setRemotePeerBufferTime(int index, float bufferMs);
     float getRemotePeerBufferTime(int index) const;
+
+    float getMaxRecvPaddingMs() const { return mMaxRecvPaddingMs.get(); }
 
     void setRemotePeerAutoresizeBufferMode(int index, AutoNetBufferMode flag);
     AutoNetBufferMode getRemotePeerAutoresizeBufferMode(int index, bool & initCompleted) const;
@@ -997,6 +1000,7 @@ private:
     Atomic<bool>   mSyncMetToHost  { false };
     Atomic<bool>   mSyncMetStartToPlayback  { false };
     Atomic<bool>   mReconnectAfterServerLoss  { true };
+    Atomic<float>   mMaxRecvPaddingMs  { 2.0f };
 
     Atomic<float>   mInputReverbLevel  { 1.0f };
     Atomic<float>   mInputReverbSize  { 0.15f };

@@ -79,6 +79,7 @@ String SonobusAudioProcessor::paramInputReverbLevel  ("inreverblevel");
 String SonobusAudioProcessor::paramInputReverbSize  ("inreverbsize");
 String SonobusAudioProcessor::paramInputReverbDamping  ("inreverbdamp");
 String SonobusAudioProcessor::paramInputReverbPreDelay  ("inreverbpredelay");
+String SonobusAudioProcessor::paramMaxRecvPaddingMs  ("maxrecvpadms");
 
 static String recentsCollectionKey("RecentConnections");
 static String recentsItemKey("ServerConnectionInfo");
@@ -688,6 +689,9 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     std::make_unique<AudioParameterFloat>(ParameterID(paramInputReverbPreDelay, 1),     TRANS ("Input Reverb Pre-Delay Time"),    NormalisableRange<float>(0.0, 100.0, 1.0, 1.0), mInputReverbPreDelay.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return String(v, 0) + " ms"; },
                                           [](const String& s) -> float { return s.getFloatValue(); }),
+    std::make_unique<AudioParameterFloat>(ParameterID(paramMaxRecvPaddingMs, 1),     TRANS ("Sync Receive Padding"),    NormalisableRange<float>(0.0, 500.0, 1.0, 1.0), mMaxRecvPaddingMs.get(), "", AudioProcessorParameter::genericParameter,
+                                          [](float v, int maxlen) -> String { return String(v, 0) + " ms"; }, 
+                                          [](const String& s) -> float { return s.getFloatValue(); }),
     std::make_unique<AudioParameterBool>(ParameterID(paramSyncMetToFilePlayback, 1), TRANS ("Sync Met to File Playback"), false),
 
 })
@@ -729,6 +733,7 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     mState.addParameterListener (paramInputReverbLevel, this);
     mState.addParameterListener (paramInputReverbDamping, this);
     mState.addParameterListener (paramInputReverbPreDelay, this);
+    mState.addParameterListener (paramMaxRecvPaddingMs, this);
 
     for (int i=0; i < MAX_PEERS; ++i) {
         for (int j=0; j < MAX_PEERS; ++j) {
@@ -6839,6 +6844,9 @@ void SonobusAudioProcessor::parameterChanged (const String &parameterID, float n
     }
     else if (parameterID == paramDefaultAutoNetbuf) {
         defaultAutoNetbufMode = (int) newValue;
+    }
+    else if (parameterID == paramMaxRecvPaddingMs) {
+        mMaxRecvPaddingMs = newValue;
     }
 
 }
