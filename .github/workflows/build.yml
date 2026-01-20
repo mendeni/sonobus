@@ -65,4 +65,4 @@ jobs:
           path: |
             build/SonoBusMendeni_artefacts/Release/Standalone
             build/SonoBusMendeni_artefacts/Release/VST3
-            build/SonoBusMendeni_artefacts/install-macos-vst3.sh
+            build/SonoBusMendeni_artefacts/Release/install-macos-vst3.sh
