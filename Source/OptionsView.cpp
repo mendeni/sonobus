@@ -349,7 +349,7 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mOptionsMaxRecvPaddingSlider->setTitle(maxrecvpadname);
     mOptionsMaxRecvPaddingSlider->setRange(0.0, 500.0, 1.0);
     mOptionsMaxRecvPaddingSlider->setName("maxrecvpad");
-    mOptionsMaxRecvPaddingSlider->setTextValueSuffix(" " + TRANS("ms"));
+    mOptionsMaxRecvPaddingSlider->setTextValueSuffix(" " + TRANS(""));
     mOptionsMaxRecvPaddingSlider->setSliderSnapsToMousePosition(false);
     mOptionsMaxRecvPaddingSlider->setChangeNotificationOnlyOnRelease(true);
     mOptionsMaxRecvPaddingSlider->setDoubleClickReturnValue(true, 2.0);
