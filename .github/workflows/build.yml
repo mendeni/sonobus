@@ -43,10 +43,26 @@ jobs:
         run: |
           ./buildcmake.sh
 
-      - name: Upload Sonobus artifacts
+      - name: Stage VST3 Install Script (macOS)
+        if: runner.os == 'macOS'
+        run: |
+           cp -a util/install-macos-vst3.sh .
+
+      - name: Upload Sonobus artifacts (Windows & Linux)
+        if: runner.os != 'macOS'
         uses: actions/upload-artifact@v4
         with:
           name: SonoBusMendeni-${{ matrix.os }}
           path: |
+            build/SonoBusMendeni_artefacts/Release/Standalone
+            build/SonoBusMendeni_artefacts/Release/VST3
+
+      - name: Upload Sonobus artifacts
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v4
+        with:
+          name: SonoBusMendeni-${{ matrix.os }}
+          path: |
+            install-macos-vst3.sh
             build/SonoBusMendeni_artefacts/Release/Standalone
             build/SonoBusMendeni_artefacts/Release/VST3
