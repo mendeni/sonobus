@@ -273,6 +273,7 @@ public:
     static String paramInputReverbSize;
     static String paramInputReverbDamping;
     static String paramInputReverbPreDelay;
+    static String paramMaxRecvPaddingMs;
 
     struct EndpointState;
     struct RemoteSink;
@@ -997,6 +998,7 @@ private:
     Atomic<bool>   mSyncMetToHost  { false };
     Atomic<bool>   mSyncMetStartToPlayback  { false };
     Atomic<bool>   mReconnectAfterServerLoss  { true };
+    Atomic<float>   mMaxRecvPaddingMs  { 2.0f };
 
     Atomic<float>   mInputReverbLevel  { 1.0f };
     Atomic<float>   mInputReverbSize  { 0.15f };
