@@ -1392,7 +1392,7 @@ void source_desc::check_outdated_blocks(){
 void source_desc::check_missing_blocks(const sink& s){
     if (blockqueue_.empty()){
         if (!ack_list_.empty()){
-            LOG_WARNING("bug: acklist not empty");
+            // LOG_WARNING("bug: acklist not empty");
             ack_list_.clear();
         }
         return;
