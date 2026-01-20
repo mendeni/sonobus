@@ -78,11 +78,6 @@ public:
     std::function<bool(const String &)> setupLocalisation; // = []() { return 0; };
     std::function<void()> saveSettingsIfNeeded; // = []() { return 0; };
 
-    // Add accessor so external code can check recording-related toggles
-    bool isRecEachConnectedEnabled() const
-    {
-        return mOptionsRecOthersButton ? mOptionsRecOthersButton->getToggleState() : false;
-    }
 
 protected:
 
@@ -151,6 +146,9 @@ protected:
     std::unique_ptr<Label> mOptionsAutoDropThreshLabel;
     std::unique_ptr<Slider> mOptionsAutoDropThreshSlider;
 
+    std::unique_ptr<Label> mOptionsMaxRecvPaddingLabel;
+    std::unique_ptr<Slider> mOptionsMaxRecvPaddingSlider;
+
     std::unique_ptr<SonoChoiceButton> mOptionsLanguageChoice;
     std::unique_ptr<Label> mOptionsLanguageLabel;
     std::unique_ptr<ToggleButton> mOptionsUnivFontButton;
@@ -191,6 +189,7 @@ protected:
     FlexBox optionsLanguageBox;
     FlexBox optionsAllowBluetoothBox;
     FlexBox optionsAutoDropThreshBox;
+    FlexBox optionsMaxRecvPaddingBox;
     FlexBox optionsPluginDefaultBox;
 
     FlexBox recOptionsBox;
@@ -225,6 +224,7 @@ protected:
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mAutoReconnectAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mBufferTimeAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mDefaultLevelAttachment;
+    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mMaxRecvPaddingAttachment;
 
 
     // keep this down here, so it gets destroyed early

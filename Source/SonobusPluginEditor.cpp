@@ -22,7 +22,6 @@
 #include "LatencyMatchView.h"
 #include "SuggestNewGroupView.h"
 #include "SonoCallOutBox.h"
-#include "OptionsView.h"
 #include <sstream>
 #include <string>
 
@@ -2099,9 +2098,9 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
             }
         }
 
-        // add another 2ms to maxrecMs for good measure (if we have peers)
+        // add another padding value to maxrecMs for good measure (if we have peers)
         if (processor.getNumberRemotePeers() > 1){
-            maxrecvMs = maxrecvMs + 2;
+            maxrecvMs = maxrecvMs + processor.getMaxRecvPaddingMs();
         }
 
         // add the delta between maxrecvMs and incomingMs to jitter buffer
@@ -2300,10 +2299,8 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
                 parentDir.createDirectory();
             }
 
-            // capture the round-trip latency for each peer if recording separate tracks
-            if (mOptionsView && mOptionsView->isRecEachConnectedEnabled()) {
-                recordRoundtripLatencyForAll(parentDir.getFullPathName(), filename);
-            }
+            // capture the round-trip latency for each peer
+            recordRoundtripLatencyForAll(parentDir.getFullPathName(), filename);
 
             filename += ".flac";
             

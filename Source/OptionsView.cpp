@@ -344,6 +344,29 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     configLabel(mOptionsAutoDropThreshLabel.get(), false);
     mOptionsAutoDropThreshLabel->setJustificationType(Justification::centredLeft);
 
+    auto maxrecvpadname = TRANS("Sync Receive Padding");
+    mOptionsMaxRecvPaddingSlider = std::make_unique<Slider>(Slider::LinearBar,  Slider::TextBoxRight);
+    mOptionsMaxRecvPaddingSlider->setTitle(maxrecvpadname);
+    mOptionsMaxRecvPaddingSlider->setRange(0.0, 500.0, 1.0);
+    mOptionsMaxRecvPaddingSlider->setName("maxrecvpad");
+    mOptionsMaxRecvPaddingSlider->setTextValueSuffix(" " + TRANS(""));
+    mOptionsMaxRecvPaddingSlider->setSliderSnapsToMousePosition(false);
+    mOptionsMaxRecvPaddingSlider->setChangeNotificationOnlyOnRelease(true);
+    mOptionsMaxRecvPaddingSlider->setDoubleClickReturnValue(true, 2.0);
+    mOptionsMaxRecvPaddingSlider->setTextBoxIsEditable(true);
+    mOptionsMaxRecvPaddingSlider->setScrollWheelEnabled(false);
+    mOptionsMaxRecvPaddingSlider->setColour(Slider::trackColourId, Colour::fromFloatRGBA(0.1, 0.4, 0.6, 0.3));
+    mOptionsMaxRecvPaddingSlider->setWantsKeyboardFocus(true);
+
+    mMaxRecvPaddingAttachment = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (processor.getValueTreeState(), SonobusAudioProcessor::paramMaxRecvPaddingMs, *mOptionsMaxRecvPaddingSlider);
+
+    mOptionsMaxRecvPaddingSlider->setTooltip(TRANS("This controls the padding value added to the maximum receive latency when using the Receive Sync feature. The value is in milliseconds and can range from 0 to 500. The default is 2ms."));
+
+    mOptionsMaxRecvPaddingLabel = std::make_unique<Label>("", maxrecvpadname);
+    mOptionsMaxRecvPaddingLabel->setAccessible(false);
+    configLabel(mOptionsMaxRecvPaddingLabel.get(), false);
+    mOptionsMaxRecvPaddingLabel->setJustificationType(Justification::centredLeft);
+
     mOptionsSavePluginDefaultButton = std::make_unique<TextButton>("saveopt");
     mOptionsSavePluginDefaultButton->setButtonText(TRANS("Save as default plugin options"));
     mOptionsSavePluginDefaultButton->setLookAndFeel(&smallLNF);
@@ -382,6 +405,8 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mOptionsComponent->addAndMakeVisible(mOptionsLanguageLabel.get());
     mOptionsComponent->addAndMakeVisible(mOptionsAutoDropThreshSlider.get());
     mOptionsComponent->addAndMakeVisible(mOptionsAutoDropThreshLabel.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsMaxRecvPaddingSlider.get());
+    mOptionsComponent->addAndMakeVisible(mOptionsMaxRecvPaddingLabel.get());
 
     if (!JUCEApplication::isStandaloneApp()) {
         mOptionsComponent->addAndMakeVisible(mOptionsSavePluginDefaultButton.get());
@@ -752,6 +777,11 @@ void OptionsView::updateLayout()
     optionsAutoDropThreshBox.items.add(FlexItem(42, 12));
     optionsAutoDropThreshBox.items.add(FlexItem(100, minitemheight, *mOptionsAutoDropThreshSlider).withMargin(0).withFlex(1));
 
+    optionsMaxRecvPaddingBox.items.clear();
+    optionsMaxRecvPaddingBox.flexDirection = FlexBox::Direction::row;
+    optionsMaxRecvPaddingBox.items.add(FlexItem(42, 12));
+    optionsMaxRecvPaddingBox.items.add(FlexItem(100, minitemheight, *mOptionsMaxRecvPaddingSlider).withMargin(0).withFlex(1));
+
 
     optionsUdpBox.items.clear();
     optionsUdpBox.flexDirection = FlexBox::Direction::row;
@@ -828,6 +858,8 @@ void OptionsView::updateLayout()
     optionsBox.items.add(FlexItem(100, minitemheight, optionsNetbufBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(4, 3));
     optionsBox.items.add(FlexItem(100, minitemheight, optionsAutoDropThreshBox).withMargin(2).withFlex(0));
+    optionsBox.items.add(FlexItem(4, 3));
+    optionsBox.items.add(FlexItem(100, minitemheight, optionsMaxRecvPaddingBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(4, 10));
     optionsBox.items.add(FlexItem(100, minitemheight, optionsDefaultLevelBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(4, 6));
@@ -974,6 +1006,8 @@ void OptionsView::resized()  {
     mOptionsDefaultLevelSlider->setMouseDragSensitivity(jmax(128, mOptionsDefaultLevelSlider->getWidth()));
 
     mOptionsAutoDropThreshLabel->setBounds(mOptionsAutoDropThreshSlider->getBounds().removeFromLeft(mOptionsAutoDropThreshSlider->getWidth()*0.75));
+
+    mOptionsMaxRecvPaddingLabel->setBounds(mOptionsMaxRecvPaddingSlider->getBounds().removeFromLeft(mOptionsMaxRecvPaddingSlider->getWidth()*0.75));
 
 }
 
