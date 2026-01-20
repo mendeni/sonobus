@@ -411,6 +411,8 @@ public:
     void setRemotePeerBufferTime(int index, float bufferMs);
     float getRemotePeerBufferTime(int index) const;
 
+    float getMaxRecvPaddingMs() const { return mMaxRecvPaddingMs.get(); }
+
     void setRemotePeerAutoresizeBufferMode(int index, AutoNetBufferMode flag);
     AutoNetBufferMode getRemotePeerAutoresizeBufferMode(int index, bool & initCompleted) const;
 
