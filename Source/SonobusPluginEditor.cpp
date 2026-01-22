@@ -1448,6 +1448,12 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
 
 SonobusAudioProcessorEditor::~SonobusAudioProcessorEditor()
 {
+    // Unregister OSC controls to prevent use-after-free
+    OSCManager& oscManager = processor.getOSCManager();
+    oscManager.unregisterControl("/OutGainSlider");
+    oscManager.unregisterControl("/MainMuteButton");
+    oscManager.unregisterControl("/RecvSyncButton");
+    
     if (menuBarModel) {
         menuBarModel->setApplicationCommandManagerToWatch(nullptr);
 #if JUCE_MAC

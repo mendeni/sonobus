@@ -18,6 +18,7 @@ public:
     // Generic control registration
     using ControlCallback = std::function<void(const juce::OSCMessage&)>;
     void registerControl(const juce::String& address, ControlCallback callback);
+    void unregisterControl(const juce::String& address);
 
 private:
     void oscMessageReceived(const juce::OSCMessage& message) override;

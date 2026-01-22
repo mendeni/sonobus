@@ -20,10 +20,8 @@ bool OSCManager::initializeReceiver(int port)
         return false;
     }
 
+    // Legacy listener - keeping for backward compatibility
     addListener(this, "/volumeControl");
-    addListener(this, "/OutGainSlider");
-    addListener(this, "/MainMuteButton");
-    addListener(this, "/RecvSyncButton");
     juce::Logger::writeToLog("Receiver connected on port " + juce::String(port));
     return true;
 }
@@ -71,7 +69,22 @@ void OSCManager::sendMessage(const juce::String& address, const juce::var& value
 void OSCManager::registerControl(const juce::String& address, ControlCallback callback)
 {
     controlRegistry[address] = callback;
+    // Also register as a listener for this OSC address pattern
+    addListener(this, address);
     juce::Logger::writeToLog("Registered control for OSC address: " + address);
+}
+
+// Unregister Control
+void OSCManager::unregisterControl(const juce::String& address)
+{
+    auto it = controlRegistry.find(address);
+    if (it != controlRegistry.end())
+    {
+        controlRegistry.erase(it);
+        // Note: JUCE doesn't provide a way to remove a specific listener,
+        // but the callback will no longer be called since it's removed from the registry
+        juce::Logger::writeToLog("Unregistered control for OSC address: " + address);
+    }
 }
 
 // Handle Received Messages
