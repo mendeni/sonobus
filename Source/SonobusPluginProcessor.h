@@ -236,6 +236,8 @@ public:
     bool loadDefaultPluginSettings();
     
     AudioProcessorValueTreeState& getValueTreeState();
+    
+    OSCManager& getOSCManager();
 
     static String paramInGain;
     static String paramInMonitorMonoPan;

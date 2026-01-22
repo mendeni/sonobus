@@ -8457,6 +8457,11 @@ AudioProcessorValueTreeState& SonobusAudioProcessor::getValueTreeState()
     return mState;
 }
 
+OSCManager& SonobusAudioProcessor::getOSCManager()
+{
+    return oscManager;
+}
+
 ValueTree AooServerConnectionInfo::getValueTree() const
 {
     ValueTree item(recentsItemKey);

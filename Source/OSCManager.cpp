@@ -21,6 +21,9 @@ bool OSCManager::initializeReceiver(int port)
     }
 
     addListener(this, "/volumeControl");
+    addListener(this, "/OutGainSlider");
+    addListener(this, "/MainMuteButton");
+    addListener(this, "/RecvSyncButton");
     juce::Logger::writeToLog("Receiver connected on port " + juce::String(port));
     return true;
 }
@@ -64,14 +67,28 @@ void OSCManager::sendMessage(const juce::String& address, const juce::var& value
     }
 }
 
+// Register Control
+void OSCManager::registerControl(const juce::String& address, ControlCallback callback)
+{
+    controlRegistry[address] = callback;
+    juce::Logger::writeToLog("Registered control for OSC address: " + address);
+}
+
 // Handle Received Messages
 void OSCManager::oscMessageReceived(const juce::OSCMessage& message)
 {
-    juce::Logger::writeToLog("Incoming OSC message: " + message.getAddressPattern().toString());
-
-    if (message.getAddressPattern().toString() == "/OutGainSlider")
+    juce::String address = message.getAddressPattern().toString();
+    juce::Logger::writeToLog("Incoming OSC message: " + address);
+    
+    // Check if a callback is registered for this address
+    auto it = controlRegistry.find(address);
+    if (it != controlRegistry.end())
     {
-      float volume = message[0].getFloat32();
-      mOutGainSlider.setValue(volume);
+        // Call the registered callback
+        it->second(message);
+    }
+    else
+    {
+        juce::Logger::writeToLog("No handler registered for OSC address: " + address);
     }
 }
