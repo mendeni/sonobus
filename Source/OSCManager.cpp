@@ -20,6 +20,7 @@ bool OSCManager::initializeReceiver(int port)
         return false;
     }
 
+    // Legacy listener - keeping for backward compatibility
     addListener(this, "/volumeControl");
     juce::Logger::writeToLog("Receiver connected on port " + juce::String(port));
     return true;
@@ -64,14 +65,43 @@ void OSCManager::sendMessage(const juce::String& address, const juce::var& value
     }
 }
 
+// Register Control
+void OSCManager::registerControl(const juce::String& address, ControlCallback callback)
+{
+    controlRegistry[address] = callback;
+    // Also register as a listener for this OSC address pattern
+    addListener(this, address);
+    juce::Logger::writeToLog("Registered control for OSC address: " + address);
+}
+
+// Unregister Control
+void OSCManager::unregisterControl(const juce::String& address)
+{
+    auto it = controlRegistry.find(address);
+    if (it != controlRegistry.end())
+    {
+        controlRegistry.erase(it);
+        // Note: JUCE doesn't provide a way to remove a specific listener,
+        // but the callback will no longer be called since it's removed from the registry
+        juce::Logger::writeToLog("Unregistered control for OSC address: " + address);
+    }
+}
+
 // Handle Received Messages
 void OSCManager::oscMessageReceived(const juce::OSCMessage& message)
 {
-    juce::Logger::writeToLog("Incoming OSC message: " + message.getAddressPattern().toString());
-
-    if (message.getAddressPattern().toString() == "/OutGainSlider")
+    juce::String address = message.getAddressPattern().toString();
+    juce::Logger::writeToLog("Incoming OSC message: " + address);
+    
+    // Check if a callback is registered for this address
+    auto it = controlRegistry.find(address);
+    if (it != controlRegistry.end())
     {
-      float volume = message[0].getFloat32();
-      mOutGainSlider.setValue(volume);
+        // Call the registered callback
+        it->second(message);
+    }
+    else
+    {
+        juce::Logger::writeToLog("No handler registered for OSC address: " + address);
     }
 }

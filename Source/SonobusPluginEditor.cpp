@@ -1366,6 +1366,90 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     
     processor.addClientListener(this);
     processor.getTransportSource().addChangeListener (this);
+    
+    // Register OSC controls with the OSCManager
+    OSCManager& oscManager = processor.getOSCManager();
+    
+    // Register OutGainSlider - updates slider value with a float
+    oscManager.registerControl("/OutGainSlider", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            juce::MessageManager::callAsync([this, value]() {
+                if (mOutGainSlider) {
+                    mOutGainSlider->setValue(value, juce::NotificationType::sendNotificationAsync);
+                }
+            });
+        }
+    });
+    
+    // Register MainMuteButton - toggles mute button state with a boolean
+    oscManager.registerControl("/MainMuteButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool muteState = false;
+            if (message[0].isInt32()) {
+                muteState = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                muteState = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, muteState]() {
+                if (mMainMuteButton) {
+                    mMainMuteButton->setToggleState(muteState, juce::NotificationType::sendNotificationAsync);
+                }
+            });
+        }
+    });
+    
+    // Register RecvSyncButton - triggers button click event (accepts only integer 1)
+    oscManager.registerControl("/RecvSyncButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isInt32()) {
+            int value = message[0].getInt32();
+            if (value == 1) {
+                juce::MessageManager::callAsync([this]() {
+                    if (mRecvSyncButton) {
+                        buttonClicked(mRecvSyncButton.get());
+                    }
+                });
+            }
+        }
+    });
+    
+    // Register OptionsMaxRecvPaddingSlider - updates sync receive padding parameter directly
+    oscManager.registerControl("/OptionsMaxRecvPaddingSlider", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            juce::MessageManager::callAsync([this, value]() {
+                // Set the parameter directly, which updates the processor's internal value
+                // and any UI controls (like the slider in Options view if open)
+                if (auto* param = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMaxRecvPaddingMs)) {
+                    float normalizedValue = param->convertTo0to1(value);
+                    param->setValueNotifyingHost(normalizedValue);
+                }
+            });
+        }
+    });
+    
+    // Register OptionsRecStealth - toggles stealth recording state with a boolean
+    oscManager.registerControl("/OptionsRecStealth", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool stealthState = false;
+            if (message[0].isInt32()) {
+                stealthState = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                stealthState = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, stealthState]() {
+                // Set the processor value directly, which updates internal state
+                // and any UI controls (like the checkbox in Options view if open)
+                processor.setRecordStealth(stealthState);
+                // Also update the UI checkbox if Options view is open
+                if (mOptionsView) {
+                    if (auto* checkbox = mOptionsView->getOptionsRecStealth()) {
+                        checkbox->setToggleState(stealthState, juce::NotificationType::dontSendNotification);
+                    }
+                }
+            });
+        }
+    });
 
     // handles registering commands
     updateUseKeybindings();
@@ -1399,6 +1483,14 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
 
 SonobusAudioProcessorEditor::~SonobusAudioProcessorEditor()
 {
+    // Unregister OSC controls to prevent use-after-free
+    OSCManager& oscManager = processor.getOSCManager();
+    oscManager.unregisterControl("/OutGainSlider");
+    oscManager.unregisterControl("/MainMuteButton");
+    oscManager.unregisterControl("/RecvSyncButton");
+    oscManager.unregisterControl("/OptionsMaxRecvPaddingSlider");
+    oscManager.unregisterControl("/OptionsRecStealth");
+    
     if (menuBarModel) {
         menuBarModel->setApplicationCommandManagerToWatch(nullptr);
 #if JUCE_MAC
