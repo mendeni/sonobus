@@ -26,7 +26,8 @@ jobs:
         run: |
           ./setupcmake.sh
 
-      - name: Build
-        run: |
-          ./buildcmake.sh
+      # We don't want copilot to build *before* it responds to our questions
+      # - name: Build
+      #   run: |
+      #     ./buildcmake.sh
 
