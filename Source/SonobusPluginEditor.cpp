@@ -1399,20 +1399,17 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
         }
     });
     
-    // Register RecvSyncButton - toggles sync state with a boolean
+    // Register RecvSyncButton - triggers button click event (accepts only integer 1)
     oscManager.registerControl("/RecvSyncButton", [this](const juce::OSCMessage& message) {
-        if (message.size() > 0) {
-            bool syncState = false;
-            if (message[0].isInt32()) {
-                syncState = (message[0].getInt32() != 0);
-            } else if (message[0].isFloat32()) {
-                syncState = (message[0].getFloat32() != 0.0f);
+        if (message.size() > 0 && message[0].isInt32()) {
+            int value = message[0].getInt32();
+            if (value == 1) {
+                juce::MessageManager::callAsync([this]() {
+                    if (mRecvSyncButton) {
+                        buttonClicked(mRecvSyncButton.get());
+                    }
+                });
             }
-            juce::MessageManager::callAsync([this, syncState]() {
-                if (mRecvSyncButton) {
-                    mRecvSyncButton->setToggleState(syncState, juce::NotificationType::sendNotificationAsync);
-                }
-            });
         }
     });
 
