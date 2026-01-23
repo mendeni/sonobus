@@ -1427,6 +1427,29 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
             });
         }
     });
+    
+    // Register OptionsRecStealth - toggles stealth recording state with a boolean
+    oscManager.registerControl("/OptionsRecStealth", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool stealthState = false;
+            if (message[0].isInt32()) {
+                stealthState = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                stealthState = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, stealthState]() {
+                // Set the processor value directly, which updates internal state
+                // and any UI controls (like the checkbox in Options view if open)
+                processor.setRecordStealth(stealthState);
+                // Also update the UI checkbox if Options view is open
+                if (mOptionsView) {
+                    if (auto* checkbox = mOptionsView->getOptionsRecStealth()) {
+                        checkbox->setToggleState(stealthState, juce::NotificationType::dontSendNotification);
+                    }
+                }
+            });
+        }
+    });
 
     // handles registering commands
     updateUseKeybindings();
@@ -1466,6 +1489,7 @@ SonobusAudioProcessorEditor::~SonobusAudioProcessorEditor()
     oscManager.unregisterControl("/MainMuteButton");
     oscManager.unregisterControl("/RecvSyncButton");
     oscManager.unregisterControl("/OptionsMaxRecvPaddingSlider");
+    oscManager.unregisterControl("/OptionsRecStealth");
     
     if (menuBarModel) {
         menuBarModel->setApplicationCommandManagerToWatch(nullptr);
