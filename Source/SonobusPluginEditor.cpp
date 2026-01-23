@@ -1413,17 +1413,16 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
         }
     });
     
-    // Register OptionsMaxRecvPaddingSlider - updates sync receive padding slider with a float
+    // Register OptionsMaxRecvPaddingSlider - updates sync receive padding parameter directly
     oscManager.registerControl("/OptionsMaxRecvPaddingSlider", [this](const juce::OSCMessage& message) {
         if (message.size() > 0 && message[0].isFloat32()) {
             float value = message[0].getFloat32();
             juce::MessageManager::callAsync([this, value]() {
-                // OptionsView is created lazily when settings are opened
-                // So we need to check if it exists and the slider is available
-                if (mOptionsView) {
-                    if (auto* slider = mOptionsView->getOptionsMaxRecvPaddingSlider()) {
-                        slider->setValue(value, juce::NotificationType::sendNotificationAsync);
-                    }
+                // Set the parameter directly, which updates the processor's internal value
+                // and any UI controls (like the slider in Options view if open)
+                if (auto* param = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMaxRecvPaddingMs)) {
+                    float normalizedValue = param->convertTo0to1(value);
+                    param->setValueNotifyingHost(normalizedValue);
                 }
             });
         }
