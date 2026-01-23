@@ -68,6 +68,7 @@ public:
 
     void showWarnings();
 
+    Slider* getOptionsMaxRecvPaddingSlider() { return mOptionsMaxRecvPaddingSlider.get(); }
 
     std::function<AudioDeviceManager*()> getAudioDeviceManager; // = []() { return 0; };
     std::function<Value*()> getShouldOverrideSampleRateValue; // = []() { return 0; };

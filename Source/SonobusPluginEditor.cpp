@@ -1412,6 +1412,22 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
             }
         }
     });
+    
+    // Register OptionsMaxRecvPaddingSlider - updates sync receive padding slider with a float
+    oscManager.registerControl("/OptionsMaxRecvPaddingSlider", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            juce::MessageManager::callAsync([this, value]() {
+                // OptionsView is created lazily when settings are opened
+                // So we need to check if it exists and the slider is available
+                if (mOptionsView) {
+                    if (auto* slider = mOptionsView->getOptionsMaxRecvPaddingSlider()) {
+                        slider->setValue(value, juce::NotificationType::sendNotificationAsync);
+                    }
+                }
+            });
+        }
+    });
 
     // handles registering commands
     updateUseKeybindings();
@@ -1450,6 +1466,7 @@ SonobusAudioProcessorEditor::~SonobusAudioProcessorEditor()
     oscManager.unregisterControl("/OutGainSlider");
     oscManager.unregisterControl("/MainMuteButton");
     oscManager.unregisterControl("/RecvSyncButton");
+    oscManager.unregisterControl("/OptionsMaxRecvPaddingSlider");
     
     if (menuBarModel) {
         menuBarModel->setApplicationCommandManagerToWatch(nullptr);
