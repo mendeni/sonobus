@@ -834,7 +834,7 @@ void OptionsView::updateLayout()
     optionsOSCTargetIPBox.items.clear();
     optionsOSCTargetIPBox.flexDirection = FlexBox::Direction::row;
     optionsOSCTargetIPBox.items.add(FlexItem(10, 12));
-    optionsOSCTargetIPBox.items.add(FlexItem(buttonMinWidth, minitemheight, *mOSCTargetIPAddressLabel).withMargin(0).withFlex(0));
+    optionsOSCTargetIPBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOSCTargetIPAddressLabel).withMargin(0).withFlex(0));
     optionsOSCTargetIPBox.items.add(FlexItem(3, 5));
     optionsOSCTargetIPBox.items.add(FlexItem(100, minitemheight, *mOSCTargetIPAddressEditor).withMargin(0).withFlex(1));
     optionsOSCTargetIPBox.items.add(FlexItem(10, 5));
@@ -842,7 +842,7 @@ void OptionsView::updateLayout()
     optionsOSCTargetPortBox.items.clear();
     optionsOSCTargetPortBox.flexDirection = FlexBox::Direction::row;
     optionsOSCTargetPortBox.items.add(FlexItem(10, 12));
-    optionsOSCTargetPortBox.items.add(FlexItem(buttonMinWidth, minitemheight, *mOSCTargetPortLabel).withMargin(0).withFlex(0));
+    optionsOSCTargetPortBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOSCTargetPortLabel).withMargin(0).withFlex(0));
     optionsOSCTargetPortBox.items.add(FlexItem(3, 5));
     optionsOSCTargetPortBox.items.add(FlexItem(80, minitemheight, *mOSCTargetPortEditor).withMargin(0).withFlex(0.5));
     optionsOSCTargetPortBox.items.add(FlexItem(10, 5));
@@ -850,7 +850,7 @@ void OptionsView::updateLayout()
     optionsOSCReceivePortBox.items.clear();
     optionsOSCReceivePortBox.flexDirection = FlexBox::Direction::row;
     optionsOSCReceivePortBox.items.add(FlexItem(10, 12));
-    optionsOSCReceivePortBox.items.add(FlexItem(buttonMinWidth, minitemheight, *mOSCReceivePortLabel).withMargin(0).withFlex(0));
+    optionsOSCReceivePortBox.items.add(FlexItem(minButtonWidth, minitemheight, *mOSCReceivePortLabel).withMargin(0).withFlex(0));
     optionsOSCReceivePortBox.items.add(FlexItem(3, 5));
     optionsOSCReceivePortBox.items.add(FlexItem(80, minitemheight, *mOSCReceivePortEditor).withMargin(0).withFlex(0.5));
     optionsOSCReceivePortBox.items.add(FlexItem(10, 5));
