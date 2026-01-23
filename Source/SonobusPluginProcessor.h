@@ -783,6 +783,16 @@ public:
     bool getReconnectAfterServerLoss() const { return mReconnectAfterServerLoss.get(); }
     void setReconnectAfterServerLoss(bool flag) { mReconnectAfterServerLoss = flag; }
 
+    // OSC Configuration
+    String getOSCTargetIPAddress() const { return mOSCTargetIPAddress; }
+    void setOSCTargetIPAddress(const String& ipAddress);
+    
+    int getOSCTargetPort() const { return mOSCTargetPort; }
+    void setOSCTargetPort(int port);
+    
+    int getOSCReceivePort() const { return mOSCReceivePort; }
+    void setOSCReceivePort(int port);
+
 
     PeerDisplayMode getPeerDisplayMode() const { return mPeerDisplayMode; }
     void setPeerDisplayMode(PeerDisplayMode mode) { mPeerDisplayMode = mode; }
@@ -1231,6 +1241,11 @@ private:
     bool mRecordFinishOpens = true;
     bool mRecordStealth = false;
     URL mDefaultRecordDir;
+    
+    // OSC Configuration
+    String mOSCTargetIPAddress = "127.0.0.1";
+    int mOSCTargetPort = 6001;
+    int mOSCReceivePort = 6000;
     String mLastError;
     int mSelfRecordChannels = 2;
     int mActiveInputChannels = 2;

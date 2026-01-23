@@ -155,6 +155,14 @@ protected:
     std::unique_ptr<Label> mOptionsLanguageLabel;
     std::unique_ptr<ToggleButton> mOptionsUnivFontButton;
 
+    // OSC Configuration UI elements
+    std::unique_ptr<Label> mOSCTargetIPAddressLabel;
+    std::unique_ptr<TextEditor> mOSCTargetIPAddressEditor;
+    std::unique_ptr<Label> mOSCTargetPortLabel;
+    std::unique_ptr<TextEditor> mOSCTargetPortEditor;
+    std::unique_ptr<Label> mOSCReceivePortLabel;
+    std::unique_ptr<TextEditor> mOSCReceivePortEditor;
+
 
     std::unique_ptr<Label> mOptionsRecFilesStaticLabel;
     std::unique_ptr<ToggleButton> mOptionsRecMixButton;
@@ -193,6 +201,9 @@ protected:
     FlexBox optionsAutoDropThreshBox;
     FlexBox optionsMaxRecvPaddingBox;
     FlexBox optionsPluginDefaultBox;
+    FlexBox optionsOSCTargetIPBox;
+    FlexBox optionsOSCTargetPortBox;
+    FlexBox optionsOSCReceivePortBox;
 
     FlexBox recOptionsBox;
     FlexBox optionsRecordFormatBox;

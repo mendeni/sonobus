@@ -98,6 +98,9 @@ static String recordStealthKey("RecordStealth");
 static String defRecordDirKey("DefaultRecordDir");
 static String defRecordDirURLKey("DefaultRecordDirURL");
 static String lastBrowseDirKey("LastBrowseDir");
+static String oscTargetIPAddressKey("OSCTargetIPAddress");
+static String oscTargetPortKey("OSCTargetPort");
+static String oscReceivePortKey("OSCReceivePort");
 static String sliderSnapKey("SliderSnapToMouse");
 static String disableShortcutsKey("DisableKeyShortcuts");
 static String peerDisplayModeKey("PeerDisplayMode");
@@ -842,23 +845,17 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     
     initializeAoo();
 
-    // Initialize the OSC receiver
-    const int receivePort = 6000;
-    if (!oscManager.initializeReceiver(receivePort))
+    // Initialize the OSC receiver with configurable port
+    if (!oscManager.initializeReceiver(mOSCReceivePort))
     {
         juce::Logger::writeToLog("Failed to initialize OSC Receiver.");
     }
 
-    // Initialize the OSC sender
-    const juce::String targetIPAddress = "127.0.0.1"; // Replace with actual destination
-    const int targetPort = 6001;
-    if (!oscManager.initializeSender(targetIPAddress, targetPort))
+    // Initialize the OSC sender with configurable target
+    if (!oscManager.initializeSender(mOSCTargetIPAddress, mOSCTargetPort))
     {
         juce::Logger::writeToLog("Failed to initialize OSC Sender.");
     }
-
-    // Example: Send a test message
-    oscManager.sendMessage("/testMessage", 123);
 
     mFreshInit = false; // need to ensure this before loaddefaultpluginstate
 
@@ -8462,6 +8459,24 @@ OSCManager& SonobusAudioProcessor::getOSCManager()
     return oscManager;
 }
 
+void SonobusAudioProcessor::setOSCTargetIPAddress(const String& ipAddress)
+{
+    mOSCTargetIPAddress = ipAddress;
+    oscManager.initializeSender(mOSCTargetIPAddress, mOSCTargetPort);
+}
+
+void SonobusAudioProcessor::setOSCTargetPort(int port)
+{
+    mOSCTargetPort = port;
+    oscManager.initializeSender(mOSCTargetIPAddress, mOSCTargetPort);
+}
+
+void SonobusAudioProcessor::setOSCReceivePort(int port)
+{
+    mOSCReceivePort = port;
+    oscManager.initializeReceiver(mOSCReceivePort);
+}
+
 ValueTree AooServerConnectionInfo::getValueTree() const
 {
     ValueTree item(recentsItemKey);
@@ -8567,6 +8582,11 @@ void SonobusAudioProcessor::getStateInformationWithOptions(MemoryBlock& destData
         extraTree.setProperty(defRecordDirKey, mDefaultRecordDir.getLocalFile().getFullPathName(), nullptr);
     }
     extraTree.setProperty(defRecordDirURLKey, mDefaultRecordDir.toString(false), nullptr);
+
+    // OSC Configuration
+    extraTree.setProperty(oscTargetIPAddressKey, mOSCTargetIPAddress, nullptr);
+    extraTree.setProperty(oscTargetPortKey, mOSCTargetPort, nullptr);
+    extraTree.setProperty(oscReceivePortKey, mOSCReceivePort, nullptr);
 
     extraTree.setProperty(lastBrowseDirKey, mLastBrowseDir, nullptr);
     extraTree.setProperty(sliderSnapKey, mSliderSnapToMouse, nullptr);
@@ -8710,6 +8730,15 @@ void SonobusAudioProcessor::setStateInformationWithOptions (const void* data, in
 
             setRecordFinishOpens(extraTree.getProperty(recordFinishOpenKey, mRecordFinishOpens));
             setRecordStealth(extraTree.getProperty(recordStealthKey, mRecordStealth));
+            
+            // OSC Configuration
+            mOSCTargetIPAddress = extraTree.getProperty(oscTargetIPAddressKey, mOSCTargetIPAddress);
+            mOSCTargetPort = extraTree.getProperty(oscTargetPortKey, mOSCTargetPort);
+            mOSCReceivePort = extraTree.getProperty(oscReceivePortKey, mOSCReceivePort);
+            
+            // Reinitialize OSC with loaded settings
+            oscManager.initializeSender(mOSCTargetIPAddress, mOSCTargetPort);
+            oscManager.initializeReceiver(mOSCReceivePort);
 
 
 #if !(JUCE_IOS)
