@@ -3,7 +3,7 @@ name: SonoBus — Build (matrix)
 
 on:
   push:
-  pull_request:
+  # pull_request:
 
 jobs:
   build:
