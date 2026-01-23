@@ -843,22 +843,22 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     initializeAoo();
 
     // Initialize the OSC receiver
-    const int receivePort = 9000;
+    const int receivePort = 6000;
     if (!oscManager.initializeReceiver(receivePort))
     {
         juce::Logger::writeToLog("Failed to initialize OSC Receiver.");
     }
 
     // Initialize the OSC sender
-    const juce::String targetIPAddress = "10.10.10.10"; // Replace with actual destination
-    const int targetPort = 8000;
+    const juce::String targetIPAddress = "127.0.0.1"; // Replace with actual destination
+    const int targetPort = 6001;
     if (!oscManager.initializeSender(targetIPAddress, targetPort))
     {
         juce::Logger::writeToLog("Failed to initialize OSC Sender.");
     }
 
     // Example: Send a test message
-    // oscManager.sendMessage("/testMessage", 123);
+    oscManager.sendMessage("/testMessage", 123);
 
     mFreshInit = false; // need to ensure this before loaddefaultpluginstate
 
