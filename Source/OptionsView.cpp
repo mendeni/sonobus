@@ -388,7 +388,7 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mOSCTargetPortEditor->setKeyboardType(TextEditor::numericKeyboard);
     mOSCTargetPortEditor->setInputRestrictions(5, "0123456789");
     configEditor(mOSCTargetPortEditor.get());
-    mOSCTargetPortEditor->setTooltip(TRANS("Port for outbound OSC messages"));
+    mOSCTargetPortEditor->setTooltip(TRANS("Port for outbound OSC messages (1-65535)"));
     
     mOSCReceivePortLabel = std::make_unique<Label>("", TRANS("OSC Receive Port:"));
     configLabel(mOSCReceivePortLabel.get(), false);
@@ -400,7 +400,7 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mOSCReceivePortEditor->setKeyboardType(TextEditor::numericKeyboard);
     mOSCReceivePortEditor->setInputRestrictions(5, "0123456789");
     configEditor(mOSCReceivePortEditor.get());
-    mOSCReceivePortEditor->setTooltip(TRANS("Port for receiving OSC messages"));
+    mOSCReceivePortEditor->setTooltip(TRANS("Port for receiving OSC messages (1-65535)"));
 
     mOptionsSavePluginDefaultButton = std::make_unique<TextButton>("saveopt");
     mOptionsSavePluginDefaultButton->setButtonText(TRANS("Save as default plugin options"));
@@ -1164,10 +1164,20 @@ void OptionsView::textEditorFocusLost (TextEditor& ed)
     }
     else if (&ed == mOSCTargetPortEditor.get()) {
         int port = mOSCTargetPortEditor->getText().getIntValue();
+        // Validate port range (1-65535)
+        if (port < 1 || port > 65535) {
+            port = 6001; // Reset to default
+            mOSCTargetPortEditor->setText(String(port), dontSendNotification);
+        }
         processor.setOSCTargetPort(port);
     }
     else if (&ed == mOSCReceivePortEditor.get()) {
         int port = mOSCReceivePortEditor->getText().getIntValue();
+        // Validate port range (1-65535)
+        if (port < 1 || port > 65535) {
+            port = 6000; // Reset to default
+            mOSCReceivePortEditor->setText(String(port), dontSendNotification);
+        }
         processor.setOSCReceivePort(port);
     }
 }

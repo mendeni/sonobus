@@ -848,13 +848,13 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     // Initialize the OSC receiver with configurable port
     if (!oscManager.initializeReceiver(mOSCReceivePort))
     {
-        juce::Logger::writeToLog("Failed to initialize OSC Receiver.");
+        juce::Logger::writeToLog("Failed to initialize OSC Receiver on port " + juce::String(mOSCReceivePort));
     }
 
     // Initialize the OSC sender with configurable target
     if (!oscManager.initializeSender(mOSCTargetIPAddress, mOSCTargetPort))
     {
-        juce::Logger::writeToLog("Failed to initialize OSC Sender.");
+        juce::Logger::writeToLog("Failed to initialize OSC Sender to " + mOSCTargetIPAddress + ":" + juce::String(mOSCTargetPort));
     }
 
     mFreshInit = false; // need to ensure this before loaddefaultpluginstate
