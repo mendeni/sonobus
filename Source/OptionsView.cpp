@@ -1248,6 +1248,11 @@ void OptionsView::buttonClicked (Button* buttonThatWasClicked)
             params.enabled = mOptionsInputLimiterButton->getToggleState();
             processor.setInputLimiterParams(j, params);
         }
+        
+        // Send OSC message for OptionsInputLimiterButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OptionsInputLimiterButton", mOptionsInputLimiterButton->getToggleState() ? 1 : 0);
+        }
     }
     else if (buttonThatWasClicked == mOptionsRecMixButton.get()
              || buttonThatWasClicked == mOptionsRecSelfButton.get()
@@ -1267,6 +1272,13 @@ void OptionsView::buttonClicked (Button* buttonThatWasClicked)
         }
 
         processor.setDefaultRecordingOptions(recmask);
+        
+        // Send OSC messages for recording button state changes
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OptionsRecMixButton", mOptionsRecMixButton->getToggleState() ? 1 : 0);
+            processor.getOSCManager().sendMessage("/OptionsRecSelfButton", mOptionsRecSelfButton->getToggleState() ? 1 : 0);
+            processor.getOSCManager().sendMessage("/OptionsRecOthersButton", mOptionsRecOthersButton->getToggleState() ? 1 : 0);
+        }
     }
     else if (buttonThatWasClicked == mOptionsChangeAllFormatButton.get()) {
         processor.setChangingDefaultAudioCodecSetsExisting(mOptionsChangeAllFormatButton->getToggleState());

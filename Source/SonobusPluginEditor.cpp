@@ -1593,6 +1593,176 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
             }
         }
     });
+    
+    // Register OptionsDynamicResamplingButton - toggles dynamic resampling state
+    oscManager.registerControl("/OptionsDynamicResamplingButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool state = false;
+            if (message[0].isInt32()) {
+                state = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                state = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, state]() {
+                if (auto* param = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramDynamicResampling)) {
+                    param->setValueNotifyingHost(state ? 1.0f : 0.0f);
+                }
+            });
+        }
+    });
+    
+    // Register OptionsAutoReconnectButton - toggles auto-reconnect state
+    oscManager.registerControl("/OptionsAutoReconnectButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool state = false;
+            if (message[0].isInt32()) {
+                state = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                state = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, state]() {
+                if (auto* param = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramAutoReconnectLast)) {
+                    param->setValueNotifyingHost(state ? 1.0f : 0.0f);
+                }
+            });
+        }
+    });
+    
+    // Register OptionsInputLimiterButton - toggles input limiter state
+    oscManager.registerControl("/OptionsInputLimiterButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool state = false;
+            if (message[0].isInt32()) {
+                state = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                state = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, state]() {
+                processor.setInputLimiterParams(state, -12.0f, 0.0f, 30.0f);
+                if (mOptionsView) {
+                    if (auto* checkbox = mOptionsView->getOptionsInputLimiterButton()) {
+                        checkbox->setToggleState(state, juce::NotificationType::dontSendNotification);
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register OptionsDefaultLevelSlider - updates default peer level parameter
+    oscManager.registerControl("/OptionsDefaultLevelSlider", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            juce::MessageManager::callAsync([this, value]() {
+                if (auto* param = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramDefaultPeerLevel)) {
+                    float normalizedValue = param->convertTo0to1(value);
+                    param->setValueNotifyingHost(normalizedValue);
+                }
+            });
+        }
+    });
+    
+    // Register OptionsAutosizeDefaultChoice - updates default autonetbuf parameter
+    oscManager.registerControl("/OptionsAutosizeDefaultChoice", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isInt32()) {
+            int value = message[0].getInt32();
+            juce::MessageManager::callAsync([this, value]() {
+                if (auto* param = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramDefaultAutoNetbuf)) {
+                    float normalizedValue = param->convertTo0to1(static_cast<float>(value));
+                    param->setValueNotifyingHost(normalizedValue);
+                }
+            });
+        }
+    });
+    
+    // Register OptionsFormatChoiceDefaultChoice - updates default send quality parameter
+    oscManager.registerControl("/OptionsFormatChoiceDefaultChoice", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isInt32()) {
+            int value = message[0].getInt32();
+            juce::MessageManager::callAsync([this, value]() {
+                if (auto* param = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramDefaultSendQual)) {
+                    float normalizedValue = param->convertTo0to1(static_cast<float>(value));
+                    param->setValueNotifyingHost(normalizedValue);
+                }
+            });
+        }
+    });
+    
+    // Register OptionsMetRecordedButton - toggles metronome recorded state
+    oscManager.registerControl("/OptionsMetRecordedButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool state = false;
+            if (message[0].isInt32()) {
+                state = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                state = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, state]() {
+                if (auto* param = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMetIsRecorded)) {
+                    param->setValueNotifyingHost(state ? 1.0f : 0.0f);
+                }
+            });
+        }
+    });
+    
+    // Register OptionsRecMixButton - toggles record mix state
+    oscManager.registerControl("/OptionsRecMixButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool state = false;
+            if (message[0].isInt32()) {
+                state = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                state = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, state]() {
+                processor.setRecordOutputMix(state);
+                if (mOptionsView) {
+                    if (auto* checkbox = mOptionsView->getOptionsRecMixButton()) {
+                        checkbox->setToggleState(state, juce::NotificationType::dontSendNotification);
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register OptionsRecSelfButton - toggles record self state
+    oscManager.registerControl("/OptionsRecSelfButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool state = false;
+            if (message[0].isInt32()) {
+                state = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                state = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, state]() {
+                processor.setRecordDry(state);
+                if (mOptionsView) {
+                    if (auto* checkbox = mOptionsView->getOptionsRecSelfButton()) {
+                        checkbox->setToggleState(state, juce::NotificationType::dontSendNotification);
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register OptionsRecOthersButton - toggles record others state
+    oscManager.registerControl("/OptionsRecOthersButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool state = false;
+            if (message[0].isInt32()) {
+                state = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                state = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, state]() {
+                processor.setRecordInProcessMix(state);
+                if (mOptionsView) {
+                    if (auto* checkbox = mOptionsView->getOptionsRecOthersButton()) {
+                        checkbox->setToggleState(state, juce::NotificationType::dontSendNotification);
+                    }
+                }
+            });
+        }
+    });
 
     // handles registering commands
     updateUseKeybindings();
@@ -1642,6 +1812,16 @@ SonobusAudioProcessorEditor::~SonobusAudioProcessorEditor()
     oscManager.unregisterControl("/RecordingButton");
     oscManager.unregisterControl("/EffectsButton");
     oscManager.unregisterControl("/BufferMinButton");
+    oscManager.unregisterControl("/OptionsDynamicResamplingButton");
+    oscManager.unregisterControl("/OptionsAutoReconnectButton");
+    oscManager.unregisterControl("/OptionsInputLimiterButton");
+    oscManager.unregisterControl("/OptionsDefaultLevelSlider");
+    oscManager.unregisterControl("/OptionsAutosizeDefaultChoice");
+    oscManager.unregisterControl("/OptionsFormatChoiceDefaultChoice");
+    oscManager.unregisterControl("/OptionsMetRecordedButton");
+    oscManager.unregisterControl("/OptionsRecMixButton");
+    oscManager.unregisterControl("/OptionsRecSelfButton");
+    oscManager.unregisterControl("/OptionsRecOthersButton");
     
     if (menuBarModel) {
         menuBarModel->setApplicationCommandManagerToWatch(nullptr);
@@ -4182,11 +4362,45 @@ void SonobusAudioProcessorEditor::parameterChanged (const String& pname, float n
         triggerAsyncUpdate();
     }
     else if (pname == SonobusAudioProcessor::paramMetIsRecorded) {
+        // Send OSC message for OptionsMetRecordedButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OptionsMetRecordedButton", newValue > 0 ? 1 : 0);
+        }
         {
             const ScopedLock sl (clientStateLock);
             clientEvents.add(ClientEvent(ClientEvent::PeerChangedState, ""));
         }
         triggerAsyncUpdate();
+    }
+    else if (pname == SonobusAudioProcessor::paramDynamicResampling) {
+        // Send OSC message for OptionsDynamicResamplingButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OptionsDynamicResamplingButton", newValue > 0 ? 1 : 0);
+        }
+    }
+    else if (pname == SonobusAudioProcessor::paramAutoReconnectLast) {
+        // Send OSC message for OptionsAutoReconnectButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OptionsAutoReconnectButton", newValue > 0 ? 1 : 0);
+        }
+    }
+    else if (pname == SonobusAudioProcessor::paramDefaultPeerLevel) {
+        // Send OSC message for OptionsDefaultLevelSlider value change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OptionsDefaultLevelSlider", newValue);
+        }
+    }
+    else if (pname == SonobusAudioProcessor::paramDefaultAutoNetbuf) {
+        // Send OSC message for OptionsAutosizeDefaultChoice value change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OptionsAutosizeDefaultChoice", static_cast<int>(newValue));
+        }
+    }
+    else if (pname == SonobusAudioProcessor::paramDefaultSendQual) {
+        // Send OSC message for OptionsFormatChoiceDefaultChoice value change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OptionsFormatChoiceDefaultChoice", static_cast<int>(newValue));
+        }
     }
     else if (pname == SonobusAudioProcessor::paramSendFileAudio) {
         {
