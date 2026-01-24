@@ -107,6 +107,32 @@ Choice buttons accept and send integer values representing the selected option I
 **Range**: Tempo in beats per minute  
 **Parameter**: `paramMetTempo`
 
+#### `/MetSyncButton`
+**Type**: Toggle Button  
+**Description**: Synchronizes metronome to host DAW tempo  
+**Data Type**: Integer (0 = not synced, 1 = synced to host)  
+**Parameter**: `paramSyncMetToHost`
+
+#### `/MetSyncFileButton`
+**Type**: Toggle Button  
+**Description**: Synchronizes metronome to file playback tempo  
+**Data Type**: Integer (0 = not synced, 1 = synced to file)  
+**Parameter**: `paramSyncMetToFilePlayback`
+
+### Input Monitor Controls
+
+#### `/InMuteButton`
+**Type**: Toggle Button  
+**Description**: Mutes/unmutes your input monitor (what you hear of your own audio)  
+**Data Type**: Integer (0 = unmuted, 1 = muted)  
+**Parameter**: `paramMainInMute`
+
+#### `/InSoloButton`
+**Type**: Toggle Button  
+**Description**: Solos your input monitor  
+**Data Type**: Integer (0 = not soloed, 1 = soloed)  
+**Parameter**: `paramMainMonitorSolo`
+
 ### Utility Buttons
 
 #### `/BufferMinButton`
@@ -121,12 +147,6 @@ Choice buttons accept and send integer values representing the selected option I
 **Data Type**: Integer (1 to trigger)  
 **Action**: Adjusts all peer jitter buffers to match the highest latency
 
-#### `/EffectsButton`
-**Type**: Push Button  
-**Description**: Opens/closes the main effects panel  
-**Data Type**: Integer (1 to trigger)  
-**Action**: Toggles effects configuration view
-
 #### `/RecordingButton`
 **Type**: Toggle Button  
 **Description**: Starts/stops recording audio to file  
@@ -134,6 +154,42 @@ Choice buttons accept and send integer values representing the selected option I
 **Behavior**: Toggles recording state
 - When turned on: Starts recording with current settings
 - When turned off: Stops recording and saves file
+
+### Main Reverb Controls
+
+#### `/MainReverbEnabled`
+**Type**: Toggle Button  
+**Description**: Enables/disables the main reverb effect  
+**Data Type**: Integer (0 = disabled, 1 = enabled)  
+**Parameter**: `paramMainReverbEnabled`
+
+#### `/ReverbLevelSlider`
+**Type**: Slider  
+**Description**: Controls the reverb level/mix  
+**Data Type**: Float  
+**Range**: Audio level  
+**Parameter**: `paramMainReverbLevel`
+
+#### `/ReverbSizeSlider`
+**Type**: Slider  
+**Description**: Controls the reverb room size  
+**Data Type**: Float  
+**Range**: Room size parameter  
+**Parameter**: `paramMainReverbSize`
+
+#### `/ReverbDampingSlider`
+**Type**: Slider  
+**Description**: Controls the reverb damping (high frequency absorption)  
+**Data Type**: Float  
+**Range**: Damping parameter  
+**Parameter**: `paramMainReverbDamping`
+
+#### `/ReverbPreDelaySlider`
+**Type**: Slider  
+**Description**: Controls the reverb pre-delay time  
+**Data Type**: Float  
+**Range**: Pre-delay time in milliseconds  
+**Parameter**: `paramMainReverbPreDelay`
 
 ## Options Tab Controls
 
@@ -193,6 +249,89 @@ Choice buttons accept and send integer values representing the selected option I
 **Parameter**: `paramDefaultSendQual`  
 **Options**: Various codec quality settings (PCM, Opus at different bitrates)
 
+#### `/BufferTimeSlider`
+**Type**: Slider  
+**Description**: Sets the default jitter buffer size in milliseconds  
+**Data Type**: Float  
+**Range**: Buffer time in milliseconds  
+**Parameter**: `paramDefaultNetbufMs`
+
+#### `/OptionsAutoDropThreshSlider`
+**Type**: Slider  
+**Description**: Controls auto-jitter buffer adjustment sensitivity based on dropout rate  
+**Data Type**: Float  
+**Range**: 1.0 - 20.0 seconds  
+**Note**: Threshold for automatic buffer size increases when dropouts occur
+
+### UI Options
+
+#### `/OptionsDisableShortcutButton`
+**Type**: Toggle Button  
+**Description**: Enables/disables keyboard shortcuts  
+**Data Type**: Integer (0 = shortcuts enabled, 1 = shortcuts disabled)  
+**Action**: Toggles keyboard shortcut functionality
+
+#### `/OptionsSliderSnapToMouseButton`
+**Type**: Toggle Button  
+**Description**: Controls whether sliders snap to clicked position  
+**Data Type**: Integer (0 = no snap, 1 = snap to mouse)  
+**Action**: Changes slider behavior for all sliders
+
+#### `/OptionsChangeAllFormatButton`
+**Type**: Toggle Button  
+**Description**: When enabled, changing default codec also changes existing peer connections  
+**Data Type**: Integer (0 = disabled, 1 = enabled)  
+**Action**: Controls codec change behavior
+
+### System Options
+
+#### `/OptionsUseSpecificUdpPortButton`
+**Type**: Toggle Button  
+**Description**: Enables/disables use of a specific UDP port  
+**Data Type**: Integer (0 = system-chosen port, 1 = use specific port)  
+**Action**: Toggles specific UDP port usage
+
+#### `/OptionsUdpPortEditor`
+**Type**: Text Input  
+**Description**: Sets the specific UDP port to use (when enabled)  
+**Data Type**: Integer (port number)  
+**Range**: 1-65535  
+**Note**: Only active when UseSpecificUdpPort is enabled
+
+#### `/OptionsOverrideSamplerateButton`
+**Type**: Toggle Button  
+**Description**: Enables/disables sample rate override  
+**Data Type**: Integer (0 = use device rate, 1 = override)  
+**Action**: Toggles sample rate override (standalone app only)
+
+#### `/OptionsShouldCheckForUpdateButton`
+**Type**: Toggle Button  
+**Description**: Enables/disables automatic update checking  
+**Data Type**: Integer (0 = no auto-check, 1 = auto-check)  
+**Action**: Controls automatic update check behavior (standalone app only)
+
+### OSC Configuration
+
+#### `/OSCTargetIPAddress`
+**Type**: Text Input  
+**Description**: Sets the IP address for outbound OSC messages  
+**Data Type**: String (IP address)  
+**Default**: "127.0.0.1"
+
+#### `/OSCTargetPort`
+**Type**: Text Input  
+**Description**: Sets the port for outbound OSC messages  
+**Data Type**: Integer (port number)  
+**Range**: 1-65535  
+**Default**: 6001
+
+#### `/OSCReceivePort`
+**Type**: Text Input  
+**Description**: Sets the port for receiving OSC messages  
+**Data Type**: Integer (port number)  
+**Range**: 1-65535  
+**Default**: 6000
+
 ## Recording Tab Controls
 
 ### Recording Options
@@ -208,6 +347,18 @@ Choice buttons accept and send integer values representing the selected option I
 **Description**: Enables/disables recording the metronome to file  
 **Data Type**: Integer (0 = not recorded, 1 = recorded)  
 **Parameter**: `paramMetIsRecorded`
+
+#### `/OptionsRecSelfPostFxButton`
+**Type**: Toggle Button  
+**Description**: Records your audio after FX processing (post-FX)  
+**Data Type**: Integer (0 = pre-FX, 1 = post-FX)  
+**Action**: Controls recording point for self audio
+
+#### `/OptionsRecSelfSilenceMutedButton`
+**Type**: Toggle Button  
+**Description**: Silences self recording when muted  
+**Data Type**: Integer (0 = record when muted, 1 = silence when muted)  
+**Action**: Controls self recording behavior when muted
 
 #### `/OptionsRecMixButton`
 **Type**: Toggle Button  

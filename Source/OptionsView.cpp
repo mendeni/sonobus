@@ -1427,6 +1427,11 @@ void OptionsView::buttonClicked (Button* buttonThatWasClicked)
         if (updateSliderSnap) {
             updateSliderSnap();
         }
+        
+        // Send OSC message for OptionsSliderSnapToMouseButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OptionsSliderSnapToMouseButton", newval ? 1 : 0);
+        }
     }
     else if (buttonThatWasClicked == mOptionsDisableShortcutButton.get()) {
         bool newval = mOptionsDisableShortcutButton->getToggleState();

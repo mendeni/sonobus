@@ -2177,6 +2177,26 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
             });
         }
     });
+    
+    // Register OptionsSliderSnapToMouseButton
+    oscManager.registerControl("/OptionsSliderSnapToMouseButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool state = false;
+            if (message[0].isInt32()) {
+                state = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                state = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, state]() {
+                processor.setSlidersSnapToMousePosition(state);
+                if (mOptionsView) {
+                    if (auto* checkbox = mOptionsView->getOptionsSliderSnapToMouseButton()) {
+                        checkbox->setToggleState(state, juce::NotificationType::sendNotificationAsync);
+                    }
+                }
+            });
+        }
+    });
 
     // handles registering commands
     updateUseKeybindings();
@@ -2257,6 +2277,7 @@ SonobusAudioProcessorEditor::~SonobusAudioProcessorEditor()
     oscManager.unregisterControl("/OSCTargetIPAddress");
     oscManager.unregisterControl("/OSCTargetPort");
     oscManager.unregisterControl("/OSCReceivePort");
+    oscManager.unregisterControl("/OptionsSliderSnapToMouseButton");
     
     if (menuBarModel) {
         menuBarModel->setApplicationCommandManagerToWatch(nullptr);
