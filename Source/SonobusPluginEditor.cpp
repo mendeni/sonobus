@@ -1492,13 +1492,23 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
                 if (mMainPushToTalkButton && mMainPushToTalkButton->isEnabled()) {
                     if (value == 1) {
                         // Push down
-                        mPushToTalkWasMuted = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainSendMute)->getValue() > 0;
-                        processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainRecvMute)->setValueNotifyingHost(1.0);
-                        processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainSendMute)->setValueNotifyingHost(0.0);
+                        if (auto* sendMuteParam = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainSendMute)) {
+                            mPushToTalkWasMuted = sendMuteParam->getValue() > 0;
+                        }
+                        if (auto* recvMuteParam = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainRecvMute)) {
+                            recvMuteParam->setValueNotifyingHost(1.0);
+                        }
+                        if (auto* sendMuteParam = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainSendMute)) {
+                            sendMuteParam->setValueNotifyingHost(0.0);
+                        }
                     } else if (value == 0) {
                         // Release
-                        processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainSendMute)->setValueNotifyingHost(mPushToTalkWasMuted ? 1.0 : 0.0);
-                        processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainRecvMute)->setValueNotifyingHost(0.0);
+                        if (auto* sendMuteParam = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainSendMute)) {
+                            sendMuteParam->setValueNotifyingHost(mPushToTalkWasMuted ? 1.0 : 0.0);
+                        }
+                        if (auto* recvMuteParam = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainRecvMute)) {
+                            recvMuteParam->setValueNotifyingHost(0.0);
+                        }
                     }
                 }
             });
@@ -1638,7 +1648,13 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
                 state = (message[0].getFloat32() != 0.0f);
             }
             juce::MessageManager::callAsync([this, state]() {
-                processor.setInputLimiterParams(state, -12.0f, 0.0f, 30.0f);
+                // Apply limiter state to all input groups, matching the button handler behavior
+                SonoAudio::CompressorParams params;
+                for (int j=0; j < processor.getInputGroupCount(); ++j) {
+                    processor.getInputLimiterParams(j, params);
+                    params.enabled = state;
+                    processor.setInputLimiterParams(j, params);
+                }
                 if (mOptionsView) {
                     if (auto* checkbox = mOptionsView->getOptionsInputLimiterButton()) {
                         checkbox->setToggleState(state, juce::NotificationType::dontSendNotification);
@@ -4351,7 +4367,7 @@ void SonobusAudioProcessorEditor::parameterChanged (const String& pname, float n
         triggerAsyncUpdate();
     }
     else if (pname == SonobusAudioProcessor::paramMainRecvMute) {
-        // Send OSC message for MainRecvMuteButton state change (also sent in buttonClicked, but this handles attachment changes)
+        // Send OSC message for MainRecvMuteButton state change
         if (processor.getOSCEnabled()) {
             processor.getOSCManager().sendMessage("/MainRecvMuteButton", newValue > 0 ? 1 : 0);
         }
