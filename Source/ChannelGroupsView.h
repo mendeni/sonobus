@@ -373,6 +373,10 @@ public:
     void applyToAllSliders(std::function<void(Slider *)> & routine);
 
     void updateLayout(bool notify=true);
+    
+    // Getters for OSC access to nested controls
+    ChannelGroupView* getFileChannelView() { return mFileChannelView.get(); }
+    ChannelGroupView* getSoundboardChannelView() { return mSoundboardChannelView.get(); }
 
 
     std::function<AudioDeviceManager*()> getAudioDeviceManager; // = []() { return 0; };

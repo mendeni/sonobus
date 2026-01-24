@@ -1769,6 +1769,10 @@ void ChannelGroupsView::rebuildChannelViews(bool notify)
 
             mFileChannelView->monitorSlider->onValueChange = [this]() {
                 processor.setFilePlaybackMonitor(mFileChannelView->monitorSlider->getValue());
+                // Send OSC message for FileMonitorSlider value change
+                if (processor.getOSCEnabled()) {
+                    processor.getOSCManager().sendMessage("/FileMonitorSlider", static_cast<float>(mFileChannelView->monitorSlider->getValue()));
+                }
             };
 
             setupChildren(mFileChannelView.get());
@@ -1823,6 +1827,10 @@ void ChannelGroupsView::rebuildChannelViews(bool notify)
 
             mSoundboardChannelView->levelSlider->onValueChange = [this]() {
                 processor.getSoundboardProcessor()->setGain(mSoundboardChannelView->levelSlider->getValue());
+                // Send OSC message for SoundboardLevelSlider value change
+                if (processor.getOSCEnabled()) {
+                    processor.getOSCManager().sendMessage("/SoundboardLevelSlider", static_cast<float>(mSoundboardChannelView->levelSlider->getValue()));
+                }
             };
 
             //mSoundboardChannelView->panSlider->onValueChange = [this]() {
@@ -1831,6 +1839,10 @@ void ChannelGroupsView::rebuildChannelViews(bool notify)
 
             mSoundboardChannelView->monitorSlider->onValueChange = [this]() {
                 processor.getSoundboardProcessor()->setMonitorGain(mSoundboardChannelView->monitorSlider->getValue());
+                // Send OSC message for SoundboardMonitorSlider value change
+                if (processor.getOSCEnabled()) {
+                    processor.getOSCManager().sendMessage("/SoundboardMonitorSlider", static_cast<float>(mSoundboardChannelView->monitorSlider->getValue()));
+                }
             };
 
             setupChildren(mSoundboardChannelView.get());

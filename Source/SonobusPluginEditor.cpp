@@ -1147,7 +1147,13 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
         mPlaybackSlider->setPopupDisplayEnabled(true, true, this);
         mPlaybackSlider->valueFromTextFunction = [](const String& s) -> float { return Decibels::decibelsToGain(s.getFloatValue()); };
         mPlaybackSlider->textFromValueFunction = [](float v) -> String { return Decibels::toString(Decibels::gainToDecibels(v), 1); };
-        mPlaybackSlider->onValueChange = [this] { processor.setFilePlaybackGain(mPlaybackSlider->getValue()); };
+        mPlaybackSlider->onValueChange = [this] { 
+            processor.setFilePlaybackGain(mPlaybackSlider->getValue()); 
+            // Send OSC message for PlaybackSlider value change
+            if (processor.getOSCEnabled()) {
+                processor.getOSCManager().sendMessage("/PlaybackSlider", static_cast<float>(mPlaybackSlider->getValue()));
+            }
+        };
         mPlaybackSlider->setWantsKeyboardFocus(true);
 
         mFileSendAudioButton = std::make_unique<SonoDrawableButton>("sendmute", DrawableButton::ButtonStyle::ImageFitted);
@@ -2197,6 +2203,128 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
             });
         }
     });
+    
+    // Register MetSendButton
+    oscManager.registerControl("/MetSendButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool state = false;
+            if (message[0].isInt32()) {
+                state = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                state = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, state]() {
+                if (auto* param = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramSendMetAudio)) {
+                    param->setValueNotifyingHost(state ? 1.0f : 0.0f);
+                }
+            });
+        }
+    });
+    
+    // Register FileSendButton
+    oscManager.registerControl("/FileSendButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool state = false;
+            if (message[0].isInt32()) {
+                state = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                state = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, state]() {
+                if (auto* param = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramSendFileAudio)) {
+                    param->setValueNotifyingHost(state ? 1.0f : 0.0f);
+                }
+            });
+        }
+    });
+    
+    // Register SoundboardSendButton
+    oscManager.registerControl("/SoundboardSendButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool state = false;
+            if (message[0].isInt32()) {
+                state = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                state = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, state]() {
+                if (auto* param = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramSendSoundboardAudio)) {
+                    param->setValueNotifyingHost(state ? 1.0f : 0.0f);
+                }
+            });
+        }
+    });
+    
+    // Register PlaybackSlider
+    oscManager.registerControl("/PlaybackSlider", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            juce::MessageManager::callAsync([this, value]() {
+                processor.setFilePlaybackGain(value);
+                if (mPlaybackSlider) {
+                    mPlaybackSlider->setValue(value, juce::NotificationType::dontSendNotification);
+                }
+            });
+        }
+    });
+    
+    // Register SoundboardLevelSlider
+    oscManager.registerControl("/SoundboardLevelSlider", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            juce::MessageManager::callAsync([this, value]() {
+                if (processor.getSoundboardProcessor()) {
+                    processor.getSoundboardProcessor()->setGain(value);
+                    // Update UI if available
+                    if (auto* channelGroups = getInputChannelGroupsView()) {
+                        if (auto* soundboardView = channelGroups->getSoundboardChannelView()) {
+                            if (soundboardView->levelSlider) {
+                                soundboardView->levelSlider->setValue(value, juce::NotificationType::dontSendNotification);
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register SoundboardMonitorSlider
+    oscManager.registerControl("/SoundboardMonitorSlider", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            juce::MessageManager::callAsync([this, value]() {
+                if (processor.getSoundboardProcessor()) {
+                    processor.getSoundboardProcessor()->setMonitorGain(value);
+                    // Update UI if available
+                    if (auto* channelGroups = getInputChannelGroupsView()) {
+                        if (auto* soundboardView = channelGroups->getSoundboardChannelView()) {
+                            if (soundboardView->monitorSlider) {
+                                soundboardView->monitorSlider->setValue(value, juce::NotificationType::dontSendNotification);
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register FileMonitorSlider
+    oscManager.registerControl("/FileMonitorSlider", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            juce::MessageManager::callAsync([this, value]() {
+                processor.setFilePlaybackMonitor(value);
+                // Update UI if available
+                if (auto* channelGroups = getInputChannelGroupsView()) {
+                    if (auto* fileView = channelGroups->getFileChannelView()) {
+                        if (fileView->monitorSlider) {
+                            fileView->monitorSlider->setValue(value, juce::NotificationType::dontSendNotification);
+                        }
+                    }
+                }
+            });
+        }
+    });
 
     // handles registering commands
     updateUseKeybindings();
@@ -2278,6 +2406,13 @@ SonobusAudioProcessorEditor::~SonobusAudioProcessorEditor()
     oscManager.unregisterControl("/OSCTargetPort");
     oscManager.unregisterControl("/OSCReceivePort");
     oscManager.unregisterControl("/OptionsSliderSnapToMouseButton");
+    oscManager.unregisterControl("/MetSendButton");
+    oscManager.unregisterControl("/FileSendButton");
+    oscManager.unregisterControl("/SoundboardSendButton");
+    oscManager.unregisterControl("/PlaybackSlider");
+    oscManager.unregisterControl("/SoundboardLevelSlider");
+    oscManager.unregisterControl("/SoundboardMonitorSlider");
+    oscManager.unregisterControl("/FileMonitorSlider");
     
     if (menuBarModel) {
         menuBarModel->setApplicationCommandManagerToWatch(nullptr);
@@ -4877,6 +5012,10 @@ void SonobusAudioProcessorEditor::parameterChanged (const String& pname, float n
         }
     }
     else if (pname == SonobusAudioProcessor::paramSendFileAudio) {
+        // Send OSC message for FileSendButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/FileSendButton", newValue > 0 ? 1 : 0);
+        }
         {
             const ScopedLock sl (clientStateLock);
             clientEvents.add(ClientEvent(ClientEvent::PeerChangedState, ""));
@@ -4884,6 +5023,21 @@ void SonobusAudioProcessorEditor::parameterChanged (const String& pname, float n
         triggerAsyncUpdate();
     }
     else if (pname == SonobusAudioProcessor::paramSendSoundboardAudio) {
+        // Send OSC message for SoundboardSendButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/SoundboardSendButton", newValue > 0 ? 1 : 0);
+        }
+        {
+            const ScopedLock sl (clientStateLock);
+            clientEvents.add(ClientEvent(ClientEvent::PeerChangedState, ""));
+        }
+        triggerAsyncUpdate();
+    }
+    else if (pname == SonobusAudioProcessor::paramSendMetAudio) {
+        // Send OSC message for MetSendButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/MetSendButton", newValue > 0 ? 1 : 0);
+        }
         {
             const ScopedLock sl (clientStateLock);
             clientEvents.add(ClientEvent(ClientEvent::PeerChangedState, ""));
