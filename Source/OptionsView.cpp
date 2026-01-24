@@ -1303,6 +1303,7 @@ void OptionsView::buttonClicked (Button* buttonThatWasClicked)
             processor.getOSCManager().sendMessage("/OptionsRecMixButton", mOptionsRecMixButton->getToggleState() ? 1 : 0);
             processor.getOSCManager().sendMessage("/OptionsRecSelfButton", mOptionsRecSelfButton->getToggleState() ? 1 : 0);
             processor.getOSCManager().sendMessage("/OptionsRecOthersButton", mOptionsRecOthersButton->getToggleState() ? 1 : 0);
+            processor.getOSCManager().sendMessage("/OptionsRecMixMinusButton", mOptionsRecMixMinusButton->getToggleState() ? 1 : 0);
         }
     }
     else if (buttonThatWasClicked == mOptionsChangeAllFormatButton.get()) {

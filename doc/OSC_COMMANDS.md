@@ -378,6 +378,12 @@ Choice buttons accept and send integer values representing the selected option I
 **Data Type**: Integer (0 = disabled, 1 = enabled)  
 **Action**: Includes/excludes individual user tracks in recording
 
+#### `/OptionsRecMixMinusButton`
+**Type**: Toggle Button  
+**Description**: Enables/disables recording the full mix without yourself  
+**Data Type**: Integer (0 = disabled, 1 = enabled)  
+**Action**: Includes/excludes the output mix minus your own audio in recording
+
 **Note**: At least one recording option must be enabled. If all are disabled, RecMix is automatically enabled.
 
 ## Example OSC Messages

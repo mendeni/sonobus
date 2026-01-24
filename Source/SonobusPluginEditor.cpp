@@ -1819,6 +1819,36 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
         }
     });
     
+    // Register OptionsRecMixMinusButton
+    oscManager.registerControl("/OptionsRecMixMinusButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool state = false;
+            if (message[0].isInt32()) {
+                state = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                state = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, state]() {
+                uint32 recmask = processor.getDefaultRecordingOptions();
+                if (state) {
+                    recmask |= SonobusAudioProcessor::RecordMixMinusSelf;
+                } else {
+                    recmask &= ~SonobusAudioProcessor::RecordMixMinusSelf;
+                }
+                // Ensure at least one option is selected
+                if (recmask == 0) {
+                    recmask = SonobusAudioProcessor::RecordMix;
+                }
+                processor.setDefaultRecordingOptions(recmask);
+                if (mOptionsView) {
+                    if (auto* checkbox = mOptionsView->getOptionsRecMixMinusButton()) {
+                        checkbox->setToggleState((recmask & SonobusAudioProcessor::RecordMixMinusSelf) != 0, juce::NotificationType::dontSendNotification);
+                    }
+                }
+            });
+        }
+    });
+    
     // Register MainReverbEnabled (replaces EffectsButton for OSC)
     oscManager.registerControl("/MainReverbEnabled", [this](const juce::OSCMessage& message) {
         if (message.size() > 0) {
@@ -2383,6 +2413,7 @@ SonobusAudioProcessorEditor::~SonobusAudioProcessorEditor()
     oscManager.unregisterControl("/OptionsRecMixButton");
     oscManager.unregisterControl("/OptionsRecSelfButton");
     oscManager.unregisterControl("/OptionsRecOthersButton");
+    oscManager.unregisterControl("/OptionsRecMixMinusButton");
     oscManager.unregisterControl("/MainReverbEnabled");
     oscManager.unregisterControl("/ReverbLevelSlider");
     oscManager.unregisterControl("/ReverbSizeSlider");
