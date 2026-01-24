@@ -1454,6 +1454,145 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
             });
         }
     });
+    
+    // Register DrySlider - updates slider value with a float
+    oscManager.registerControl("/DrySlider", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            juce::MessageManager::callAsync([this, value]() {
+                if (mDrySlider) {
+                    mDrySlider->setValue(value, juce::NotificationType::sendNotificationAsync);
+                }
+            });
+        }
+    });
+    
+    // Register MainRecvMuteButton - toggles receive mute button state with a boolean
+    oscManager.registerControl("/MainRecvMuteButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool muteState = false;
+            if (message[0].isInt32()) {
+                muteState = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                muteState = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, muteState]() {
+                if (mMainRecvMuteButton) {
+                    mMainRecvMuteButton->setToggleState(muteState, juce::NotificationType::sendNotificationAsync);
+                }
+            });
+        }
+    });
+    
+    // Register MainPushToTalkButton - triggers push to talk action (1 = press, 0 = release)
+    oscManager.registerControl("/MainPushToTalkButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isInt32()) {
+            int value = message[0].getInt32();
+            juce::MessageManager::callAsync([this, value]() {
+                if (mMainPushToTalkButton && mMainPushToTalkButton->isEnabled()) {
+                    if (value == 1) {
+                        // Push down
+                        mPushToTalkWasMuted = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainSendMute)->getValue() > 0;
+                        processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainRecvMute)->setValueNotifyingHost(1.0);
+                        processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainSendMute)->setValueNotifyingHost(0.0);
+                    } else if (value == 0) {
+                        // Release
+                        processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainSendMute)->setValueNotifyingHost(mPushToTalkWasMuted ? 1.0 : 0.0);
+                        processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainRecvMute)->setValueNotifyingHost(0.0);
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register MetLevelSlider - updates slider value with a float
+    oscManager.registerControl("/MetLevelSlider", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            juce::MessageManager::callAsync([this, value]() {
+                if (mMetLevelSlider) {
+                    mMetLevelSlider->setValue(value, juce::NotificationType::sendNotificationAsync);
+                }
+            });
+        }
+    });
+    
+    // Register MetEnableButton - toggles metronome enable state with a boolean
+    oscManager.registerControl("/MetEnableButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool enableState = false;
+            if (message[0].isInt32()) {
+                enableState = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                enableState = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, enableState]() {
+                if (mMetEnableButton) {
+                    mMetEnableButton->setToggleState(enableState, juce::NotificationType::sendNotificationAsync);
+                }
+            });
+        }
+    });
+    
+    // Register MetTempoSlider - updates slider value with a float
+    oscManager.registerControl("/MetTempoSlider", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            juce::MessageManager::callAsync([this, value]() {
+                if (mMetTempoSlider) {
+                    mMetTempoSlider->setValue(value, juce::NotificationType::sendNotificationAsync);
+                }
+            });
+        }
+    });
+    
+    // Register RecordingButton - toggles recording state with a boolean
+    oscManager.registerControl("/RecordingButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool recordState = false;
+            if (message[0].isInt32()) {
+                recordState = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                recordState = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, recordState]() {
+                if (mRecordingButton) {
+                    // Only trigger if state is different from current
+                    if (mRecordingButton->getToggleState() != recordState) {
+                        buttonClicked(mRecordingButton.get());
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register EffectsButton - triggers effects button click event (accepts only integer 1)
+    oscManager.registerControl("/EffectsButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isInt32()) {
+            int value = message[0].getInt32();
+            if (value == 1) {
+                juce::MessageManager::callAsync([this]() {
+                    if (mEffectsButton) {
+                        buttonClicked(mEffectsButton.get());
+                    }
+                });
+            }
+        }
+    });
+    
+    // Register BufferMinButton - triggers buffer reset button click event (accepts only integer 1)
+    oscManager.registerControl("/BufferMinButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isInt32()) {
+            int value = message[0].getInt32();
+            if (value == 1) {
+                juce::MessageManager::callAsync([this]() {
+                    if (mBufferMinButton) {
+                        buttonClicked(mBufferMinButton.get());
+                    }
+                });
+            }
+        }
+    });
 
     // handles registering commands
     updateUseKeybindings();
@@ -1494,6 +1633,15 @@ SonobusAudioProcessorEditor::~SonobusAudioProcessorEditor()
     oscManager.unregisterControl("/RecvSyncButton");
     oscManager.unregisterControl("/OptionsMaxRecvPaddingSlider");
     oscManager.unregisterControl("/OptionsRecStealth");
+    oscManager.unregisterControl("/DrySlider");
+    oscManager.unregisterControl("/MainRecvMuteButton");
+    oscManager.unregisterControl("/MainPushToTalkButton");
+    oscManager.unregisterControl("/MetLevelSlider");
+    oscManager.unregisterControl("/MetEnableButton");
+    oscManager.unregisterControl("/MetTempoSlider");
+    oscManager.unregisterControl("/RecordingButton");
+    oscManager.unregisterControl("/EffectsButton");
+    oscManager.unregisterControl("/BufferMinButton");
     
     if (menuBarModel) {
         menuBarModel->setApplicationCommandManagerToWatch(nullptr);
@@ -2181,10 +2329,20 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
             showEffectsConfig(true);
         } else {
             showEffectsConfig(false);
-        }        
+        }
+        
+        // Send OSC message for EffectsButton click
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/EffectsButton", 1);
+        }
     }
     else if (buttonThatWasClicked == mBufferMinButton.get()) {
         resetJitterBufferForAll();
+        
+        // Send OSC message for BufferMinButton click
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/BufferMinButton", 1);
+        }
     }
     else if (buttonThatWasClicked == mRecvSyncButton.get()) {
         SonobusAudioProcessor::LatencyInfo latinfo;
@@ -2256,6 +2414,11 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
             } else {
                 showPopTip(TRANS("Unmuted all who were not muted previously"), 3000, mMainRecvMuteButton.get());
             }
+        }
+        
+        // Send OSC message for MainRecvMuteButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/MainRecvMuteButton", mMainRecvMuteButton->getToggleState() ? 1 : 0);
         }
     }
     else if (buttonThatWasClicked == mMetSendButton.get()) {
@@ -2480,6 +2643,11 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
             mFileRecordingLabel->setText("", dontSendNotification);
             mRecordingButton->setToggleState(true, dontSendNotification);
 
+        }
+        
+        // Send OSC message for RecordingButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/RecordingButton", processor.isRecordingToFile() ? 1 : 0);
         }
     }
     else if (buttonThatWasClicked == mFileBrowseButton.get()) {
@@ -3455,6 +3623,11 @@ void SonobusAudioProcessorEditor::mouseDown (const MouseEvent& event)
             mPushToTalkWasMuted = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainSendMute)->getValue() > 0;
             processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainRecvMute)->setValueNotifyingHost(1.0);            
             processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainSendMute)->setValueNotifyingHost(0.0);
+            
+            // Send OSC message for MainPushToTalkButton press
+            if (processor.getOSCEnabled()) {
+                processor.getOSCManager().sendMessage("/MainPushToTalkButton", 1);
+            }
         }
     }
 }
@@ -3472,6 +3645,11 @@ void SonobusAudioProcessorEditor::mouseUp (const MouseEvent& event)
             // back to mute self, hear others
             processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainSendMute)->setValueNotifyingHost(mPushToTalkWasMuted ? 1.0 : 0.0);            
             processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramMainRecvMute)->setValueNotifyingHost(0.0);
+            
+            // Send OSC message for MainPushToTalkButton release
+            if (processor.getOSCEnabled()) {
+                processor.getOSCManager().sendMessage("/MainPushToTalkButton", 0);
+            }
         }
     }
     else if (event.eventComponent == mReverbTitleLabel.get()) {
@@ -3951,13 +4129,6 @@ void SonobusAudioProcessorEditor::parameterChanged (const String& pname, float n
         }
         triggerAsyncUpdate();
     }
-    else if (pname == SonobusAudioProcessor::paramMainRecvMute) {
-        {
-            const ScopedLock sl (clientStateLock);
-            clientEvents.add(ClientEvent(ClientEvent::PeerChangedState, ""));
-        }
-        triggerAsyncUpdate();
-    }
     else if (pname == SonobusAudioProcessor::paramWet) {
         // Send OSC message for OutGainSlider (wet) value change
         if (processor.getOSCEnabled()) {
@@ -3970,7 +4141,40 @@ void SonobusAudioProcessorEditor::parameterChanged (const String& pname, float n
             processor.getOSCManager().sendMessage("/OptionsMaxRecvPaddingSlider", newValue);
         }
     }
+    else if (pname == SonobusAudioProcessor::paramDry) {
+        // Send OSC message for DrySlider value change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/DrySlider", newValue);
+        }
+    }
+    else if (pname == SonobusAudioProcessor::paramMetGain) {
+        // Send OSC message for MetLevelSlider value change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/MetLevelSlider", newValue);
+        }
+    }
+    else if (pname == SonobusAudioProcessor::paramMetTempo) {
+        // Send OSC message for MetTempoSlider value change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/MetTempoSlider", newValue);
+        }
+    }
     else if (pname == SonobusAudioProcessor::paramMetEnabled) {
+        // Send OSC message for MetEnableButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/MetEnableButton", newValue > 0 ? 1 : 0);
+        }
+        {
+            const ScopedLock sl (clientStateLock);
+            clientEvents.add(ClientEvent(ClientEvent::PeerChangedState, ""));
+        }
+        triggerAsyncUpdate();
+    }
+    else if (pname == SonobusAudioProcessor::paramMainRecvMute) {
+        // Send OSC message for MainRecvMuteButton state change (also sent in buttonClicked, but this handles attachment changes)
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/MainRecvMuteButton", newValue > 0 ? 1 : 0);
+        }
         {
             const ScopedLock sl (clientStateLock);
             clientEvents.add(ClientEvent(ClientEvent::PeerChangedState, ""));
