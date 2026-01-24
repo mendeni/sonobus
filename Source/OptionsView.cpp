@@ -334,6 +334,11 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mOptionsAutoDropThreshSlider->onValueChange = [this]() {
         auto thresh = 1.0 / jmax(1.0, mOptionsAutoDropThreshSlider->getValue());
         processor.setAutoresizeBufferDropRateThreshold(thresh);
+        
+        // Send OSC message for OptionsAutoDropThreshSlider value change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OptionsAutoDropThreshSlider", static_cast<float>(mOptionsAutoDropThreshSlider->getValue()));
+        }
     };
 
     mOptionsAutoDropThreshSlider->setTooltip(TRANS("This controls how sensitive the auto-jitter buffer adjustment is when there are audio dropouts. The jitter buffer size will be increased if there are any dropouts within the number of seconds specified here. When this value is smaller it will be less likely to increase the jitter buffer size automatically."));
@@ -1282,12 +1287,27 @@ void OptionsView::buttonClicked (Button* buttonThatWasClicked)
     }
     else if (buttonThatWasClicked == mOptionsChangeAllFormatButton.get()) {
         processor.setChangingDefaultAudioCodecSetsExisting(mOptionsChangeAllFormatButton->getToggleState());
+        
+        // Send OSC message for OptionsChangeAllFormatButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OptionsChangeAllFormatButton", mOptionsChangeAllFormatButton->getToggleState() ? 1 : 0);
+        }
     }
     else if (buttonThatWasClicked == mOptionsRecSelfPostFxButton.get()) {
         processor.setSelfRecordingPreFX(!mOptionsRecSelfPostFxButton->getToggleState());
+        
+        // Send OSC message for OptionsRecSelfPostFxButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OptionsRecSelfPostFxButton", mOptionsRecSelfPostFxButton->getToggleState() ? 1 : 0);
+        }
     }
     else if (buttonThatWasClicked == mOptionsRecSelfSilenceMutedButton.get()) {
         processor.setSelfRecordingSilenceWhenMuted(mOptionsRecSelfSilenceMutedButton->getToggleState());
+        
+        // Send OSC message for OptionsRecSelfSilenceMutedButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OptionsRecSelfSilenceMutedButton", mOptionsRecSelfSilenceMutedButton->getToggleState() ? 1 : 0);
+        }
     }
     else if (buttonThatWasClicked == mOptionsRecFinishOpenButton.get()) {
         processor.setRecordFinishOpens(mOptionsRecFinishOpenButton->getToggleState());
@@ -1378,6 +1398,11 @@ void OptionsView::buttonClicked (Button* buttonThatWasClicked)
         processor.setDisableKeyboardShortcuts(newval);
         if (updateKeybindings) {
             updateKeybindings();
+        }
+        
+        // Send OSC message for OptionsDisableShortcutButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OptionsDisableShortcutButton", newval ? 1 : 0);
         }
     }
     else if (buttonThatWasClicked == mOptionsSavePluginDefaultButton.get()) {
