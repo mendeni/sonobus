@@ -92,6 +92,14 @@ public:
     ToggleButton* getOptionsDisableShortcutButton() { return mOptionsDisableShortcutButton.get(); }
     SonoChoiceButton* getRecFormatChoice() { return mRecFormatChoice.get(); }
     SonoChoiceButton* getRecBitsChoice() { return mRecBitsChoice.get(); }
+    Slider* getBufferTimeSlider() { return mBufferTimeSlider.get(); }
+    ToggleButton* getOptionsUseSpecificUdpPortButton() { return mOptionsUseSpecificUdpPortButton.get(); }
+    ToggleButton* getOptionsOverrideSamplerateButton() { return mOptionsOverrideSamplerateButton.get(); }
+    ToggleButton* getOptionsShouldCheckForUpdateButton() { return mOptionsShouldCheckForUpdateButton.get(); }
+    TextEditor* getOptionsUdpPortEditor() { return mOptionsUdpPortEditor.get(); }
+    TextEditor* getOSCTargetIPAddressEditor() { return mOSCTargetIPAddressEditor.get(); }
+    TextEditor* getOSCTargetPortEditor() { return mOSCTargetPortEditor.get(); }
+    TextEditor* getOSCReceivePortEditor() { return mOSCReceivePortEditor.get(); }
 
     std::function<AudioDeviceManager*()> getAudioDeviceManager; // = []() { return 0; };
     std::function<Value*()> getShouldOverrideSampleRateValue; // = []() { return 0; };

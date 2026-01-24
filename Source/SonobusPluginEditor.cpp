@@ -707,6 +707,23 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     // Add parameter listeners for OSC message sending
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramWet, this);
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMaxRecvPaddingMs, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramDry, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMetGain, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMetTempo, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMainReverbLevel, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMainReverbSize, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMainReverbDamping, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMainReverbPreDelay, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramSyncMetToHost, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramSyncMetToFilePlayback, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMainInMute, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMainMonitorSolo, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramDynamicResampling, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramAutoReconnectLast, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramDefaultPeerLevel, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramDefaultAutoNetbuf, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramDefaultSendQual, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramDefaultNetbufMs, this);
 
 
     mConnectButton = std::make_unique<SonoTextButton>("directconnect");
@@ -2025,6 +2042,141 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
             });
         }
     });
+    
+    // Register BufferTimeSlider
+    oscManager.registerControl("/BufferTimeSlider", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            juce::MessageManager::callAsync([this, value]() {
+                if (auto* param = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramDefaultNetbufMs)) {
+                    float normalizedValue = param->convertTo0to1(value);
+                    param->setValueNotifyingHost(normalizedValue);
+                }
+            });
+        }
+    });
+    
+    // Register OptionsUseSpecificUdpPortButton
+    oscManager.registerControl("/OptionsUseSpecificUdpPortButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool state = false;
+            if (message[0].isInt32()) {
+                state = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                state = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, state]() {
+                processor.setUseSpecificUdpPort(state ? processor.getUseSpecificUdpPort() : 0);
+                if (mOptionsView) {
+                    if (auto* checkbox = mOptionsView->getOptionsUseSpecificUdpPortButton()) {
+                        checkbox->setToggleState(state, juce::NotificationType::sendNotificationAsync);
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register OptionsOverrideSamplerateButton
+    oscManager.registerControl("/OptionsOverrideSamplerateButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool state = false;
+            if (message[0].isInt32()) {
+                state = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                state = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, state]() {
+                if (mOptionsView) {
+                    if (auto* checkbox = mOptionsView->getOptionsOverrideSamplerateButton()) {
+                        checkbox->setToggleState(state, juce::NotificationType::sendNotificationAsync);
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register OptionsShouldCheckForUpdateButton
+    oscManager.registerControl("/OptionsShouldCheckForUpdateButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool state = false;
+            if (message[0].isInt32()) {
+                state = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                state = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, state]() {
+                if (mOptionsView) {
+                    if (auto* checkbox = mOptionsView->getOptionsShouldCheckForUpdateButton()) {
+                        checkbox->setToggleState(state, juce::NotificationType::sendNotificationAsync);
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register OptionsUdpPortEditor
+    oscManager.registerControl("/OptionsUdpPortEditor", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isInt32()) {
+            int port = message[0].getInt32();
+            juce::MessageManager::callAsync([this, port]() {
+                processor.setUseSpecificUdpPort(port);
+                if (mOptionsView) {
+                    if (auto* editor = mOptionsView->getOptionsUdpPortEditor()) {
+                        editor->setText(String(port), juce::NotificationType::dontSendNotification);
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register OSCTargetIPAddress
+    oscManager.registerControl("/OSCTargetIPAddress", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isString()) {
+            String ipAddress = message[0].getString();
+            juce::MessageManager::callAsync([this, ipAddress]() {
+                processor.setOSCTargetIPAddress(ipAddress);
+                if (mOptionsView) {
+                    if (auto* editor = mOptionsView->getOSCTargetIPAddressEditor()) {
+                        editor->setText(ipAddress, juce::NotificationType::dontSendNotification);
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register OSCTargetPort
+    oscManager.registerControl("/OSCTargetPort", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isInt32()) {
+            int port = message[0].getInt32();
+            juce::MessageManager::callAsync([this, port]() {
+                if (port >= 1 && port <= 65535) {
+                    processor.setOSCTargetPort(port);
+                    if (mOptionsView) {
+                        if (auto* editor = mOptionsView->getOSCTargetPortEditor()) {
+                            editor->setText(String(port), juce::NotificationType::dontSendNotification);
+                        }
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register OSCReceivePort
+    oscManager.registerControl("/OSCReceivePort", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isInt32()) {
+            int port = message[0].getInt32();
+            juce::MessageManager::callAsync([this, port]() {
+                if (port >= 1 && port <= 65535) {
+                    processor.setOSCReceivePort(port);
+                    if (mOptionsView) {
+                        if (auto* editor = mOptionsView->getOSCReceivePortEditor()) {
+                            editor->setText(String(port), juce::NotificationType::dontSendNotification);
+                        }
+                    }
+                }
+            });
+        }
+    });
 
     // handles registering commands
     updateUseKeybindings();
@@ -2097,6 +2249,14 @@ SonobusAudioProcessorEditor::~SonobusAudioProcessorEditor()
     oscManager.unregisterControl("/OptionsDisableShortcutButton");
     oscManager.unregisterControl("/OptionsChangeAllFormatButton");
     oscManager.unregisterControl("/OptionsAutoDropThreshSlider");
+    oscManager.unregisterControl("/BufferTimeSlider");
+    oscManager.unregisterControl("/OptionsUseSpecificUdpPortButton");
+    oscManager.unregisterControl("/OptionsOverrideSamplerateButton");
+    oscManager.unregisterControl("/OptionsShouldCheckForUpdateButton");
+    oscManager.unregisterControl("/OptionsUdpPortEditor");
+    oscManager.unregisterControl("/OSCTargetIPAddress");
+    oscManager.unregisterControl("/OSCTargetPort");
+    oscManager.unregisterControl("/OSCReceivePort");
     
     if (menuBarModel) {
         menuBarModel->setApplicationCommandManagerToWatch(nullptr);
@@ -2129,6 +2289,23 @@ SonobusAudioProcessorEditor::~SonobusAudioProcessorEditor()
     // Remove parameter listeners for OSC message sending
     processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramWet, this);
     processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramMaxRecvPaddingMs, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramDry, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramMetGain, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramMetTempo, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramMainReverbLevel, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramMainReverbSize, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramMainReverbDamping, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramMainReverbPreDelay, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramSyncMetToHost, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramSyncMetToFilePlayback, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramMainInMute, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramMainMonitorSolo, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramDynamicResampling, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramAutoReconnectLast, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramDefaultPeerLevel, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramDefaultAutoNetbuf, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramDefaultSendQual, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramDefaultNetbufMs, this);
 
 
     
@@ -4670,6 +4847,12 @@ void SonobusAudioProcessorEditor::parameterChanged (const String& pname, float n
         // Send OSC message for OptionsFormatChoiceDefaultChoice value change
         if (processor.getOSCEnabled()) {
             processor.getOSCManager().sendMessage("/OptionsFormatChoiceDefaultChoice", static_cast<int>(newValue));
+        }
+    }
+    else if (pname == SonobusAudioProcessor::paramDefaultNetbufMs) {
+        // Send OSC message for BufferTimeSlider value change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/BufferTimeSlider", newValue);
         }
     }
     else if (pname == SonobusAudioProcessor::paramSendFileAudio) {

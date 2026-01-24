@@ -1189,6 +1189,11 @@ void OptionsView::textEditorFocusLost (TextEditor& ed)
     }
     else if (&ed == mOSCTargetIPAddressEditor.get()) {
         processor.setOSCTargetIPAddress(mOSCTargetIPAddressEditor->getText());
+        
+        // Send OSC message for OSCTargetIPAddress change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OSCTargetIPAddress", mOSCTargetIPAddressEditor->getText());
+        }
     }
     else if (&ed == mOSCTargetPortEditor.get()) {
         int port = mOSCTargetPortEditor->getText().getIntValue();
@@ -1198,6 +1203,11 @@ void OptionsView::textEditorFocusLost (TextEditor& ed)
             mOSCTargetPortEditor->setText(String(port), dontSendNotification);
         }
         processor.setOSCTargetPort(port);
+        
+        // Send OSC message for OSCTargetPort change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OSCTargetPort", port);
+        }
     }
     else if (&ed == mOSCReceivePortEditor.get()) {
         int port = mOSCReceivePortEditor->getText().getIntValue();
@@ -1207,6 +1217,11 @@ void OptionsView::textEditorFocusLost (TextEditor& ed)
             mOSCReceivePortEditor->setText(String(port), dontSendNotification);
         }
         processor.setOSCReceivePort(port);
+        
+        // Send OSC message for OSCReceivePort change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OSCReceivePort", port);
+        }
     }
 }
 
@@ -1217,6 +1232,11 @@ void OptionsView::changeUdpPort(int port)
         processor.setUseSpecificUdpPort(port);
 
         //updateState();
+        
+        // Send OSC message for OptionsUdpPortEditor change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OptionsUdpPortEditor", port);
+        }
     }
     updateState(true);
 
@@ -1351,12 +1371,22 @@ void OptionsView::buttonClicked (Button* buttonThatWasClicked)
         } else {
             updateState(true);
         }
+        
+        // Send OSC message for OptionsUseSpecificUdpPortButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OptionsUseSpecificUdpPortButton", mOptionsUseSpecificUdpPortButton->getToggleState() ? 1 : 0);
+        }
     }
     else if (buttonThatWasClicked == mOptionsOverrideSamplerateButton.get()) {
 
         if (JUCEApplicationBase::isStandaloneApp() && getShouldOverrideSampleRateValue) {
             Value * val = getShouldOverrideSampleRateValue();
             val->setValue((bool)mOptionsOverrideSamplerateButton->getToggleState());
+        }
+        
+        // Send OSC message for OptionsOverrideSamplerateButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OptionsOverrideSamplerateButton", mOptionsOverrideSamplerateButton->getToggleState() ? 1 : 0);
         }
     }
     else if (buttonThatWasClicked == mOptionsAllowBluetoothInput.get()) {
@@ -1381,6 +1411,11 @@ void OptionsView::buttonClicked (Button* buttonThatWasClicked)
             //if (mOptionsShouldCheckForUpdateButton->getToggleState()) {
             //    startTimer(CheckForNewVersionTimerId, 3000);
             //}
+        }
+        
+        // Send OSC message for OptionsShouldCheckForUpdateButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OptionsShouldCheckForUpdateButton", mOptionsShouldCheckForUpdateButton->getToggleState() ? 1 : 0);
         }
     }
     else if (buttonThatWasClicked == mOptionsSliderSnapToMouseButton.get()) {
