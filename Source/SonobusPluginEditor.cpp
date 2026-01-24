@@ -1730,10 +1730,20 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
                 state = (message[0].getFloat32() != 0.0f);
             }
             juce::MessageManager::callAsync([this, state]() {
-                processor.setRecordOutputMix(state);
+                uint32 recmask = processor.getDefaultRecordingOptions();
+                if (state) {
+                    recmask |= SonobusAudioProcessor::RecordMix;
+                } else {
+                    recmask &= ~SonobusAudioProcessor::RecordMix;
+                }
+                // Ensure at least one option is selected
+                if (recmask == 0) {
+                    recmask = SonobusAudioProcessor::RecordMix;
+                }
+                processor.setDefaultRecordingOptions(recmask);
                 if (mOptionsView) {
                     if (auto* checkbox = mOptionsView->getOptionsRecMixButton()) {
-                        checkbox->setToggleState(state, juce::NotificationType::dontSendNotification);
+                        checkbox->setToggleState((recmask & SonobusAudioProcessor::RecordMix) != 0, juce::NotificationType::dontSendNotification);
                     }
                 }
             });
@@ -1750,10 +1760,20 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
                 state = (message[0].getFloat32() != 0.0f);
             }
             juce::MessageManager::callAsync([this, state]() {
-                processor.setRecordDry(state);
+                uint32 recmask = processor.getDefaultRecordingOptions();
+                if (state) {
+                    recmask |= SonobusAudioProcessor::RecordSelf;
+                } else {
+                    recmask &= ~SonobusAudioProcessor::RecordSelf;
+                }
+                // Ensure at least one option is selected
+                if (recmask == 0) {
+                    recmask = SonobusAudioProcessor::RecordMix;
+                }
+                processor.setDefaultRecordingOptions(recmask);
                 if (mOptionsView) {
                     if (auto* checkbox = mOptionsView->getOptionsRecSelfButton()) {
-                        checkbox->setToggleState(state, juce::NotificationType::dontSendNotification);
+                        checkbox->setToggleState((recmask & SonobusAudioProcessor::RecordSelf) != 0, juce::NotificationType::dontSendNotification);
                     }
                 }
             });
@@ -1770,10 +1790,20 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
                 state = (message[0].getFloat32() != 0.0f);
             }
             juce::MessageManager::callAsync([this, state]() {
-                processor.setRecordInProcessMix(state);
+                uint32 recmask = processor.getDefaultRecordingOptions();
+                if (state) {
+                    recmask |= SonobusAudioProcessor::RecordIndividualUsers;
+                } else {
+                    recmask &= ~SonobusAudioProcessor::RecordIndividualUsers;
+                }
+                // Ensure at least one option is selected
+                if (recmask == 0) {
+                    recmask = SonobusAudioProcessor::RecordMix;
+                }
+                processor.setDefaultRecordingOptions(recmask);
                 if (mOptionsView) {
                     if (auto* checkbox = mOptionsView->getOptionsRecOthersButton()) {
-                        checkbox->setToggleState(state, juce::NotificationType::dontSendNotification);
+                        checkbox->setToggleState((recmask & SonobusAudioProcessor::RecordIndividualUsers) != 0, juce::NotificationType::dontSendNotification);
                     }
                 }
             });
