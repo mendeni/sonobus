@@ -301,6 +301,22 @@ Choice buttons accept and send integer values representing the selected option I
 **Data Type**: Integer (0 = disabled, 1 = enabled)  
 **Action**: Enables/disables monitor delay for all inputs
 
+### Input Group Pre Level Controls
+
+SonoBus supports OSC control for up to 16 Input Groups. Each Input Group can be controlled independently using numbered OSC addresses.
+
+#### `/InputGroup[1-16]PreLevel`
+**Type**: Slider  
+**Description**: Controls the pre-fader level (gain) for the specified Input Group  
+**Data Type**: Float  
+**Range**: Audio level (0.0 - 2.0, where 1.0 is unity gain)  
+**Examples**:
+- `/InputGroup1PreLevel` - Controls Pre Level for Input Group 1
+- `/InputGroup2PreLevel` - Controls Pre Level for Input Group 2
+- `/InputGroup16PreLevel` - Controls Pre Level for Input Group 16
+
+**Note**: Input Groups are numbered 1-16. Only Input Groups that exist at runtime will respond to OSC messages. The number and configuration of Input Groups is determined by the user's audio setup.
+
 ## Options Tab Controls
 
 ### Audio Options

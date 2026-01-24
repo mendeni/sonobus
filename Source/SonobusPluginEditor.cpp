@@ -2482,6 +2482,26 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
             });
         }
     });
+    
+    // Register Input Group Pre Level sliders (support up to 16 input groups)
+    for (int groupIndex = 0; groupIndex < 16; ++groupIndex) {
+        String oscAddress = "/InputGroup" + String(groupIndex + 1) + "PreLevel";
+        oscManager.registerControl(oscAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float value = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, value]() {
+                    // Only set if the input group exists
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        processor.setInputGroupGain(groupIndex, value);
+                        // Update UI if the channel groups view exists
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+    }
 
     // handles registering commands
     updateUseKeybindings();
@@ -2579,6 +2599,12 @@ SonobusAudioProcessorEditor::~SonobusAudioProcessorEditor()
     oscManager.unregisterControl("/InputReverbPreDelay");
     oscManager.unregisterControl("/InReverbButton");
     oscManager.unregisterControl("/MonDelayButton");
+    
+    // Unregister Input Group Pre Level sliders (up to 16 input groups)
+    for (int groupIndex = 0; groupIndex < 16; ++groupIndex) {
+        String oscAddress = "/InputGroup" + String(groupIndex + 1) + "PreLevel";
+        oscManager.unregisterControl(oscAddress);
+    }
     
     if (menuBarModel) {
         menuBarModel->setApplicationCommandManagerToWatch(nullptr);

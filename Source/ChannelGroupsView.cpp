@@ -4843,6 +4843,10 @@ void ChannelGroupsView::sliderValueChanged (Slider* slider)
 
             if (pvf->levelSlider.get() == slider) {
                 processor.setInputGroupGain(changroup, pvf->levelSlider->getValue());
+                // Send OSC message for Input Group Pre Level change
+                if (processor.getOSCEnabled()) {
+                    processor.getOSCManager().sendMessage("/InputGroup" + String(changroup + 1) + "PreLevel", static_cast<float>(pvf->levelSlider->getValue()));
+                }
                 break;
             }
             else if (pvf->monitorSlider.get() == slider) {
