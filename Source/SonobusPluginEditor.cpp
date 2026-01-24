@@ -703,6 +703,10 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramInMonitorMonoPan, this);
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramInMonitorPan1, this);
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramInMonitorPan2, this);
+    
+    // Add parameter listeners for OSC message sending
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramWet, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMaxRecvPaddingMs, this);
 
 
     mConnectButton = std::make_unique<SonoTextButton>("directconnect");
@@ -1518,6 +1522,10 @@ SonobusAudioProcessorEditor::~SonobusAudioProcessorEditor()
     processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramInMonitorMonoPan, this);
     processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramInMonitorPan1, this);
     processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramInMonitorPan2, this);
+    
+    // Remove parameter listeners for OSC message sending
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramWet, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramMaxRecvPaddingMs, this);
 
 
     
@@ -2203,6 +2211,11 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
             // set peer jitter buffer to new value
             processor.setRemotePeerBufferTime(j, processor.getRemotePeerBufferTime(j) + deltaMs);
         }
+        
+        // Send OSC message for RecvSyncButton click
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/RecvSyncButton", 1);
+        }
     }
     else if (buttonThatWasClicked == mMainMuteButton.get()) {
         // allow or disallow sending to all peers, handled by button attachment
@@ -2211,6 +2224,11 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
             showPopTip(TRANS("Not sending your audio anywhere"), 3000, mMainMuteButton.get());
         } else {
             showPopTip(TRANS("Sending your audio to others"), 3000, mMainMuteButton.get());
+        }
+        
+        // Send OSC message for MainMuteButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/MainMuteButton", mMainMuteButton->getToggleState() ? 1 : 0);
         }
     }
     else if (buttonThatWasClicked == mMonDelayButton.get()) {
@@ -3939,6 +3957,18 @@ void SonobusAudioProcessorEditor::parameterChanged (const String& pname, float n
             clientEvents.add(ClientEvent(ClientEvent::PeerChangedState, ""));
         }
         triggerAsyncUpdate();
+    }
+    else if (pname == SonobusAudioProcessor::paramWet) {
+        // Send OSC message for OutGainSlider (wet) value change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OutGainSlider", newValue);
+        }
+    }
+    else if (pname == SonobusAudioProcessor::paramMaxRecvPaddingMs) {
+        // Send OSC message for OptionsMaxRecvPaddingSlider value change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OptionsMaxRecvPaddingSlider", newValue);
+        }
     }
     else if (pname == SonobusAudioProcessor::paramMetEnabled) {
         {
