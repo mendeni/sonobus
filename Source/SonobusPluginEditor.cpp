@@ -2014,7 +2014,9 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
         if (message.size() > 0 && message[0].isFloat32()) {
             float value = message[0].getFloat32();
             juce::MessageManager::callAsync([this, value]() {
-                processor.setAutoDropThreshold(value);
+                // The slider value is converted to threshold: thresh = 1.0 / max(1.0, sliderValue)
+                auto thresh = 1.0 / jmax(1.0, static_cast<double>(value));
+                processor.setAutoresizeBufferDropRateThreshold(thresh);
                 if (mOptionsView) {
                     if (auto* slider = mOptionsView->getOptionsAutoDropThreshSlider()) {
                         slider->setValue(value, juce::NotificationType::dontSendNotification);
