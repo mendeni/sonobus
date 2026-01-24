@@ -703,6 +703,10 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramInMonitorMonoPan, this);
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramInMonitorPan1, this);
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramInMonitorPan2, this);
+    
+    // Add parameter listeners for OSC message sending
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramWet, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMaxRecvPaddingMs, this);
 
 
     mConnectButton = std::make_unique<SonoTextButton>("directconnect");
@@ -1518,6 +1522,10 @@ SonobusAudioProcessorEditor::~SonobusAudioProcessorEditor()
     processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramInMonitorMonoPan, this);
     processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramInMonitorPan1, this);
     processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramInMonitorPan2, this);
+    
+    // Remove parameter listeners for OSC message sending
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramWet, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramMaxRecvPaddingMs, this);
 
 
     
@@ -3949,6 +3957,10 @@ void SonobusAudioProcessorEditor::parameterChanged (const String& pname, float n
     else if (pname == SonobusAudioProcessor::paramWet) {
         // Send OSC message for OutGainSlider (wet) value change
         processor.getOSCManager().sendMessage("/OutGainSlider", newValue);
+    }
+    else if (pname == SonobusAudioProcessor::paramMaxRecvPaddingMs) {
+        // Send OSC message for OptionsMaxRecvPaddingSlider value change
+        processor.getOSCManager().sendMessage("/OptionsMaxRecvPaddingSlider", newValue);
     }
     else if (pname == SonobusAudioProcessor::paramMetEnabled) {
         {
