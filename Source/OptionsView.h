@@ -156,6 +156,7 @@ protected:
     std::unique_ptr<ToggleButton> mOptionsUnivFontButton;
 
     // OSC Configuration UI elements
+    std::unique_ptr<ToggleButton> mOSCEnabledButton;
     std::unique_ptr<Label> mOSCTargetIPAddressLabel;
     std::unique_ptr<TextEditor> mOSCTargetIPAddressEditor;
     std::unique_ptr<Label> mOSCTargetPortLabel;
@@ -201,6 +202,7 @@ protected:
     FlexBox optionsAutoDropThreshBox;
     FlexBox optionsMaxRecvPaddingBox;
     FlexBox optionsPluginDefaultBox;
+    FlexBox optionsOSCEnabledBox;
     FlexBox optionsOSCTargetIPBox;
     FlexBox optionsOSCTargetPortBox;
     FlexBox optionsOSCReceivePortBox;

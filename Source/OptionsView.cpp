@@ -367,6 +367,11 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     configLabel(mOptionsMaxRecvPaddingLabel.get(), false);
     mOptionsMaxRecvPaddingLabel->setJustificationType(Justification::centredLeft);
 
+    // OSC Enable toggle
+    mOSCEnabledButton = std::make_unique<ToggleButton>(TRANS("Enable OSC"));
+    mOSCEnabledButton->addListener(this);
+    mOSCEnabledButton->setTooltip(TRANS("Enable or disable OSC (Open Sound Control) functionality"));
+
     // OSC Configuration UI elements
     mOSCTargetIPAddressLabel = std::make_unique<Label>("", TRANS("OSC Target IP Address:"));
     configLabel(mOSCTargetIPAddressLabel.get(), false);
@@ -444,6 +449,7 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mOptionsComponent->addAndMakeVisible(mOptionsMaxRecvPaddingLabel.get());
     
     // Add OSC Configuration UI elements
+    mOptionsComponent->addAndMakeVisible(mOSCEnabledButton.get());
     mOptionsComponent->addAndMakeVisible(mOSCTargetIPAddressLabel.get());
     mOptionsComponent->addAndMakeVisible(mOSCTargetIPAddressEditor.get());
     mOptionsComponent->addAndMakeVisible(mOSCTargetPortLabel.get());
@@ -726,9 +732,19 @@ void OptionsView::updateState(bool ignorecheck)
     mOptionsRecStealth->setToggleState(processor.getRecordStealth(), dontSendNotification);
 
     // Update OSC Configuration UI
+    bool oscEnabled = processor.getOSCEnabled();
+    mOSCEnabledButton->setToggleState(oscEnabled, dontSendNotification);
     mOSCTargetIPAddressEditor->setText(processor.getOSCTargetIPAddress(), dontSendNotification);
     mOSCTargetPortEditor->setText(String(processor.getOSCTargetPort()), dontSendNotification);
     mOSCReceivePortEditor->setText(String(processor.getOSCReceivePort()), dontSendNotification);
+    
+    // Enable/disable OSC fields based on OSC enabled state
+    mOSCTargetIPAddressEditor->setEnabled(oscEnabled);
+    mOSCTargetIPAddressEditor->setAlpha(oscEnabled ? 1.0 : 0.6);
+    mOSCTargetPortEditor->setEnabled(oscEnabled);
+    mOSCTargetPortEditor->setAlpha(oscEnabled ? 1.0 : 0.6);
+    mOSCReceivePortEditor->setEnabled(oscEnabled);
+    mOSCReceivePortEditor->setAlpha(oscEnabled ? 1.0 : 0.6);
 
     mRecFormatChoice->setSelectedId((int)processor.getDefaultRecordingFormat(), dontSendNotification);
     mRecBitsChoice->setSelectedId((int)processor.getDefaultRecordingBitsPerSample(), dontSendNotification);
@@ -831,6 +847,11 @@ void OptionsView::updateLayout()
     optionsMaxRecvPaddingBox.items.add(FlexItem(100, minitemheight, *mOptionsMaxRecvPaddingSlider).withMargin(0).withFlex(1));
 
     // OSC Configuration layout
+    optionsOSCEnabledBox.items.clear();
+    optionsOSCEnabledBox.flexDirection = FlexBox::Direction::row;
+    optionsOSCEnabledBox.items.add(FlexItem(10, 12).withFlex(0));
+    optionsOSCEnabledBox.items.add(FlexItem(180, minpassheight, *mOSCEnabledButton).withMargin(0).withFlex(1));
+    
     optionsOSCTargetIPBox.items.clear();
     optionsOSCTargetIPBox.flexDirection = FlexBox::Direction::row;
     optionsOSCTargetIPBox.items.add(FlexItem(10, 12));
@@ -936,6 +957,8 @@ void OptionsView::updateLayout()
     optionsBox.items.add(FlexItem(4, 10));
     
     // Add OSC Configuration boxes
+    optionsBox.items.add(FlexItem(100, minpassheight, optionsOSCEnabledBox).withMargin(2).withFlex(0));
+    optionsBox.items.add(FlexItem(4, 3));
     optionsBox.items.add(FlexItem(100, minitemheight, optionsOSCTargetIPBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(4, 3));
     optionsBox.items.add(FlexItem(100, minitemheight, optionsOSCTargetPortBox).withMargin(2).withFlex(0));
@@ -1262,6 +1285,30 @@ void OptionsView::buttonClicked (Button* buttonThatWasClicked)
         
         // Send OSC message for OptionsRecStealth state change
         processor.getOSCManager().sendMessage("/OptionsRecStealth", mOptionsRecStealth->getToggleState() ? 1 : 0);
+    }
+    else if (buttonThatWasClicked == mOSCEnabledButton.get()) {
+        bool enabled = mOSCEnabledButton->getToggleState();
+        processor.setOSCEnabled(enabled);
+        
+        // Update the enabled/disabled state of OSC fields
+        mOSCTargetIPAddressEditor->setEnabled(enabled);
+        mOSCTargetIPAddressEditor->setAlpha(enabled ? 1.0 : 0.6);
+        mOSCTargetPortEditor->setEnabled(enabled);
+        mOSCTargetPortEditor->setAlpha(enabled ? 1.0 : 0.6);
+        mOSCReceivePortEditor->setEnabled(enabled);
+        mOSCReceivePortEditor->setAlpha(enabled ? 1.0 : 0.6);
+    }
+    else if (buttonThatWasClicked == mOSCEnabledButton.get()) {
+        bool enabled = mOSCEnabledButton->getToggleState();
+        processor.setOSCEnabled(enabled);
+        
+        // Update the enabled/disabled state of OSC fields
+        mOSCTargetIPAddressEditor->setEnabled(enabled);
+        mOSCTargetIPAddressEditor->setAlpha(enabled ? 1.0 : 0.6);
+        mOSCTargetPortEditor->setEnabled(enabled);
+        mOSCTargetPortEditor->setAlpha(enabled ? 1.0 : 0.6);
+        mOSCReceivePortEditor->setEnabled(enabled);
+        mOSCReceivePortEditor->setAlpha(enabled ? 1.0 : 0.6);
     }
     else if (buttonThatWasClicked == mOptionsUseSpecificUdpPortButton.get()) {
         if (!mOptionsUseSpecificUdpPortButton->getToggleState()) {
