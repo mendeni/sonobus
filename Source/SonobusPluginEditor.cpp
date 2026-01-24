@@ -714,6 +714,10 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMainReverbSize, this);
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMainReverbDamping, this);
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMainReverbPreDelay, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramInputReverbLevel, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramInputReverbSize, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramInputReverbDamping, this);
+    processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramInputReverbPreDelay, this);
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramSyncMetToHost, this);
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramSyncMetToFilePlayback, this);
     processor.getValueTreeState().addParameterListener (SonobusAudioProcessor::paramMainInMute, this);
@@ -2355,6 +2359,129 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
             });
         }
     });
+    
+    // Register MetPanSlider
+    oscManager.registerControl("/MetPanSlider", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            juce::MessageManager::callAsync([this, value]() {
+                processor.setMetronomePan(value);
+                if (auto* channelGroups = getInputChannelGroupsView()) {
+                    if (auto* metView = channelGroups->getMetChannelView()) {
+                        if (metView->panSlider) {
+                            metView->panSlider->setValue(value, juce::NotificationType::dontSendNotification);
+                        }
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register MetMonitorSlider
+    oscManager.registerControl("/MetMonitorSlider", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            juce::MessageManager::callAsync([this, value]() {
+                processor.setMetronomeMonitor(value);
+                if (auto* channelGroups = getInputChannelGroupsView()) {
+                    if (auto* metView = channelGroups->getMetChannelView()) {
+                        if (metView->monitorSlider) {
+                            metView->monitorSlider->setValue(value, juce::NotificationType::dontSendNotification);
+                        }
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register InputReverbLevel
+    oscManager.registerControl("/InputReverbLevel", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            juce::MessageManager::callAsync([this, value]() {
+                if (auto* param = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramInputReverbLevel)) {
+                    float normalizedValue = param->convertTo0to1(value);
+                    param->setValueNotifyingHost(normalizedValue);
+                }
+            });
+        }
+    });
+    
+    // Register InputReverbSize
+    oscManager.registerControl("/InputReverbSize", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            juce::MessageManager::callAsync([this, value]() {
+                if (auto* param = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramInputReverbSize)) {
+                    float normalizedValue = param->convertTo0to1(value);
+                    param->setValueNotifyingHost(normalizedValue);
+                }
+            });
+        }
+    });
+    
+    // Register InputReverbDamping
+    oscManager.registerControl("/InputReverbDamping", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            juce::MessageManager::callAsync([this, value]() {
+                if (auto* param = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramInputReverbDamping)) {
+                    float normalizedValue = param->convertTo0to1(value);
+                    param->setValueNotifyingHost(normalizedValue);
+                }
+            });
+        }
+    });
+    
+    // Register InputReverbPreDelay
+    oscManager.registerControl("/InputReverbPreDelay", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            juce::MessageManager::callAsync([this, value]() {
+                if (auto* param = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramInputReverbPreDelay)) {
+                    float normalizedValue = param->convertTo0to1(value);
+                    param->setValueNotifyingHost(normalizedValue);
+                }
+            });
+        }
+    });
+    
+    // Register InReverbButton
+    oscManager.registerControl("/InReverbButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isInt32()) {
+            int trigger = message[0].getInt32();
+            if (trigger != 0) {
+                juce::MessageManager::callAsync([this]() {
+                    if (auto* channelGroups = getInputChannelGroupsView()) {
+                        if (auto* button = channelGroups->getInReverbButton()) {
+                            button->triggerClick();
+                        }
+                    }
+                });
+            }
+        }
+    });
+    
+    // Register MonDelayButton
+    oscManager.registerControl("/MonDelayButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool state = false;
+            if (message[0].isInt32()) {
+                state = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                state = (message[0].getFloat32() != 0.0f);
+            }
+            juce::MessageManager::callAsync([this, state]() {
+                if (auto* channelGroups = getInputChannelGroupsView()) {
+                    if (auto* button = channelGroups->getMonDelayButton()) {
+                        if (button->getToggleState() != state) {
+                            button->triggerClick();
+                        }
+                    }
+                }
+            });
+        }
+    });
 
     // handles registering commands
     updateUseKeybindings();
@@ -2444,6 +2571,14 @@ SonobusAudioProcessorEditor::~SonobusAudioProcessorEditor()
     oscManager.unregisterControl("/SoundboardLevelSlider");
     oscManager.unregisterControl("/SoundboardMonitorSlider");
     oscManager.unregisterControl("/FileMonitorSlider");
+    oscManager.unregisterControl("/MetPanSlider");
+    oscManager.unregisterControl("/MetMonitorSlider");
+    oscManager.unregisterControl("/InputReverbLevel");
+    oscManager.unregisterControl("/InputReverbSize");
+    oscManager.unregisterControl("/InputReverbDamping");
+    oscManager.unregisterControl("/InputReverbPreDelay");
+    oscManager.unregisterControl("/InReverbButton");
+    oscManager.unregisterControl("/MonDelayButton");
     
     if (menuBarModel) {
         menuBarModel->setApplicationCommandManagerToWatch(nullptr);
@@ -2483,6 +2618,10 @@ SonobusAudioProcessorEditor::~SonobusAudioProcessorEditor()
     processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramMainReverbSize, this);
     processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramMainReverbDamping, this);
     processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramMainReverbPreDelay, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramInputReverbLevel, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramInputReverbSize, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramInputReverbDamping, this);
+    processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramInputReverbPreDelay, this);
     processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramSyncMetToHost, this);
     processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramSyncMetToFilePlayback, this);
     processor.getValueTreeState().removeParameterListener (SonobusAudioProcessor::paramMainInMute, this);
@@ -5115,6 +5254,30 @@ void SonobusAudioProcessorEditor::parameterChanged (const String& pname, float n
         // Send OSC message for ReverbPreDelaySlider value change
         if (processor.getOSCEnabled()) {
             processor.getOSCManager().sendMessage("/ReverbPreDelaySlider", newValue);
+        }
+    }
+    else if (pname == SonobusAudioProcessor::paramInputReverbLevel) {
+        // Send OSC message for InputReverbLevel value change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/InputReverbLevel", newValue);
+        }
+    }
+    else if (pname == SonobusAudioProcessor::paramInputReverbSize) {
+        // Send OSC message for InputReverbSize value change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/InputReverbSize", newValue);
+        }
+    }
+    else if (pname == SonobusAudioProcessor::paramInputReverbDamping) {
+        // Send OSC message for InputReverbDamping value change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/InputReverbDamping", newValue);
+        }
+    }
+    else if (pname == SonobusAudioProcessor::paramInputReverbPreDelay) {
+        // Send OSC message for InputReverbPreDelay value change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/InputReverbPreDelay", newValue);
         }
     }
     else if (pname == SonobusAudioProcessor::paramSyncMetToHost) {

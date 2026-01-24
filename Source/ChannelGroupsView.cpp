@@ -961,6 +961,10 @@ ChannelGroupsView::ChannelGroupsView(SonobusAudioProcessor& proc, bool peerMode,
         } else {
             showInputReverbView(false);
         }
+        // Send OSC message for InReverbButton click
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/InReverbButton", 1);
+        }
     };
 
     mMonDelayButton = std::make_unique<TextButton>(TRANS("Monitor Delay"));
@@ -969,6 +973,10 @@ ChannelGroupsView::ChannelGroupsView(SonobusAudioProcessor& proc, bool peerMode,
     addChildComponent(mMonDelayButton.get());
     mMonDelayButton->onClick = [this]() {
         toggleAllMonitorDelay();
+        // Send OSC message for MonDelayButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/MonDelayButton", mMonDelayButton->getToggleState() ? 1 : 0);
+        }
     };
 
 
@@ -1688,10 +1696,18 @@ void ChannelGroupsView::rebuildChannelViews(bool notify)
 
             mMetChannelView->panSlider->onValueChange = [this]() {
                 processor.setMetronomePan(mMetChannelView->panSlider->getValue());
+                // Send OSC message for MetPanSlider value change
+                if (processor.getOSCEnabled()) {
+                    processor.getOSCManager().sendMessage("/MetPanSlider", static_cast<float>(mMetChannelView->panSlider->getValue()));
+                }
             };
 
             mMetChannelView->monitorSlider->onValueChange = [this]() {
                 processor.setMetronomeMonitor(mMetChannelView->monitorSlider->getValue());
+                // Send OSC message for MetMonitorSlider value change
+                if (processor.getOSCEnabled()) {
+                    processor.getOSCManager().sendMessage("/MetMonitorSlider", static_cast<float>(mMetChannelView->monitorSlider->getValue()));
+                }
             };
 
             setupChildren(mMetChannelView.get());

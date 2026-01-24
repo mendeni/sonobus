@@ -377,6 +377,9 @@ public:
     // Getters for OSC access to nested controls
     ChannelGroupView* getFileChannelView() { return mFileChannelView.get(); }
     ChannelGroupView* getSoundboardChannelView() { return mSoundboardChannelView.get(); }
+    ChannelGroupView* getMetChannelView() { return mMetChannelView.get(); }
+    TextButton* getInReverbButton() { return mInReverbButton.get(); }
+    TextButton* getMonDelayButton() { return mMonDelayButton.get(); }
 
 
     std::function<AudioDeviceManager*()> getAudioDeviceManager; // = []() { return 0; };

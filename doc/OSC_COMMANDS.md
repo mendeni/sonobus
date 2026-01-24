@@ -191,6 +191,116 @@ Choice buttons accept and send integer values representing the selected option I
 **Range**: Pre-delay time in milliseconds  
 **Parameter**: `paramMainReverbPreDelay`
 
+### File Playback Controls
+
+#### `/FileSendButton`
+**Type**: Toggle Button  
+**Description**: Enables/disables sending file playback audio to all users  
+**Data Type**: Integer (0 = disabled, 1 = enabled)  
+**Parameter**: `paramSendFileAudio`
+
+#### `/PlaybackSlider`
+**Type**: Slider  
+**Description**: Controls the file playback level/gain  
+**Data Type**: Float  
+**Range**: Audio level (0.0 - 2.0, where 1.0 is unity gain)  
+**Action**: Sets file playback volume
+
+#### `/FileMonitorSlider`
+**Type**: Slider  
+**Description**: Controls the file playback monitor level (what you hear)  
+**Data Type**: Float  
+**Range**: Audio level  
+**Action**: Sets file playback monitor volume
+
+### Soundboard Controls
+
+#### `/SoundboardSendButton`
+**Type**: Toggle Button  
+**Description**: Enables/disables sending soundboard audio to all users  
+**Data Type**: Integer (0 = disabled, 1 = enabled)  
+**Parameter**: `paramSendSoundboardAudio`
+
+#### `/SoundboardLevelSlider`
+**Type**: Slider  
+**Description**: Controls the soundboard output level/gain  
+**Data Type**: Float  
+**Range**: Audio level  
+**Action**: Sets soundboard output volume
+
+#### `/SoundboardMonitorSlider`
+**Type**: Slider  
+**Description**: Controls the soundboard monitor level (what you hear)  
+**Data Type**: Float  
+**Range**: Audio level  
+**Action**: Sets soundboard monitor volume
+
+### Metronome Advanced Controls
+
+#### `/MetSendButton`
+**Type**: Toggle Button  
+**Description**: Enables/disables sending metronome to all users  
+**Data Type**: Integer (0 = disabled, 1 = enabled)  
+**Parameter**: `paramSendMetAudio`
+
+#### `/MetPanSlider`
+**Type**: Slider  
+**Description**: Controls the metronome stereo pan position  
+**Data Type**: Float  
+**Range**: -1.0 (full left) to 1.0 (full right), 0.0 is center  
+**Action**: Sets metronome pan position
+
+#### `/MetMonitorSlider`
+**Type**: Slider  
+**Description**: Controls the metronome monitor level (what you hear)  
+**Data Type**: Float  
+**Range**: Audio level  
+**Action**: Sets metronome monitor volume
+
+### Input Reverb Controls
+
+#### `/InReverbButton`
+**Type**: Toggle Button  
+**Description**: Opens/closes the input reverb configuration panel  
+**Data Type**: Integer (1 to trigger)  
+**Action**: Toggles input reverb panel visibility
+
+#### `/InputReverbLevel`
+**Type**: Slider  
+**Description**: Controls the input reverb level/mix  
+**Data Type**: Float  
+**Range**: Audio level  
+**Parameter**: `paramInputReverbLevel`
+
+#### `/InputReverbSize`
+**Type**: Slider  
+**Description**: Controls the input reverb room size  
+**Data Type**: Float  
+**Range**: Room size parameter  
+**Parameter**: `paramInputReverbSize`
+
+#### `/InputReverbDamping`
+**Type**: Slider  
+**Description**: Controls the input reverb damping (high frequency absorption)  
+**Data Type**: Float  
+**Range**: Damping parameter  
+**Parameter**: `paramInputReverbDamping`
+
+#### `/InputReverbPreDelay`
+**Type**: Slider  
+**Description**: Controls the input reverb pre-delay time  
+**Data Type**: Float  
+**Range**: Pre-delay time in milliseconds  
+**Parameter**: `paramInputReverbPreDelay`
+
+### Monitor Delay Controls
+
+#### `/MonDelayButton`
+**Type**: Toggle Button  
+**Description**: Toggles monitor delay enabled on all input groups  
+**Data Type**: Integer (0 = disabled, 1 = enabled)  
+**Action**: Enables/disables monitor delay for all inputs
+
 ## Options Tab Controls
 
 ### Audio Options
