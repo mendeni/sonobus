@@ -1284,7 +1284,9 @@ void OptionsView::buttonClicked (Button* buttonThatWasClicked)
         processor.setRecordStealth(mOptionsRecStealth->getToggleState());
         
         // Send OSC message for OptionsRecStealth state change
-        processor.getOSCManager().sendMessage("/OptionsRecStealth", mOptionsRecStealth->getToggleState() ? 1 : 0);
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OptionsRecStealth", mOptionsRecStealth->getToggleState() ? 1 : 0);
+        }
     }
     else if (buttonThatWasClicked == mOSCEnabledButton.get()) {
         bool enabled = mOSCEnabledButton->getToggleState();

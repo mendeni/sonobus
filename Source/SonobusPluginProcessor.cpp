@@ -8473,9 +8473,8 @@ void SonobusAudioProcessor::setOSCEnabled(bool enabled)
         oscManager.initializeSender(mOSCTargetIPAddress, mOSCTargetPort);
     } else {
         // Disconnect OSC when disabled
-        // The OSCManager destructor will handle cleanup, but we can disconnect explicitly
-        // Note: JUCE's OSCReceiver and OSCSender don't have explicit disconnect methods
-        // in the public API, so we rely on the manager's internal state
+        oscManager.disconnectReceiver();
+        oscManager.disconnectSender();
     }
 }
 

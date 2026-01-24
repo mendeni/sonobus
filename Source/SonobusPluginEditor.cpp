@@ -2213,7 +2213,9 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
         }
         
         // Send OSC message for RecvSyncButton click
-        processor.getOSCManager().sendMessage("/RecvSyncButton", 1);
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/RecvSyncButton", 1);
+        }
     }
     else if (buttonThatWasClicked == mMainMuteButton.get()) {
         // allow or disallow sending to all peers, handled by button attachment
@@ -2225,7 +2227,9 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
         }
         
         // Send OSC message for MainMuteButton state change
-        processor.getOSCManager().sendMessage("/MainMuteButton", mMainMuteButton->getToggleState() ? 1 : 0);
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/MainMuteButton", mMainMuteButton->getToggleState() ? 1 : 0);
+        }
     }
     else if (buttonThatWasClicked == mMonDelayButton.get()) {
         if (!monDelayCalloutBox) {
@@ -3956,11 +3960,15 @@ void SonobusAudioProcessorEditor::parameterChanged (const String& pname, float n
     }
     else if (pname == SonobusAudioProcessor::paramWet) {
         // Send OSC message for OutGainSlider (wet) value change
-        processor.getOSCManager().sendMessage("/OutGainSlider", newValue);
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OutGainSlider", newValue);
+        }
     }
     else if (pname == SonobusAudioProcessor::paramMaxRecvPaddingMs) {
         // Send OSC message for OptionsMaxRecvPaddingSlider value change
-        processor.getOSCManager().sendMessage("/OptionsMaxRecvPaddingSlider", newValue);
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OptionsMaxRecvPaddingSlider", newValue);
+        }
     }
     else if (pname == SonobusAudioProcessor::paramMetEnabled) {
         {

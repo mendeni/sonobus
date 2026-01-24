@@ -37,6 +37,21 @@ bool OSCManager::initializeSender(const juce::String& targetIP, int port)
     return senderConnected;
 }
 
+// Disconnect Receiver
+void OSCManager::disconnectReceiver()
+{
+    disconnect();
+    juce::Logger::writeToLog("OSC Receiver disconnected.");
+}
+
+// Disconnect Sender
+void OSCManager::disconnectSender()
+{
+    sender.disconnect();
+    senderConnected = false;
+    juce::Logger::writeToLog("OSC Sender disconnected.");
+}
+
 // Send Message
 void OSCManager::sendMessage(const juce::String& address, const juce::var& value)
 {

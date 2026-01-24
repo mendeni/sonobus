@@ -13,6 +13,8 @@ public:
 
     bool initializeReceiver(int port);
     bool initializeSender(const juce::String& targetIP, int port);
+    void disconnectReceiver();
+    void disconnectSender();
     void sendMessage(const juce::String& address, const juce::var& value);
     
     // Generic control registration
