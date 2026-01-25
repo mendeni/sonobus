@@ -317,6 +317,72 @@ SonoBus supports OSC control for up to 16 Input Groups. Each Input Group can be 
 
 **Note**: Input Groups are numbered 1-16. Only Input Groups that exist at runtime will respond to OSC messages. The number and configuration of Input Groups is determined by the user's audio setup.
 
+#### `/InputGroup[1-16]Pan`
+**Type**: Slider  
+**Description**: Controls the stereo pan position for single-channel Input Groups  
+**Data Type**: Float  
+**Range**: -1.0 (hard left) to 1.0 (hard right), 0.0 = center  
+**Examples**:
+- `/InputGroup1Pan` - Controls Pan for Input Group 1
+- `/InputGroup2Pan` - Controls Pan for Input Group 2
+
+#### `/InputGroup[1-16]PanLeft`
+**Type**: Slider  
+**Description**: Controls the left channel pan for dual-channel Input Groups  
+**Data Type**: Float  
+**Range**: -1.0 (hard left) to 1.0 (hard right), 0.0 = center  
+**Note**: Used when Input Group has stereo input channels
+
+#### `/InputGroup[1-16]PanRight`
+**Type**: Slider  
+**Description**: Controls the right channel pan for dual-channel Input Groups  
+**Data Type**: Float  
+**Range**: -1.0 (hard left) to 1.0 (hard right), 0.0 = center  
+**Note**: Used when Input Group has stereo input channels
+
+#### `/InputGroup[1-16]Monitor`
+**Type**: Slider  
+**Description**: Controls the monitor level (local monitoring gain) for the specified Input Group  
+**Data Type**: Float  
+**Range**: Audio level (0.0 - 2.0, where 1.0 is unity gain)  
+**Examples**:
+- `/InputGroup1Monitor` - Controls Monitor level for Input Group 1
+- `/InputGroup2Monitor` - Controls Monitor level for Input Group 2
+
+#### `/InputGroup[1-16]MonDelayEnable`
+**Type**: Toggle Button  
+**Description**: Enables/disables additional monitoring delay for the specified Input Group  
+**Data Type**: Integer (0 = disabled, 1 = enabled)  
+**Note**: Part of the M.FX (Monitoring Effects) controls
+
+#### `/InputGroup[1-16]MonDelayTime`
+**Type**: Slider  
+**Description**: Sets the monitoring delay time in milliseconds for the specified Input Group  
+**Data Type**: Float  
+**Range**: 0.0 - 5000.0 ms  
+**Note**: Part of the M.FX (Monitoring Effects) controls
+
+#### `/InputGroup[1-16]MonDelayLink`
+**Type**: Toggle Button  
+**Description**: Links delay time with other inputs (global setting)  
+**Data Type**: Integer (0 = unlinked, 1 = linked)  
+**Note**: This is a global setting that affects all Input Groups
+
+#### `/InputGroup[1-16]MonReverbSend`
+**Type**: Slider  
+**Description**: Controls the main reverb send level for the specified Input Group's monitoring  
+**Data Type**: Float  
+**Range**: Audio level (0.0 - 1.0)  
+**Note**: Part of the M.FX (Monitoring Effects) controls
+
+### File Playback Controls
+
+#### `/FilePlaybackPreLevel`
+**Type**: Slider  
+**Description**: Controls the pre-fader level (gain) for File Playback  
+**Data Type**: Float  
+**Range**: Audio level (0.0 - 2.0, where 1.0 is unity gain)
+
 ## Options Tab Controls
 
 ### Audio Options

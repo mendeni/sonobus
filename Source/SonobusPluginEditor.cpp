@@ -2503,6 +2503,155 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
         });
     }
 
+    // Register File Playback Pre Level slider
+    oscManager.registerControl("/FilePlaybackPreLevel", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            juce::MessageManager::callAsync([this, value]() {
+                processor.setFilePlaybackGain(value);
+                if (auto* channelGroups = getInputChannelGroupsView()) {
+                    channelGroups->updateChannelViews();
+                }
+            });
+        }
+    });
+
+    // Register Input Group Pan, Monitor, and M.FX controls (support up to 16 input groups)
+    for (int groupIndex = 0; groupIndex < 16; ++groupIndex) {
+        // Pan slider (single channel)
+        String panAddress = "/InputGroup" + String(groupIndex + 1) + "Pan";
+        oscManager.registerControl(panAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float value = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, value]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        processor.setInputChannelPan(groupIndex, 0, value);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Pan slider (dual channel left)
+        String panLeftAddress = "/InputGroup" + String(groupIndex + 1) + "PanLeft";
+        oscManager.registerControl(panLeftAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float value = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, value]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        processor.setInputChannelPan(groupIndex, 0, value);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Pan slider (dual channel right)
+        String panRightAddress = "/InputGroup" + String(groupIndex + 1) + "PanRight";
+        oscManager.registerControl(panRightAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float value = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, value]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        processor.setInputChannelPan(groupIndex, 1, value);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Monitor slider
+        String monitorAddress = "/InputGroup" + String(groupIndex + 1) + "Monitor";
+        oscManager.registerControl(monitorAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float value = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, value]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        processor.setInputMonitor(groupIndex, value);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // M.FX Additional Monitoring Delay Enable
+        String monDelayEnableAddress = "/InputGroup" + String(groupIndex + 1) + "MonDelayEnable";
+        oscManager.registerControl(monDelayEnableAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                bool enabled = message[0].getFloat32() > 0.5f;
+                juce::MessageManager::callAsync([this, groupIndex, enabled]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::DelayParams params;
+                        processor.getInputMonitorDelayParams(groupIndex, params);
+                        params.enabled = enabled;
+                        processor.setInputMonitorDelayParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // M.FX Delay Time
+        String monDelayTimeAddress = "/InputGroup" + String(groupIndex + 1) + "MonDelayTime";
+        oscManager.registerControl(monDelayTimeAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float delayTime = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, delayTime]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::DelayParams params;
+                        processor.getInputMonitorDelayParams(groupIndex, params);
+                        params.delayTimeMs = delayTime;
+                        processor.setInputMonitorDelayParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // M.FX Link Delay Time
+        String monDelayLinkAddress = "/InputGroup" + String(groupIndex + 1) + "MonDelayLink";
+        oscManager.registerControl(monDelayLinkAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                bool linked = message[0].getFloat32() > 0.5f;
+                juce::MessageManager::callAsync([this, groupIndex, linked]() {
+                    // Link delay is a global setting, not per-group
+                    processor.setLinkMonitoringDelayTimes(linked);
+                    if (auto* channelGroups = getInputChannelGroupsView()) {
+                        channelGroups->updateChannelViews();
+                    }
+                });
+            }
+        });
+        
+        // M.FX Main Reverb Send
+        String monReverbSendAddress = "/InputGroup" + String(groupIndex + 1) + "MonReverbSend";
+        oscManager.registerControl(monReverbSendAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float reverbSend = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, reverbSend]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        processor.setInputMonitorReverbSend(groupIndex, reverbSend);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+    }
+
     // handles registering commands
     updateUseKeybindings();
         
@@ -2604,6 +2753,21 @@ SonobusAudioProcessorEditor::~SonobusAudioProcessorEditor()
     for (int groupIndex = 0; groupIndex < 16; ++groupIndex) {
         String oscAddress = "/InputGroup" + String(groupIndex + 1) + "PreLevel";
         oscManager.unregisterControl(oscAddress);
+    }
+    
+    // Unregister File Playback Pre Level
+    oscManager.unregisterControl("/FilePlaybackPreLevel");
+    
+    // Unregister Input Group Pan, Monitor, and M.FX controls (up to 16 input groups)
+    for (int groupIndex = 0; groupIndex < 16; ++groupIndex) {
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "Pan");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "PanLeft");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "PanRight");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "Monitor");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "MonDelayEnable");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "MonDelayTime");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "MonDelayLink");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "MonReverbSend");
     }
     
     if (menuBarModel) {

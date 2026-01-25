@@ -143,6 +143,10 @@ public:
 
     void effectsHeaderClicked(EffectsBaseView *comp) override;
 
+    // Public accessors for OSC control
+    MonitorDelayView* getDelayView() { return delayView.get(); }
+    ReverbSendView* getReverbSendView() { return reverbSendView.get(); }
+
 
     int  groupIndex = 0;
     bool peerMode = false;

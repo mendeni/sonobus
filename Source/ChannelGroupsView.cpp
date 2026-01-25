@@ -1777,6 +1777,10 @@ void ChannelGroupsView::rebuildChannelViews(bool notify)
 
             mFileChannelView->levelSlider->onValueChange = [this]() {
                 processor.setFilePlaybackGain(mFileChannelView->levelSlider->getValue());
+                // Send OSC message for File Playback Pre Level change
+                if (processor.getOSCEnabled()) {
+                    processor.getOSCManager().sendMessage("/FilePlaybackPreLevel", static_cast<float>(mFileChannelView->levelSlider->getValue()));
+                }
             };
 
             //mFileChannelView->panSlider->onValueChange = [this]() {
@@ -4851,6 +4855,10 @@ void ChannelGroupsView::sliderValueChanged (Slider* slider)
             }
             else if (pvf->monitorSlider.get() == slider) {
                 processor.setInputMonitor(changroup, pvf->monitorSlider->getValue());
+                // Send OSC message for Input Group Monitor change
+                if (processor.getOSCEnabled()) {
+                    processor.getOSCManager().sendMessage("/InputGroup" + String(changroup + 1) + "Monitor", static_cast<float>(pvf->monitorSlider->getValue()));
+                }
                 break;
             }
             else if (pvf->panSlider.get() == slider) {
@@ -4859,9 +4867,18 @@ void ChannelGroupsView::sliderValueChanged (Slider* slider)
                     float pan2 = pvf->panSlider->getMaxValue();
                     processor.setInputChannelPan(changroup, 0, pan1);
                     processor.setInputChannelPan(changroup, 1, pan2);
+                    // Send OSC message for Input Group Pan (dual channel)
+                    if (processor.getOSCEnabled()) {
+                        processor.getOSCManager().sendMessage("/InputGroup" + String(changroup + 1) + "PanLeft", pan1);
+                        processor.getOSCManager().sendMessage("/InputGroup" + String(changroup + 1) + "PanRight", pan2);
+                    }
                 }
                 else {
                     processor.setInputChannelPan(changroup, chi, pvf->panSlider->getValue());
+                    // Send OSC message for Input Group Pan (single channel)
+                    if (processor.getOSCEnabled()) {
+                        processor.getOSCManager().sendMessage("/InputGroup" + String(changroup + 1) + "Pan", static_cast<float>(pvf->panSlider->getValue()));
+                    }
                 }
                 break;
             }
