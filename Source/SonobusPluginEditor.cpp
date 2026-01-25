@@ -3166,10 +3166,20 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
                 bool muted = message[0].getInt32() != 0;
                 juce::MessageManager::callAsync([this, peerIndex, muted]() {
                     if (peerIndex < processor.getNumberRemotePeers()) {
-                        processor.setRemotePeerRecvActive(peerIndex, !muted);
+                        // Match UI behavior: when muting, use setRemotePeerRecvAllow to turn off receiving and allow
+                        // when unmuting, use setRemotePeerRecvActive to allow receiving and invites
+                        if (muted) {
+                            processor.setRemotePeerRecvAllow(peerIndex, false);
+                        } else {
+                            processor.setRemotePeerRecvActive(peerIndex, true);
+                        }
                         // Update peer views
                         if (auto* peersContainer = getPeersContainerView()) {
                             peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "Mute", muted ? 1 : 0);
                         }
                     }
                 });
@@ -3188,8 +3198,56 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
                         if (auto* peersContainer = getPeersContainerView()) {
                             peersContainer->updatePeerViews(peerIndex);
                         }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "Solo", soloed ? 1 : 0);
+                        }
                     }
                 });
+            }
+        });
+        
+        // Peer Buffer Min - Resets jitter buffer to minimum (push button)
+        String peerBufferMinAddress = "/Peer" + String(peerIndex + 1) + "BufferMin";
+        oscManager.registerControl(peerBufferMinAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isInt32()) {
+                bool trigger = message[0].getInt32() != 0;
+                if (trigger) {
+                    juce::MessageManager::callAsync([this, peerIndex]() {
+                        if (peerIndex < processor.getNumberRemotePeers()) {
+                            // Reset buffer time to minimum (0.0)
+                            float buftime = 0.0;
+                            processor.setRemotePeerBufferTime(peerIndex, buftime);
+                            // Update peer views
+                            if (auto* peersContainer = getPeersContainerView()) {
+                                peersContainer->updatePeerViews(peerIndex);
+                            }
+                            // Send OSC feedback (push button sends 1 when triggered)
+                            if (processor.getOSCEnabled()) {
+                                processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "BufferMin", 1);
+                            }
+                        }
+                    });
+                }
+            }
+        });
+        
+        // Peer Reset Drop - Resets packet drop statistics (push button)
+        String peerResetDropAddress = "/Peer" + String(peerIndex + 1) + "ResetDrop";
+        oscManager.registerControl(peerResetDropAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isInt32()) {
+                bool trigger = message[0].getInt32() != 0;
+                if (trigger) {
+                    juce::MessageManager::callAsync([this, peerIndex]() {
+                        if (peerIndex < processor.getNumberRemotePeers()) {
+                            processor.resetRemotePeerPacketStats(peerIndex);
+                            // Send OSC feedback (push button sends 1 when triggered)
+                            if (processor.getOSCEnabled()) {
+                                processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "ResetDrop", 1);
+                            }
+                        }
+                    });
+                }
             }
         });
         
@@ -3204,6 +3262,10 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
                         // Update peer views
                         if (auto* peersContainer = getPeersContainerView()) {
                             peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "InputReverbSend", revSend);
                         }
                     }
                 });
@@ -3221,6 +3283,10 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
                         // Update peer views
                         if (auto* peersContainer = getPeersContainerView()) {
                             peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "PolarityInvert", inverted ? 1 : 0);
                         }
                     }
                 });
@@ -3242,6 +3308,10 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
                         if (auto* peersContainer = getPeersContainerView()) {
                             peersContainer->updatePeerViews(peerIndex);
                         }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "CompressorEnable", enabled ? 1 : 0);
+                        }
                     }
                 });
             }
@@ -3261,6 +3331,10 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
                         // Update peer views
                         if (auto* peersContainer = getPeersContainerView()) {
                             peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "CompressorThreshold", threshold);
                         }
                     }
                 });
@@ -3282,6 +3356,10 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
                         if (auto* peersContainer = getPeersContainerView()) {
                             peersContainer->updatePeerViews(peerIndex);
                         }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "CompressorRatio", ratio);
+                        }
                     }
                 });
             }
@@ -3301,6 +3379,10 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
                         // Update peer views
                         if (auto* peersContainer = getPeersContainerView()) {
                             peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "CompressorAttack", attack);
                         }
                     }
                 });
@@ -3322,6 +3404,10 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
                         if (auto* peersContainer = getPeersContainerView()) {
                             peersContainer->updatePeerViews(peerIndex);
                         }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "CompressorRelease", release);
+                        }
                     }
                 });
             }
@@ -3341,6 +3427,10 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
                         // Update peer views
                         if (auto* peersContainer = getPeersContainerView()) {
                             peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "CompressorMakeupGain", makeupGain);
                         }
                     }
                 });
@@ -3362,6 +3452,10 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
                         if (auto* peersContainer = getPeersContainerView()) {
                             peersContainer->updatePeerViews(peerIndex);
                         }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "CompressorAuto", autoMakeup ? 1 : 0);
+                        }
                     }
                 });
             }
@@ -3381,6 +3475,10 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
                         // Update peer views
                         if (auto* peersContainer = getPeersContainerView()) {
                             peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "ExpanderEnable", enabled ? 1 : 0);
                         }
                     }
                 });
@@ -3402,6 +3500,10 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
                         if (auto* peersContainer = getPeersContainerView()) {
                             peersContainer->updatePeerViews(peerIndex);
                         }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "ExpanderNoiseFloor", noiseFloor);
+                        }
                     }
                 });
             }
@@ -3421,6 +3523,10 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
                         // Update peer views
                         if (auto* peersContainer = getPeersContainerView()) {
                             peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "ExpanderRatio", ratio);
                         }
                     }
                 });
@@ -3442,6 +3548,10 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
                         if (auto* peersContainer = getPeersContainerView()) {
                             peersContainer->updatePeerViews(peerIndex);
                         }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "ExpanderAttack", attack);
+                        }
                     }
                 });
             }
@@ -3461,6 +3571,10 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
                         // Update peer views
                         if (auto* peersContainer = getPeersContainerView()) {
                             peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "ExpanderRelease", release);
                         }
                     }
                 });
@@ -3482,6 +3596,10 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
                         if (auto* peersContainer = getPeersContainerView()) {
                             peersContainer->updatePeerViews(peerIndex);
                         }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "EqEnable", enabled ? 1 : 0);
+                        }
                     }
                 });
             }
@@ -3501,6 +3619,10 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
                         // Update peer views
                         if (auto* peersContainer = getPeersContainerView()) {
                             peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "EqLowShelfFreq", freq);
                         }
                     }
                 });
@@ -3522,6 +3644,10 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
                         if (auto* peersContainer = getPeersContainerView()) {
                             peersContainer->updatePeerViews(peerIndex);
                         }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "EqLowShelfGain", gain);
+                        }
                     }
                 });
             }
@@ -3541,6 +3667,10 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
                         // Update peer views
                         if (auto* peersContainer = getPeersContainerView()) {
                             peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "EqPara1Freq", freq);
                         }
                     }
                 });
@@ -3562,6 +3692,10 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
                         if (auto* peersContainer = getPeersContainerView()) {
                             peersContainer->updatePeerViews(peerIndex);
                         }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "EqPara1Gain", gain);
+                        }
                     }
                 });
             }
@@ -3581,6 +3715,10 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
                         // Update peer views
                         if (auto* peersContainer = getPeersContainerView()) {
                             peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "EqPara1Q", q);
                         }
                     }
                 });
@@ -3602,6 +3740,10 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
                         if (auto* peersContainer = getPeersContainerView()) {
                             peersContainer->updatePeerViews(peerIndex);
                         }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "EqHighShelfFreq", freq);
+                        }
                     }
                 });
             }
@@ -3621,6 +3763,10 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
                         // Update peer views
                         if (auto* peersContainer = getPeersContainerView()) {
                             peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "EqHighShelfGain", gain);
                         }
                     }
                 });
@@ -3642,6 +3788,10 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
                         if (auto* peersContainer = getPeersContainerView()) {
                             peersContainer->updatePeerViews(peerIndex);
                         }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "EqPara2Freq", freq);
+                        }
                     }
                 });
             }
@@ -3662,6 +3812,10 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
                         if (auto* peersContainer = getPeersContainerView()) {
                             peersContainer->updatePeerViews(peerIndex);
                         }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "EqPara2Gain", gain);
+                        }
                     }
                 });
             }
@@ -3681,6 +3835,10 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
                         // Update peer views
                         if (auto* peersContainer = getPeersContainerView()) {
                             peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "EqPara2Q", q);
                         }
                     }
                 });
@@ -3837,6 +3995,8 @@ SonobusAudioProcessorEditor::~SonobusAudioProcessorEditor()
     for (int peerIndex = 0; peerIndex < 16; ++peerIndex) {
         oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "Mute");
         oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "Solo");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "BufferMin");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "ResetDrop");
         oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "InputReverbSend");
         oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "PolarityInvert");
         oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "CompressorEnable");

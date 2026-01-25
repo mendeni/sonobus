@@ -590,6 +590,26 @@ SonoBus supports OSC control for up to 16 remote peers (connected users). Each p
 
 **Note**: When any peer is soloed, only soloed peers are heard. This is equivalent to clicking the SOLO button in the peer's UI panel.
 
+#### `/Peer[1-16]BufferMin`
+**Type**: Push Button  
+**Description**: Resets the jitter buffer to the minimum for the specified peer  
+**Data Type**: Integer (1 to trigger)  
+**Examples**:
+- `/Peer1BufferMin` - Resets jitter buffer for Peer 1
+- `/Peer2BufferMin` - Resets jitter buffer for Peer 2
+
+**Note**: This is a momentary push button with no state. Send value 1 to trigger the action.
+
+#### `/Peer[1-16]ResetDrop`
+**Type**: Push Button  
+**Description**: Resets packet drop statistics for the specified peer  
+**Data Type**: Integer (1 to trigger)  
+**Examples**:
+- `/Peer1ResetDrop` - Resets drop stats for Peer 1
+- `/Peer2ResetDrop` - Resets drop stats for Peer 2
+
+**Note**: This is a momentary push button with no state. Send value 1 to trigger the action. Clears the dropped packet counter for the peer.
+
 ### Peer Input Effects (FX) Controls
 
 All FX controls operate on the first/main channel group (channel group 0) of each peer. These controls affect the audio received from the peer before it is mixed with other audio.

@@ -485,6 +485,13 @@ sleep 2
 oscsend localhost 6000 /Peer1Solo i 0
 sleep 2
 
+echo "=== Peer 1 Utility Controls ==="
+oscsend localhost 6000 /Peer1BufferMin i 1
+sleep 2
+
+oscsend localhost 6000 /Peer1ResetDrop i 1
+sleep 2
+
 echo "=== Peer 1 FX Controls ==="
 oscsend localhost 6000 /Peer1InputReverbSend f 0.6
 sleep 2
