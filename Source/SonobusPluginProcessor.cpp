@@ -852,6 +852,9 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     
     moveOldMisplacedFiles();
 
+    // Initialize OSC receiver (disabled by default)
+    mOSCReceiver = std::make_unique<OSCReceiver>();
+
     mFreshInit = true;
 }
 
@@ -861,6 +864,12 @@ SonobusAudioProcessor::~SonobusAudioProcessor()
 {
     mTransportSource.setSource(nullptr);
     mTransportSource.removeChangeListener(this);
+
+    // Cleanup OSC
+    if (mOSCReceiver) {
+        mOSCReceiver->disconnect();
+        mOSCReceiver.reset();
+    }
 
     cleanupAoo();
 }
@@ -9772,6 +9781,143 @@ double SonobusAudioProcessor::getMonitoringDelayTimeFromAvgPeerLatency(float sca
     //setMonitoringDelayTimeMs(deltimems);
 }
 
+
+//==============================================================================
+// OSC Control Implementation
+
+void SonobusAudioProcessor::setOSCControlEnabled(bool enabled)
+{
+    if (enabled == mOSCControlEnabled) {
+        return;
+    }
+    
+    mOSCControlEnabled = enabled;
+    
+    if (mOSCControlEnabled) {
+        if (!mOSCReceiver) {
+            mOSCReceiver = std::make_unique<OSCReceiver>();
+        }
+        
+        mOSCReceiver->addListener(this, [this](const OSCMessage& message) {
+            handleOSCMessage(message);
+        });
+        
+        if (mOSCReceiver->connect(mOSCControlPort)) {
+            DBG("OSC Control enabled on port " << mOSCControlPort);
+        } else {
+            DBG("Failed to enable OSC Control on port " << mOSCControlPort);
+            mOSCControlEnabled = false;
+        }
+    } else {
+        if (mOSCReceiver) {
+            mOSCReceiver->disconnect();
+            DBG("OSC Control disabled");
+        }
+    }
+}
+
+void SonobusAudioProcessor::setOSCControlPort(int port)
+{
+    if (port == mOSCControlPort) {
+        return;
+    }
+    
+    bool wasEnabled = mOSCControlEnabled;
+    
+    if (wasEnabled) {
+        setOSCControlEnabled(false);
+    }
+    
+    mOSCControlPort = port;
+    
+    if (wasEnabled) {
+        setOSCControlEnabled(true);
+    }
+}
+
+void SonobusAudioProcessor::handleOSCMessage(const OSCMessage& message)
+{
+    auto address = message.getAddressPattern().toString();
+    
+    // Parse peer control messages: /peer{N}/mute, /peer{N}/solo
+    if (address.startsWith("/peer")) {
+        String remaining = address.substring(5); // Skip "/peer"
+        
+        // Extract peer number
+        int slashPos = remaining.indexOf("/");
+        if (slashPos <= 0) {
+            return;
+        }
+        
+        String peerNumStr = remaining.substring(0, slashPos);
+        String command = remaining.substring(slashPos + 1);
+        
+        int peerNumber = peerNumStr.getIntValue();
+        
+        // Convert from 1-based (user-friendly) to 0-based (internal)
+        int peerIndex = peerNumber - 1;
+        
+        // Validate peer index (support up to 16 peers as per requirements)
+        if (peerIndex < 0 || peerIndex >= 16) {
+            DBG("OSC: Invalid peer index " << peerNumber << " (must be 1-16)");
+            return;
+        }
+        
+        // Check if peer exists
+        if (peerIndex >= getNumberRemotePeers()) {
+            DBG("OSC: Peer " << peerNumber << " does not exist");
+            return;
+        }
+        
+        // Handle mute command
+        if (command == "mute") {
+            if (message.size() > 0) {
+                if (message[0].isFloat32()) {
+                    float value = message[0].getFloat32();
+                    bool muted = value > 0.5f;
+                    setRemotePeerRecvActive(peerIndex, !muted);
+                    DBG("OSC: Set peer " << peerNumber << " mute to " << (muted ? "ON" : "OFF"));
+                }
+                else if (message[0].isInt32()) {
+                    int32 value = message[0].getInt32();
+                    bool muted = value != 0;
+                    setRemotePeerRecvActive(peerIndex, !muted);
+                    DBG("OSC: Set peer " << peerNumber << " mute to " << (muted ? "ON" : "OFF"));
+                }
+            } else {
+                // Toggle if no argument
+                bool currentlyActive = getRemotePeerRecvActive(peerIndex);
+                setRemotePeerRecvActive(peerIndex, !currentlyActive);
+                DBG("OSC: Toggle peer " << peerNumber << " mute to " << (currentlyActive ? "ON" : "OFF"));
+            }
+        }
+        // Handle solo command
+        else if (command == "solo") {
+            if (message.size() > 0) {
+                if (message[0].isFloat32()) {
+                    float value = message[0].getFloat32();
+                    bool soloed = value > 0.5f;
+                    setRemotePeerSoloed(peerIndex, soloed);
+                    DBG("OSC: Set peer " << peerNumber << " solo to " << (soloed ? "ON" : "OFF"));
+                }
+                else if (message[0].isInt32()) {
+                    int32 value = message[0].getInt32();
+                    bool soloed = value != 0;
+                    setRemotePeerSoloed(peerIndex, soloed);
+                    DBG("OSC: Set peer " << peerNumber << " solo to " << (soloed ? "ON" : "OFF"));
+                }
+            } else {
+                // Toggle if no argument
+                bool currentlySoloed = getRemotePeerSoloed(peerIndex);
+                setRemotePeerSoloed(peerIndex, !currentlySoloed);
+                DBG("OSC: Toggle peer " << peerNumber << " solo to " << (!currentlySoloed ? "ON" : "OFF"));
+            }
+        }
+        else {
+            DBG("OSC: Unknown peer command: " << command);
+        }
+    }
+}
 
 
 //==============================================================================

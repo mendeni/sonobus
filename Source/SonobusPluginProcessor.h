@@ -834,6 +834,12 @@ public:
     void setUseUniversalFont(bool flag) { mUseUniversalFont = flag; }
     bool getUseUniversalFont() const { return mUseUniversalFont; }
 
+    // OSC control
+    void setOSCControlPort(int port);
+    int getOSCControlPort() const { return mOSCControlPort; }
+    bool isOSCControlEnabled() const { return mOSCControlEnabled; }
+    void setOSCControlEnabled(bool enabled);
+
 private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SonobusAudioProcessor)
@@ -884,6 +890,9 @@ private:
     void sendPingEvent(RemotePeer * peer);
 
     void updateSafetyMuting(RemotePeer * peer);
+
+    // OSC control handlers
+    void handleOSCMessage(const OSCMessage& message);
 
     void setupSourceFormat(RemotePeer * peer, aoo::isource * source, bool latencymode=false);
     bool formatInfoToAooFormat(const AudioCodecFormatInfo & info, int channels, aoo_format_storage & retformat);
@@ -1271,6 +1280,11 @@ private:
     
     String mLangOverrideCode;
     bool mUseUniversalFont = false;
+
+    // OSC control
+    std::unique_ptr<OSCReceiver> mOSCReceiver;
+    int mOSCControlPort = 9951;
+    bool mOSCControlEnabled = false;
 
     // main state
     AudioProcessorValueTreeState mState;
