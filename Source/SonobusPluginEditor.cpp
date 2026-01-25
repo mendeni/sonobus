@@ -7307,13 +7307,13 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
                 mChatView->addNewChatMessage(SBChatEvent(SBChatEvent::SystemType, ev.group, ev.user, "", "", mesg));
             }
 
-            // Find peer index before they're removed
-            int leavingPeerIndex = -1;
+            // Find peer index and clear OSC state BEFORE they're removed
+            // (Otherwise indices shift when peer is removed)
             if (processor.getOSCEnabled()) {
                 int numPeers = processor.getNumberRemotePeers();
                 for (int i = 0; i < jmin(numPeers, 16); ++i) {
                     if (processor.getRemotePeerUserName(i) == ev.user) {
-                        leavingPeerIndex = i;
+                        clearPeerOSCState(i);
                         break;
                     }
                 }
@@ -7323,11 +7323,6 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
 
             updatePeerState(true);
             updateState(false);
-            
-            // Clear OSC state for the peer that left
-            if (leavingPeerIndex >= 0) {
-                clearPeerOSCState(leavingPeerIndex);
-            }
         }
         else if (ev.type == ClientEvent::PeerPendingJoinEvent) {
             mPeerContainer->peerPendingJoin(ev.group, ev.user);

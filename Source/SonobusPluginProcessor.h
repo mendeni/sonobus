@@ -1250,7 +1250,7 @@ private:
     
     // OSC Configuration
     bool mOSCEnabled = false;  // OSC disabled by default
-    bool mOSCSendStateOnStart = false;  // Don't send state on start by default
+    bool mOSCSendStateOnStart = true;  // Send state on start by default
     String mOSCTargetIPAddress = "127.0.0.1";
     int mOSCTargetPort = 6001;
     int mOSCReceivePort = 6000;
