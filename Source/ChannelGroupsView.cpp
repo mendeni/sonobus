@@ -254,6 +254,17 @@ void ChannelGroupEffectsView::compressorParamsChanged(CompressorView *comp, Sono
         if (wason != ison) {
             listeners.call (&ChannelGroupEffectsView::Listener::effectsEnableChanged, this);
         }
+        
+        // Send OSC feedback for peer compressor parameters (only for first 16 peers, channel group 0)
+        if (processor.getOSCEnabled() && peerIndex < 16 && groupIndex == 0) {
+            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "CompressorEnable", params.enabled ? 1 : 0);
+            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "CompressorThreshold", params.thresholdDb);
+            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "CompressorRatio", params.ratio);
+            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "CompressorAttack", params.attackMs);
+            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "CompressorRelease", params.releaseMs);
+            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "CompressorMakeupGain", params.makeupGainDb);
+            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "CompressorAuto", params.automakeupGain ? 1 : 0);
+        }
     }
     else {
         bool wason = processor.getInputEffectsActive(groupIndex);
@@ -288,6 +299,15 @@ void ChannelGroupEffectsView::expanderParamsChanged(ExpanderView *comp, SonoAudi
         if (wason != ison) {
             listeners.call (&ChannelGroupEffectsView::Listener::effectsEnableChanged, this);
         }
+        
+        // Send OSC feedback for peer expander parameters (only for first 16 peers, channel group 0)
+        if (processor.getOSCEnabled() && peerIndex < 16 && groupIndex == 0) {
+            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "ExpanderEnable", params.enabled ? 1 : 0);
+            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "ExpanderNoiseFloor", params.thresholdDb);
+            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "ExpanderRatio", params.ratio);
+            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "ExpanderAttack", params.attackMs);
+            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "ExpanderRelease", params.releaseMs);
+        }
     }
     else {
         bool wason = processor.getInputEffectsActive(groupIndex);
@@ -318,6 +338,21 @@ void ChannelGroupEffectsView::parametricEqParamsChanged(ParametricEqView *comp, 
         bool ison = processor.getRemotePeerEffectsActive(peerIndex, groupIndex);
         if (wason != ison) {
             listeners.call (&ChannelGroupEffectsView::Listener::effectsEnableChanged, this);
+        }
+        
+        // Send OSC feedback for peer EQ parameters (only for first 16 peers, channel group 0)
+        if (processor.getOSCEnabled() && peerIndex < 16 && groupIndex == 0) {
+            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "EqEnable", params.enabled ? 1 : 0);
+            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "EqLowShelfFreq", params.lowShelfFreq);
+            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "EqLowShelfGain", params.lowShelfGain);
+            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "EqPara1Freq", params.para1Freq);
+            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "EqPara1Gain", params.para1Gain);
+            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "EqPara1Q", params.para1Q);
+            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "EqHighShelfFreq", params.highShelfFreq);
+            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "EqHighShelfGain", params.highShelfGain);
+            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "EqPara2Freq", params.para2Freq);
+            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "EqPara2Gain", params.para2Gain);
+            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "EqPara2Q", params.para2Q);
         }
     } else {
         bool wason = processor.getInputEffectsActive(groupIndex);
@@ -355,6 +390,11 @@ void ChannelGroupEffectsView::reverbSendLevelChanged(ReverbSendView *comp, float
         if (wason != ison) {
             listeners.call (&ChannelGroupEffectsView::Listener::effectsEnableChanged, this);
         }
+        
+        // Send OSC feedback for peer input reverb send (only for first 16 peers, channel group 0)
+        if (processor.getOSCEnabled() && peerIndex < 16 && groupIndex == 0) {
+            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "InputReverbSend", revlevel);
+        }
     }
     else {
         bool wason = processor.getInputEffectsActive(groupIndex);
@@ -376,6 +416,11 @@ void ChannelGroupEffectsView::polarityInvertChanged(PolarityInvertView *comp, bo
 {
     if (peerMode) {
         processor.setRemotePeerPolarityInvert(peerIndex, groupIndex, polinv);
+        
+        // Send OSC feedback for peer polarity invert (only for first 16 peers, channel group 0)
+        if (processor.getOSCEnabled() && peerIndex < 16 && groupIndex == 0) {
+            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "PolarityInvert", polinv ? 1 : 0);
+        }
     }
     else {
         // input mode
