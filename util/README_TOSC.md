@@ -164,7 +164,9 @@ The provided .tosc file includes 5 basic controls as a starting point. To add mo
 **Alternative**: You can also decompress, edit the XML, and recompress:
 1. Decompress: `python3 -c "import zlib; open('layout.xml','wb').write(zlib.decompress(open('sonobus_comprehensive.tosc','rb').read()))"`
 2. Edit `layout.xml` (add more `<node>` elements for controls)
-3. Recompress: `python3 -c "import zlib; open('sonobus_comprehensive.tosc','wb').write(zlib.compress(open('layout.xml','rb').read()))"`
+3. Recompress: `python3 -c "import zlib; open('sonobus_comprehensive.tosc','wb').write(zlib.compress(open('layout.xml','rb').read(), level=9))"`
+
+Note: Replace filenames as needed for your setup.
 
 ## Examples
 
@@ -202,15 +204,17 @@ The `sonobus_comprehensive.tosc` file uses the **TouchOSC v2.x format**:
 
 To inspect the contents:
 ```bash
-# Decompress and view
-python3 -c "import zlib; open('layout.xml','wb').write(zlib.decompress(open('util/sonobus_comprehensive.tosc','rb').read()))"
+# Decompress and view (from util directory)
+cd util
+python3 -c "import zlib; open('layout.xml','wb').write(zlib.decompress(open('sonobus_comprehensive.tosc','rb').read()))"
 cat layout.xml
 ```
 
 To recompress after editing:
 ```bash
-# Compress back to .tosc
-python3 -c "import zlib; open('util/sonobus_comprehensive.tosc','wb').write(zlib.compress(open('layout.xml','rb').read(), level=9))"
+# Compress back to .tosc (from util directory)
+cd util
+python3 -c "import zlib; open('sonobus_comprehensive.tosc','wb').write(zlib.compress(open('layout.xml','rb').read(), level=9))"
 ```
 
 **Note**: This is different from TouchOSC v1.x (Mk1) which used ZIP archives with different XML structure.
@@ -227,6 +231,17 @@ All value ranges are documented in the OSC address reference. These ranges are b
 - SonoBus source code analysis (ChannelGroupParams structure)
 - Audio DSP best practices
 - Typical parameter ranges for audio effects
+
+**Controls in the Layout**:
+
+The `sonobus_comprehensive.tosc` file includes 5 controls:
+1. **OutGain** (FADER) → `/OutGainSlider` (float, 0.0-1.0)
+2. **MainMute** (BUTTON) → `/MainMuteButton` (int, 0 or 1)
+3. **RecvSync** (BUTTON) → `/RecvSyncButton` (int, 0 or 1)
+4. **Group1Gain** (FADER) → `/InputGroup1/Gain` (float, 0.0-2.0)
+5. **TitleLabel** (LABEL) - Display only
+
+These serve as a foundation. Add more controls using the TouchOSC editor.
 
 ### Implementation Status
 
