@@ -8,17 +8,73 @@ This directory contains TouchOSC layout files and OSC control documentation for 
 
 A **TouchOSC layout file** (zlib-compressed XML) that can be directly imported into the TouchOSC editor. This file provides:
 
-- **Simplified Layout**: 5 essential controls (2 faders, 2 buttons, 1 label)
-- **Visual UI Elements**: Faders for gain controls, buttons for mute/sync
+- **Comprehensive Layout**: 51 controls covering global and Input Group 1 parameters
+- **Visual UI Elements**: Faders for continuous controls, buttons for toggles
 - **Ready to Configure**: Import into TouchOSC and configure OSC addresses via the editor
-- **Lightweight**: Minimal controls to ensure stability
+- **Organized**: Controls grouped by function (Global, Basic, Compressor, Expander, EQ, Limiter, Delay)
 
-**Controls included:**
-- **OutGain** (Fader) - Output gain control → `/OutGainSlider`
-- **MainMute** (Button) - Main mute button → `/MainMuteButton`
-- **RecvSync** (Button) - Receive sync button → `/RecvSyncButton`
-- **Group1Gain** (Fader) - Input Group 1 gain → `/InputGroup1/Gain`
-- **TitleLabel** (Label) - Layout title display
+**Controls included (51 total):**
+
+**Global Controls (5):**
+- **OutGain** (Fader) → `/OutGainSlider`
+- **MainMute** (Button) → `/MainMuteButton`
+- **RecvSync** (Button) → `/RecvSyncButton`
+- **MaxRecvPad** (Fader) → `/OptionsMaxRecvPaddingSlider`
+- **RecStealth** (Button) → `/OptionsRecStealth`
+
+**Input Group 1 - Basic Controls (8):**
+- **G1_Mute** (Button) → `/InputGroup1/Mute`
+- **G1_Solo** (Button) → `/InputGroup1/Solo`
+- **G1_Gain** (Fader) → `/InputGroup1/Gain`
+- **G1_Pan** (Fader) → `/InputGroup1/Pan`
+- **G1_InvPol** (Button) → `/InputGroup1/InvertPolarity`
+- **G1_Monitor** (Fader) → `/InputGroup1/Monitor`
+- **G1_InRev** (Fader) → `/InputGroup1/InReverbSend`
+- **G1_MonRev** (Fader) → `/InputGroup1/MonReverbSend`
+
+**Input Group 1 - Compressor (7):**
+- **G1_Comp_En** (Button) → `/InputGroup1/Compressor/Enabled`
+- **G1_Comp_Thr** (Fader) → `/InputGroup1/Compressor/ThresholdDb`
+- **G1_Comp_Rat** (Fader) → `/InputGroup1/Compressor/Ratio`
+- **G1_Comp_Atk** (Fader) → `/InputGroup1/Compressor/AttackMs`
+- **G1_Comp_Rel** (Fader) → `/InputGroup1/Compressor/ReleaseMs`
+- **G1_Comp_MkG** (Fader) → `/InputGroup1/Compressor/MakeupGainDb`
+- **G1_Comp_Auto** (Button) → `/InputGroup1/Compressor/AutomakeupGain`
+
+**Input Group 1 - Expander/Gate (7):**
+- **G1_Exp_En** (Button) → `/InputGroup1/Expander/Enabled`
+- **G1_Exp_Thr** (Fader) → `/InputGroup1/Expander/ThresholdDb`
+- **G1_Exp_Rat** (Fader) → `/InputGroup1/Expander/Ratio`
+- **G1_Exp_Atk** (Fader) → `/InputGroup1/Expander/AttackMs`
+- **G1_Exp_Rel** (Fader) → `/InputGroup1/Expander/ReleaseMs`
+- **G1_Exp_MkG** (Fader) → `/InputGroup1/Expander/MakeupGainDb`
+- **G1_Exp_Auto** (Button) → `/InputGroup1/Expander/AutomakeupGain`
+
+**Input Group 1 - Parametric EQ (11):**
+- **G1_EQ_En** (Button) → `/InputGroup1/EQ/Enabled`
+- **G1_EQ_LSGain** (Fader) → `/InputGroup1/EQ/LowShelfGain`
+- **G1_EQ_LSFreq** (Fader) → `/InputGroup1/EQ/LowShelfFreq`
+- **G1_EQ_P1Gain** (Fader) → `/InputGroup1/EQ/Para1Gain`
+- **G1_EQ_P1Freq** (Fader) → `/InputGroup1/EQ/Para1Freq`
+- **G1_EQ_P1Q** (Fader) → `/InputGroup1/EQ/Para1Q`
+- **G1_EQ_P2Gain** (Fader) → `/InputGroup1/EQ/Para2Gain`
+- **G1_EQ_P2Freq** (Fader) → `/InputGroup1/EQ/Para2Freq`
+- **G1_EQ_P2Q** (Fader) → `/InputGroup1/EQ/Para2Q`
+- **G1_EQ_HSGain** (Fader) → `/InputGroup1/EQ/HighShelfGain`
+- **G1_EQ_HSFreq** (Fader) → `/InputGroup1/EQ/HighShelfFreq`
+
+**Input Group 1 - Limiter (5):**
+- **G1_Lim_En** (Button) → `/InputGroup1/Limiter/Enabled`
+- **G1_Lim_Thr** (Fader) → `/InputGroup1/Limiter/ThresholdDb`
+- **G1_Lim_Rat** (Fader) → `/InputGroup1/Limiter/Ratio`
+- **G1_Lim_Atk** (Fader) → `/InputGroup1/Limiter/AttackMs`
+- **G1_Lim_Rel** (Fader) → `/InputGroup1/Limiter/ReleaseMs`
+
+**Input Group 1 - Monitor Delay (2):**
+- **G1_Delay_En** (Button) → `/InputGroup1/MonitorDelay/Enabled`
+- **G1_Delay_Time** (Fader) → `/InputGroup1/MonitorDelay/DelayTimeMs`
+
+**Plus 6 section labels** for visual organization
 
 ### sonobus_osc_reference.json
 
@@ -129,15 +185,16 @@ Where `N` is the group number (1-16).
    - **Mobile**: Transfer via iTunes/Files and import in app
 3. **Configure OSC Addresses**: After importing, you must configure each control's OSC address:
    - Select each control in the editor
-   - In the "Messages" or "OSC" section, add the appropriate OSC address from the reference below
+   - In the "Messages" or "OSC" section, add the appropriate OSC address from the list above
    - Example: OutGain fader → OSC Address: `/OutGainSlider`, Type: Float, Range: 0-1
+   - Example: G1_Comp_Thr → OSC Address: `/InputGroup1/Compressor/ThresholdDb`, Type: Float, Range: -60 to 0
 4. Configure OSC connection settings to point to SonoBus:
    - Host: IP address of machine running SonoBus
    - Port: OSC receive port configured in SonoBus (typically 9000-9999)
 5. Enable OSC in SonoBus settings
 6. Use the visual controls to send OSC messages to SonoBus
 
-**Note**: The .tosc file is a zlib-compressed XML layout. TouchOSC v2.x will handle this format automatically. OSC addresses must be configured manually in the TouchOSC editor as the layout only includes the visual controls.
+**Note**: The .tosc file is a zlib-compressed XML layout. TouchOSC v2.x will handle this format automatically. OSC addresses must be configured manually in the TouchOSC editor as the layout only includes the visual controls. The layout includes 51 controls covering all major parameters for global settings and Input Group 1.
 
 ### With Other OSC Controllers
 
@@ -150,16 +207,16 @@ The OSC address structure is documented in `sonobus_osc_reference.json` and can 
 
 ### Extending the Layout
 
-The provided .tosc file includes 5 basic controls as a starting point. To add more controls:
+The provided .tosc file includes 51 controls covering global settings and complete Input Group 1 parameters. To add more controls or duplicate for Input Groups 2-16:
 
 1. Open `sonobus_comprehensive.tosc` in TouchOSC editor
-2. Add new controls (faders, buttons, labels, etc.) from the control palette
-3. Configure each control's visual properties (position, size, color)
-4. Add OSC addresses in the Messages/OSC section for each control
-5. Use the OSC address patterns from `sonobus_osc_reference.json`:
-   - Global: `/OutGainSlider`, `/MainMuteButton`, etc.
-   - Input Groups: `/InputGroupN/Gain`, `/InputGroupN/Compressor/ThresholdDb`, etc.
+2. Select and duplicate existing controls
+3. Rename controls (e.g., G1_Gain → G2_Gain)
+4. Update OSC addresses (e.g., `/InputGroup1/Gain` → `/InputGroup2/Gain`)
+5. Adjust positioning as needed
 6. Save and export the modified layout
+
+Use the OSC address patterns from `sonobus_osc_reference.json` for reference.
 
 **Alternative**: You can also decompress, edit the XML, and recompress:
 
@@ -241,14 +298,17 @@ All value ranges are documented in the OSC address reference. These ranges are b
 
 **Controls in the Layout**:
 
-The `sonobus_comprehensive.tosc` file includes 5 controls:
-1. **OutGain** (FADER) → `/OutGainSlider` (float, 0.0-1.0)
-2. **MainMute** (BUTTON) → `/MainMuteButton` (int, 0 or 1)
-3. **RecvSync** (BUTTON) → `/RecvSyncButton` (int, 0 or 1)
-4. **Group1Gain** (FADER) → `/InputGroup1/Gain` (float, 0.0-2.0)
-5. **TitleLabel** (LABEL) - Display only
+The `sonobus_comprehensive.tosc` file includes **51 controls** organized in sections:
+- **5 Global controls**: Output gain, mute, sync, padding, stealth
+- **8 Input Group 1 basic controls**: Mute, solo, gain, pan, polarity, monitor, reverb sends
+- **7 Compressor parameters**: Enable, threshold, ratio, attack, release, makeup gain, auto makeup
+- **7 Expander/Gate parameters**: Enable, threshold, ratio, attack, release, makeup gain, auto makeup
+- **11 EQ parameters**: Enable, low shelf (gain/freq), para1 (gain/freq/Q), para2 (gain/freq/Q), high shelf (gain/freq)
+- **5 Limiter parameters**: Enable, threshold, ratio, attack, release
+- **2 Monitor Delay parameters**: Enable, delay time
+- **6 Section labels**: For visual organization
 
-These serve as a foundation. Add more controls using the TouchOSC editor.
+See the file descriptions section above for complete control-to-OSC-address mappings.
 
 ### Implementation Status
 
