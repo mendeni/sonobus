@@ -621,6 +621,17 @@ SonoBus supports OSC control for up to 16 remote peers (connected users). Each p
 
 **Note**: Adjusts the output level/gain for the peer's audio. This is equivalent to moving the level slider in the peer's UI panel.
 
+#### `/Peer[1-16]Pan`
+**Type**: Slider  
+**Description**: Controls the stereo pan position for the specified peer (channel group 0, channel 0)  
+**Data Type**: Float  
+**Range**: -1.0 to 1.0 (-1.0 = full left, 0.0 = center, 1.0 = full right)  
+**Examples**:
+- `/Peer1Pan` - Controls pan for Peer 1
+- `/Peer2Pan` - Controls pan for Peer 2
+
+**Note**: Adjusts the stereo pan position for the peer's audio. This is equivalent to moving the pan slider in the peer's UI panel.
+
 #### `/Peer[1-16]RemotePeerUserName`
 **Type**: Read-Only Text Field  
 **Description**: Provides the username of the connected peer  

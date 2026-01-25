@@ -500,6 +500,14 @@ sleep 2
 oscsend localhost 6000 /Peer1Level f 1.2
 sleep 2
 
+echo "=== Peer 1 Pan Control ==="
+oscsend localhost 6000 /Peer1Pan f -1.0
+sleep 2
+oscsend localhost 6000 /Peer1Pan f 0.0
+sleep 2
+oscsend localhost 6000 /Peer1Pan f 1.0
+sleep 2
+
 echo "=== Peer 1 FX Controls ==="
 oscsend localhost 6000 /Peer1InputReverbSend f 0.6
 sleep 2
@@ -588,6 +596,9 @@ oscsend localhost 6000 /Peer2InputReverbSend f 0.2
 sleep 2
 
 oscsend localhost 6000 /Peer2Level f 0.9
+sleep 2
+
+oscsend localhost 6000 /Peer2Pan f 0.5
 sleep 2
 
 echo "=== OSC Test Complete ==="

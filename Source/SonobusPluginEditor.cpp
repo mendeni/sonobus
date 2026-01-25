@@ -3316,6 +3316,28 @@ void SonobusAudioProcessorEditor::registerAllOSCControls()
             }
         });
         
+        // Peer Pan - Controls the pan for the peer (channel group 0, channel 0)
+        String peerPanAddress = "/Peer" + String(peerIndex + 1) + "Pan";
+        oscManager.registerControl(peerPanAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float pan = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, peerIndex, pan]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        // Set pan for channel group 0, channel 0
+                        processor.setRemotePeerChannelPan(peerIndex, 0, 0, pan);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "Pan", pan);
+                        }
+                    }
+                });
+            }
+        });
+        
         // Peer Input Reverb Send (channel group 0)
         String peerInputReverbSendAddress = "/Peer" + String(peerIndex + 1) + "InputReverbSend";
         oscManager.registerControl(peerInputReverbSendAddress, [this, peerIndex](const juce::OSCMessage& message) {
@@ -4040,6 +4062,7 @@ void SonobusAudioProcessorEditor::unregisterAllOSCControls()
         oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "BufferMin");
         oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "ResetDrop");
         oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "Level");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "Pan");
         oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "InputReverbSend");
         oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "PolarityInvert");
         oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "CompressorEnable");
@@ -4259,6 +4282,10 @@ void SonobusAudioProcessorEditor::sendPeerOSCState(int peerIndex)
     float level = processor.getRemotePeerLevelGain(peerIndex);
     oscManager.sendMessage("/Peer" + peerNum + "Level", level);
     
+    // Send peer pan (channel group 0, channel 0)
+    float pan = processor.getRemotePeerChannelPan(peerIndex, 0, 0);
+    oscManager.sendMessage("/Peer" + peerNum + "Pan", pan);
+    
     // Send compressor FX
     SonoAudio::CompressorParams compParams;
     processor.getRemotePeerCompressorParams(peerIndex, 0, compParams);
@@ -4319,6 +4346,7 @@ void SonobusAudioProcessorEditor::clearPeerOSCState(int peerIndex)
     oscManager.sendMessage("/Peer" + peerNum + "Mute", 0);
     oscManager.sendMessage("/Peer" + peerNum + "Solo", 0);
     oscManager.sendMessage("/Peer" + peerNum + "Level", 1.0f);
+    oscManager.sendMessage("/Peer" + peerNum + "Pan", 0.0f);  // Center pan
     
     // Clear compressor
     oscManager.sendMessage("/Peer" + peerNum + "CompressorEnable", 0);

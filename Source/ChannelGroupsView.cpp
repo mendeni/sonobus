@@ -4911,9 +4911,19 @@ void ChannelGroupsView::sliderValueChanged (Slider* slider)
                 float pan2 = mMainChannelView->panSlider->getMaxValue();
                 processor.setRemotePeerChannelPan(mPeerIndex, changroup, 0, pan1);
                 processor.setRemotePeerChannelPan(mPeerIndex, changroup, 1, pan2);
+                
+                // Send OSC feedback for pan (only for first 16 peers, using first channel value)
+                if (processor.getOSCEnabled() && mPeerIndex < 16) {
+                    processor.getOSCManager().sendMessage("/Peer" + String(mPeerIndex + 1) + "Pan", static_cast<float>(pan1));
+                }
             }
             else {
                 processor.setRemotePeerChannelPan(mPeerIndex, changroup, chi, mMainChannelView->panSlider->getValue());
+                
+                // Send OSC feedback for pan (only for first 16 peers)
+                if (processor.getOSCEnabled() && mPeerIndex < 16) {
+                    processor.getOSCManager().sendMessage("/Peer" + String(mPeerIndex + 1) + "Pan", static_cast<float>(mMainChannelView->panSlider->getValue()));
+                }
             }
             return;
         }
