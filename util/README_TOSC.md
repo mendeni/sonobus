@@ -22,15 +22,17 @@ A **TouchOSC layout file** (zlib-compressed XML) that can be directly imported i
 - **MaxRecvPad** (Fader, label: "RecvPad") → `/OptionsMaxRecvPaddingSlider`
 - **RecStealth** (Button, label: "RecStealth") → `/OptionsRecStealth`
 
-**Input Groups 1-4 (37 controls each × 4 groups = 148):**
+**Input Groups 1-4 (149 controls total):**
 
-Each group includes:
+Each of the 4 groups includes 37 controls:
 - **Basic Controls (8)**: Mute, Solo, Gain, Pan, InvPol, Monitor, InRev, MonRev
 - **Compressor (7)**: Enable, Threshold, Ratio, Attack, Release, Makeup Gain, Auto Makeup
 - **Parametric EQ (11)**: Enable, Low Shelf (Gain, Freq), Para1 (Gain, Freq, Q), Para2 (Gain, Freq, Q), High Shelf (Gain, Freq)
 - **Limiter (5)**: Enable, Threshold, Ratio, Attack, Release
 - **Monitor Delay (2)**: Enable, Delay Time
 - **Section Labels (4)**: Group header, Compressor, EQ, Lim/Dly
+
+**Total: 5 global + (37 × 4 groups) + 1 global label = 154 controls**
 
 **Example Control Names with Labels:**
 - G1_Gain (label: "Gain") → `/InputGroup1/Gain`
@@ -331,10 +333,13 @@ oscManager.registerControl("/InputGroup1/Gain", [this](const juce::OSCMessage& m
 
 To extend or improve this layout:
 
-1. Edit `sonobus_comprehensive.tosc` (valid JSON format)
-2. Validate JSON structure: `python3 -m json.tool sonobus_comprehensive.tosc`
-3. Test with TouchOSC or OSC testing tools
-4. Document any new controls or changes
+1. Open `sonobus_comprehensive.tosc` in TouchOSC editor
+2. Make changes using the visual editor
+3. Export and save the modified layout
+4. Test with TouchOSC or OSC testing tools
+5. Document any new controls or changes
+
+Note: The .tosc file is zlib-compressed XML, not JSON. Use TouchOSC editor or decompress with Python for manual editing.
 
 ## License
 
