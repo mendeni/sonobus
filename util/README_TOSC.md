@@ -1,24 +1,26 @@
-# SonoBus OSC Control Layout (.tosc)
+# SonoBus OSC Control Layout
 
-This directory contains a comprehensive TouchOSC layout file (`sonobus_comprehensive.tosc`) that maps all OSC controls for the SonoBus application.
+This directory contains TouchOSC layout files and OSC control documentation for the SonoBus application.
 
-## Overview
-
-The `.tosc` file is a JSON-based layout configuration for TouchOSC and other OSC controller applications. It provides a complete mapping of all OSC control addresses available in SonoBus, including:
-
-- **Global Controls**: Output gain, main mute, receive sync, and configuration options
-- **Input Group Controls**: Support for Input Groups 1-16 with full parameter control
-
-## File Contents
+## Files
 
 ### sonobus_comprehensive.tosc
 
-This file contains:
+A **TouchOSC layout file** (ZIP archive containing XML) that can be directly imported into the TouchOSC editor. This file provides:
 
-1. **Tab-based Layout**: Organized sections for different control categories
-2. **Control Definitions**: Visual UI elements (faders, toggles, rotaries) mapped to OSC addresses
-3. **OSC Mapping Reference**: Complete documentation of all available OSC addresses
-4. **Implementation Notes**: Guidance for extending and customizing the layout
+- **Tab-based Layout**: Organized sections for different control categories
+- **Visual UI Elements**: Faders, toggles, rotaries, and labels
+- **Pre-configured OSC Addresses**: All controls are mapped to SonoBus OSC commands
+- **Ready to Use**: Import directly into TouchOSC desktop or mobile apps
+
+### sonobus_osc_reference.json
+
+A **comprehensive JSON reference document** that lists all OSC control addresses available in SonoBus:
+
+- **Global Controls**: Output gain, main mute, receive sync, and configuration options
+- **Input Group Controls**: Support for Input Groups 1-16 with full parameter control
+- **Complete Documentation**: All 933 OSC addresses with data types and ranges
+- **Implementation Notes**: Guidance for extending and customizing controls
 
 ## OSC Address Structure
 
@@ -114,17 +116,21 @@ Where `N` is the group number (1-16).
 
 ### With TouchOSC
 
-1. Open TouchOSC application
-2. Import the `sonobus_comprehensive.tosc` file
+1. Open TouchOSC application (desktop or mobile)
+2. Import the `sonobus_comprehensive.tosc` file:
+   - **Desktop**: File → Open, select the .tosc file
+   - **Mobile**: Transfer via iTunes/Files and import in app
 3. Configure OSC connection settings to point to SonoBus:
    - Host: IP address of machine running SonoBus
-   - Port: OSC receive port configured in SonoBus
+   - Port: OSC receive port configured in SonoBus (typically 9000-9999)
 4. Enable OSC in SonoBus settings
-5. Use the controls to send OSC messages to SonoBus
+5. Use the visual controls to send OSC messages to SonoBus
+
+**Note**: The .tosc file is a ZIP archive containing XML layout definitions. TouchOSC will handle this format automatically.
 
 ### With Other OSC Controllers
 
-The OSC address structure is documented in the file and can be used with any OSC-capable controller:
+The OSC address structure is documented in `sonobus_osc_reference.json` and can be used with any OSC-capable controller:
 
 - **Open Sound Control (OSC)** protocol support required
 - Send messages to the appropriate addresses as documented
@@ -133,14 +139,22 @@ The OSC address structure is documented in the file and can be used with any OSC
 
 ### Extending the Layout
 
-The provided file includes fully defined controls for **Input Group 1** as a reference. To add controls for Input Groups 2-16:
+The provided .tosc file includes controls for:
+- **Global Controls**: All 5 global parameters
+- **Input Group 1**: Basic controls, compressor, and EQ tabs
 
-1. Duplicate the Input Group 1 tabs
-2. Update the group number in:
-   - Tab names (e.g., "Input Group 2")
-   - OSC addresses (e.g., `/InputGroup2/...`)
-   - Label text
-3. Optionally adjust positioning and colors
+To add controls for Input Groups 2-16:
+
+1. Open `sonobus_comprehensive.tosc` in TouchOSC editor
+2. Duplicate existing tabs (Global, Group 1, G1 Comp, G1 EQ)
+3. Update the group number in OSC addresses (e.g., `/InputGroup2/...`)
+4. Adjust tab names and labels
+5. Save and export the modified layout
+
+**Alternatively**, manually edit the XML:
+1. Extract the .tosc file: `unzip sonobus_comprehensive.tosc`
+2. Edit `index.xml` to add more tabpages and controls
+3. Re-zip: `zip sonobus_comprehensive.tosc index.xml`
 
 ## Examples
 
@@ -166,6 +180,26 @@ Value: 3.5 (float, represents +3.5dB)
 ```
 
 ## Technical Details
+
+### .tosc File Format
+
+The `sonobus_comprehensive.tosc` file is a **ZIP archive** containing XML layout definitions, which is the standard format for TouchOSC v1.x (Mk1) layouts. This format:
+
+- **Container**: ZIP archive with `.tosc` extension
+- **Contents**: `index.xml` file with TouchOSC layout definition
+- **Compatibility**: TouchOSC v1.x and v2.x (legacy mode)
+- **Editing**: Can be opened in TouchOSC editor or manually by extracting ZIP
+
+To inspect the contents:
+```bash
+unzip -l sonobus_comprehensive.tosc
+```
+
+To extract and view the XML:
+```bash
+unzip sonobus_comprehensive.tosc
+cat index.xml
+```
 
 ### Data Types
 

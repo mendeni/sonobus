@@ -1,0 +1,804 @@
+{
+  "version": 1,
+  "name": "SonoBus Comprehensive OSC Control",
+  "description": "Comprehensive OSC control layout for SonoBus including all global controls and Input Group[1-16] controls",
+  "author": "SonoBus Project",
+  "tabs": [
+    {
+      "name": "Global",
+      "controls": [
+        {
+          "type": "fader",
+          "name": "Output Gain",
+          "x": 10,
+          "y": 10,
+          "width": 100,
+          "height": 400,
+          "color": "blue",
+          "osc": {
+            "address": "/OutGainSlider",
+            "type": "float",
+            "range": [0.0, 1.0]
+          }
+        },
+        {
+          "type": "toggle",
+          "name": "Main Mute",
+          "x": 130,
+          "y": 10,
+          "width": 100,
+          "height": 100,
+          "color": "red",
+          "osc": {
+            "address": "/MainMuteButton",
+            "type": "int",
+            "values": [0, 1]
+          }
+        },
+        {
+          "type": "push",
+          "name": "Recv Sync",
+          "x": 130,
+          "y": 120,
+          "width": 100,
+          "height": 100,
+          "color": "green",
+          "osc": {
+            "address": "/RecvSyncButton",
+            "type": "int",
+            "values": [0, 1]
+          }
+        },
+        {
+          "type": "fader",
+          "name": "Max Recv Padding",
+          "x": 250,
+          "y": 10,
+          "width": 100,
+          "height": 400,
+          "color": "orange",
+          "osc": {
+            "address": "/OptionsMaxRecvPaddingSlider",
+            "type": "float",
+            "range": [0.0, 1.0]
+          }
+        },
+        {
+          "type": "toggle",
+          "name": "Rec Stealth",
+          "x": 370,
+          "y": 10,
+          "width": 100,
+          "height": 100,
+          "color": "purple",
+          "osc": {
+            "address": "/OptionsRecStealth",
+            "type": "int",
+            "values": [0, 1]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Input Group 1",
+      "controls": [
+        {
+          "type": "label",
+          "name": "Group 1 Controls",
+          "x": 10,
+          "y": 10,
+          "width": 300,
+          "height": 30,
+          "text": "Input Group 1"
+        },
+        {
+          "type": "toggle",
+          "name": "Mute",
+          "x": 10,
+          "y": 50,
+          "width": 80,
+          "height": 60,
+          "color": "red",
+          "osc": {
+            "address": "/InputGroup1/Mute",
+            "type": "int",
+            "values": [0, 1]
+          }
+        },
+        {
+          "type": "toggle",
+          "name": "Solo",
+          "x": 100,
+          "y": 50,
+          "width": 80,
+          "height": 60,
+          "color": "yellow",
+          "osc": {
+            "address": "/InputGroup1/Solo",
+            "type": "int",
+            "values": [0, 1]
+          }
+        },
+        {
+          "type": "fader",
+          "name": "Gain",
+          "x": 10,
+          "y": 120,
+          "width": 80,
+          "height": 300,
+          "color": "blue",
+          "osc": {
+            "address": "/InputGroup1/Gain",
+            "type": "float",
+            "range": [0.0, 2.0]
+          }
+        },
+        {
+          "type": "rotary",
+          "name": "Pan",
+          "x": 100,
+          "y": 120,
+          "width": 80,
+          "height": 80,
+          "color": "cyan",
+          "osc": {
+            "address": "/InputGroup1/Pan",
+            "type": "float",
+            "range": [-1.0, 1.0]
+          }
+        },
+        {
+          "type": "toggle",
+          "name": "Invert Polarity",
+          "x": 190,
+          "y": 50,
+          "width": 80,
+          "height": 60,
+          "color": "gray",
+          "osc": {
+            "address": "/InputGroup1/InvertPolarity",
+            "type": "int",
+            "values": [0, 1]
+          }
+        },
+        {
+          "type": "fader",
+          "name": "Monitor Level",
+          "x": 190,
+          "y": 120,
+          "width": 80,
+          "height": 300,
+          "color": "green",
+          "osc": {
+            "address": "/InputGroup1/Monitor",
+            "type": "float",
+            "range": [0.0, 1.0]
+          }
+        },
+        {
+          "type": "fader",
+          "name": "Reverb Send (Input)",
+          "x": 280,
+          "y": 120,
+          "width": 80,
+          "height": 300,
+          "color": "purple",
+          "osc": {
+            "address": "/InputGroup1/InReverbSend",
+            "type": "float",
+            "range": [0.0, 1.0]
+          }
+        },
+        {
+          "type": "fader",
+          "name": "Reverb Send (Mon)",
+          "x": 370,
+          "y": 120,
+          "width": 80,
+          "height": 300,
+          "color": "purple",
+          "osc": {
+            "address": "/InputGroup1/MonReverbSend",
+            "type": "float",
+            "range": [0.0, 1.0]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Input Group 1 - Compressor",
+      "controls": [
+        {
+          "type": "label",
+          "name": "Compressor Controls",
+          "x": 10,
+          "y": 10,
+          "width": 300,
+          "height": 30,
+          "text": "Input Group 1 - Compressor"
+        },
+        {
+          "type": "toggle",
+          "name": "Comp Enable",
+          "x": 10,
+          "y": 50,
+          "width": 100,
+          "height": 60,
+          "color": "blue",
+          "osc": {
+            "address": "/InputGroup1/Compressor/Enabled",
+            "type": "int",
+            "values": [0, 1]
+          }
+        },
+        {
+          "type": "fader",
+          "name": "Threshold (dB)",
+          "x": 10,
+          "y": 120,
+          "width": 70,
+          "height": 300,
+          "color": "red",
+          "osc": {
+            "address": "/InputGroup1/Compressor/ThresholdDb",
+            "type": "float",
+            "range": [-60.0, 0.0]
+          }
+        },
+        {
+          "type": "fader",
+          "name": "Ratio",
+          "x": 90,
+          "y": 120,
+          "width": 70,
+          "height": 300,
+          "color": "orange",
+          "osc": {
+            "address": "/InputGroup1/Compressor/Ratio",
+            "type": "float",
+            "range": [1.0, 20.0]
+          }
+        },
+        {
+          "type": "fader",
+          "name": "Attack (ms)",
+          "x": 170,
+          "y": 120,
+          "width": 70,
+          "height": 300,
+          "color": "yellow",
+          "osc": {
+            "address": "/InputGroup1/Compressor/AttackMs",
+            "type": "float",
+            "range": [0.1, 100.0]
+          }
+        },
+        {
+          "type": "fader",
+          "name": "Release (ms)",
+          "x": 250,
+          "y": 120,
+          "width": 70,
+          "height": 300,
+          "color": "green",
+          "osc": {
+            "address": "/InputGroup1/Compressor/ReleaseMs",
+            "type": "float",
+            "range": [10.0, 1000.0]
+          }
+        },
+        {
+          "type": "fader",
+          "name": "Makeup Gain (dB)",
+          "x": 330,
+          "y": 120,
+          "width": 70,
+          "height": 300,
+          "color": "blue",
+          "osc": {
+            "address": "/InputGroup1/Compressor/MakeupGainDb",
+            "type": "float",
+            "range": [0.0, 24.0]
+          }
+        },
+        {
+          "type": "toggle",
+          "name": "Auto Makeup",
+          "x": 120,
+          "y": 50,
+          "width": 100,
+          "height": 60,
+          "color": "cyan",
+          "osc": {
+            "address": "/InputGroup1/Compressor/AutomakeupGain",
+            "type": "int",
+            "values": [0, 1]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Input Group 1 - Expander",
+      "controls": [
+        {
+          "type": "label",
+          "name": "Expander Controls",
+          "x": 10,
+          "y": 10,
+          "width": 300,
+          "height": 30,
+          "text": "Input Group 1 - Expander/Gate"
+        },
+        {
+          "type": "toggle",
+          "name": "Exp Enable",
+          "x": 10,
+          "y": 50,
+          "width": 100,
+          "height": 60,
+          "color": "blue",
+          "osc": {
+            "address": "/InputGroup1/Expander/Enabled",
+            "type": "int",
+            "values": [0, 1]
+          }
+        },
+        {
+          "type": "fader",
+          "name": "Threshold (dB)",
+          "x": 10,
+          "y": 120,
+          "width": 70,
+          "height": 300,
+          "color": "red",
+          "osc": {
+            "address": "/InputGroup1/Expander/ThresholdDb",
+            "type": "float",
+            "range": [-60.0, 0.0]
+          }
+        },
+        {
+          "type": "fader",
+          "name": "Ratio",
+          "x": 90,
+          "y": 120,
+          "width": 70,
+          "height": 300,
+          "color": "orange",
+          "osc": {
+            "address": "/InputGroup1/Expander/Ratio",
+            "type": "float",
+            "range": [1.0, 20.0]
+          }
+        },
+        {
+          "type": "fader",
+          "name": "Attack (ms)",
+          "x": 170,
+          "y": 120,
+          "width": 70,
+          "height": 300,
+          "color": "yellow",
+          "osc": {
+            "address": "/InputGroup1/Expander/AttackMs",
+            "type": "float",
+            "range": [0.1, 100.0]
+          }
+        },
+        {
+          "type": "fader",
+          "name": "Release (ms)",
+          "x": 250,
+          "y": 120,
+          "width": 70,
+          "height": 300,
+          "color": "green",
+          "osc": {
+            "address": "/InputGroup1/Expander/ReleaseMs",
+            "type": "float",
+            "range": [10.0, 1000.0]
+          }
+        },
+        {
+          "type": "fader",
+          "name": "Makeup Gain (dB)",
+          "x": 330,
+          "y": 120,
+          "width": 70,
+          "height": 300,
+          "color": "blue",
+          "osc": {
+            "address": "/InputGroup1/Expander/MakeupGainDb",
+            "type": "float",
+            "range": [0.0, 24.0]
+          }
+        },
+        {
+          "type": "toggle",
+          "name": "Auto Makeup",
+          "x": 120,
+          "y": 50,
+          "width": 100,
+          "height": 60,
+          "color": "cyan",
+          "osc": {
+            "address": "/InputGroup1/Expander/AutomakeupGain",
+            "type": "int",
+            "values": [0, 1]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Input Group 1 - EQ",
+      "controls": [
+        {
+          "type": "label",
+          "name": "EQ Controls",
+          "x": 10,
+          "y": 10,
+          "width": 300,
+          "height": 30,
+          "text": "Input Group 1 - Parametric EQ"
+        },
+        {
+          "type": "toggle",
+          "name": "EQ Enable",
+          "x": 10,
+          "y": 50,
+          "width": 100,
+          "height": 60,
+          "color": "blue",
+          "osc": {
+            "address": "/InputGroup1/EQ/Enabled",
+            "type": "int",
+            "values": [0, 1]
+          }
+        },
+        {
+          "type": "fader",
+          "name": "Low Shelf Gain",
+          "x": 10,
+          "y": 120,
+          "width": 60,
+          "height": 300,
+          "color": "red",
+          "osc": {
+            "address": "/InputGroup1/EQ/LowShelfGain",
+            "type": "float",
+            "range": [-12.0, 12.0]
+          }
+        },
+        {
+          "type": "rotary",
+          "name": "Low Shelf Freq",
+          "x": 10,
+          "y": 430,
+          "width": 60,
+          "height": 60,
+          "color": "red",
+          "osc": {
+            "address": "/InputGroup1/EQ/LowShelfFreq",
+            "type": "float",
+            "range": [20.0, 500.0]
+          }
+        },
+        {
+          "type": "fader",
+          "name": "Para1 Gain",
+          "x": 80,
+          "y": 120,
+          "width": 60,
+          "height": 300,
+          "color": "orange",
+          "osc": {
+            "address": "/InputGroup1/EQ/Para1Gain",
+            "type": "float",
+            "range": [-12.0, 12.0]
+          }
+        },
+        {
+          "type": "rotary",
+          "name": "Para1 Freq",
+          "x": 80,
+          "y": 430,
+          "width": 60,
+          "height": 60,
+          "color": "orange",
+          "osc": {
+            "address": "/InputGroup1/EQ/Para1Freq",
+            "type": "float",
+            "range": [20.0, 20000.0]
+          }
+        },
+        {
+          "type": "rotary",
+          "name": "Para1 Q",
+          "x": 80,
+          "y": 500,
+          "width": 60,
+          "height": 60,
+          "color": "orange",
+          "osc": {
+            "address": "/InputGroup1/EQ/Para1Q",
+            "type": "float",
+            "range": [0.1, 10.0]
+          }
+        },
+        {
+          "type": "fader",
+          "name": "Para2 Gain",
+          "x": 150,
+          "y": 120,
+          "width": 60,
+          "height": 300,
+          "color": "yellow",
+          "osc": {
+            "address": "/InputGroup1/EQ/Para2Gain",
+            "type": "float",
+            "range": [-12.0, 12.0]
+          }
+        },
+        {
+          "type": "rotary",
+          "name": "Para2 Freq",
+          "x": 150,
+          "y": 430,
+          "width": 60,
+          "height": 60,
+          "color": "yellow",
+          "osc": {
+            "address": "/InputGroup1/EQ/Para2Freq",
+            "type": "float",
+            "range": [20.0, 20000.0]
+          }
+        },
+        {
+          "type": "rotary",
+          "name": "Para2 Q",
+          "x": 150,
+          "y": 500,
+          "width": 60,
+          "height": 60,
+          "color": "yellow",
+          "osc": {
+            "address": "/InputGroup1/EQ/Para2Q",
+            "type": "float",
+            "range": [0.1, 10.0]
+          }
+        },
+        {
+          "type": "fader",
+          "name": "High Shelf Gain",
+          "x": 220,
+          "y": 120,
+          "width": 60,
+          "height": 300,
+          "color": "green",
+          "osc": {
+            "address": "/InputGroup1/EQ/HighShelfGain",
+            "type": "float",
+            "range": [-12.0, 12.0]
+          }
+        },
+        {
+          "type": "rotary",
+          "name": "High Shelf Freq",
+          "x": 220,
+          "y": 430,
+          "width": 60,
+          "height": 60,
+          "color": "green",
+          "osc": {
+            "address": "/InputGroup1/EQ/HighShelfFreq",
+            "type": "float",
+            "range": [1000.0, 20000.0]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Input Group 1 - Limiter & Delay",
+      "controls": [
+        {
+          "type": "label",
+          "name": "Limiter Controls",
+          "x": 10,
+          "y": 10,
+          "width": 200,
+          "height": 30,
+          "text": "Input Group 1 - Limiter"
+        },
+        {
+          "type": "toggle",
+          "name": "Lim Enable",
+          "x": 10,
+          "y": 50,
+          "width": 100,
+          "height": 60,
+          "color": "blue",
+          "osc": {
+            "address": "/InputGroup1/Limiter/Enabled",
+            "type": "int",
+            "values": [0, 1]
+          }
+        },
+        {
+          "type": "fader",
+          "name": "Threshold (dB)",
+          "x": 10,
+          "y": 120,
+          "width": 70,
+          "height": 300,
+          "color": "red",
+          "osc": {
+            "address": "/InputGroup1/Limiter/ThresholdDb",
+            "type": "float",
+            "range": [-60.0, 0.0]
+          }
+        },
+        {
+          "type": "fader",
+          "name": "Ratio",
+          "x": 90,
+          "y": 120,
+          "width": 70,
+          "height": 300,
+          "color": "orange",
+          "osc": {
+            "address": "/InputGroup1/Limiter/Ratio",
+            "type": "float",
+            "range": [10.0, 100.0]
+          }
+        },
+        {
+          "type": "fader",
+          "name": "Attack (ms)",
+          "x": 170,
+          "y": 120,
+          "width": 70,
+          "height": 300,
+          "color": "yellow",
+          "osc": {
+            "address": "/InputGroup1/Limiter/AttackMs",
+            "type": "float",
+            "range": [0.01, 10.0]
+          }
+        },
+        {
+          "type": "fader",
+          "name": "Release (ms)",
+          "x": 250,
+          "y": 120,
+          "width": 70,
+          "height": 300,
+          "color": "green",
+          "osc": {
+            "address": "/InputGroup1/Limiter/ReleaseMs",
+            "type": "float",
+            "range": [10.0, 1000.0]
+          }
+        },
+        {
+          "type": "label",
+          "name": "Monitor Delay Controls",
+          "x": 340,
+          "y": 10,
+          "width": 200,
+          "height": 30,
+          "text": "Monitor Delay"
+        },
+        {
+          "type": "toggle",
+          "name": "Delay Enable",
+          "x": 340,
+          "y": 50,
+          "width": 100,
+          "height": 60,
+          "color": "purple",
+          "osc": {
+            "address": "/InputGroup1/MonitorDelay/Enabled",
+            "type": "int",
+            "values": [0, 1]
+          }
+        },
+        {
+          "type": "fader",
+          "name": "Delay Time (ms)",
+          "x": 340,
+          "y": 120,
+          "width": 70,
+          "height": 300,
+          "color": "purple",
+          "osc": {
+            "address": "/InputGroup1/MonitorDelay/DelayTimeMs",
+            "type": "float",
+            "range": [0.0, 1000.0]
+          }
+        }
+      ]
+    }
+  ],
+  "osc_mapping_reference": {
+    "description": "Complete OSC address reference for SonoBus",
+    "global_controls": [
+      "/OutGainSlider - Output gain control (float, 0.0-1.0)",
+      "/MainMuteButton - Main mute button (int, 0 or 1)",
+      "/RecvSyncButton - Receive sync button (int, 0 or 1)",
+      "/OptionsMaxRecvPaddingSlider - Maximum receive padding (float, 0.0-1.0)",
+      "/OptionsRecStealth - Recording stealth mode (int, 0 or 1)"
+    ],
+    "input_groups": {
+      "note": "Pattern applies to all groups 1-16. Replace N with group number (1-16)",
+      "basic_controls": [
+        "/InputGroupN/Mute - Mute toggle (int, 0 or 1)",
+        "/InputGroupN/Solo - Solo toggle (int, 0 or 1)",
+        "/InputGroupN/Gain - Input gain (float, 0.0-2.0)",
+        "/InputGroupN/Pan - Pan position (float, -1.0 to 1.0, 0 is center)",
+        "/InputGroupN/InvertPolarity - Polarity invert (int, 0 or 1)",
+        "/InputGroupN/Monitor - Monitor level (float, 0.0-1.0)",
+        "/InputGroupN/InReverbSend - Input reverb send (float, 0.0-1.0)",
+        "/InputGroupN/MonReverbSend - Monitor reverb send (float, 0.0-1.0)"
+      ],
+      "compressor": [
+        "/InputGroupN/Compressor/Enabled - Enable compressor (int, 0 or 1)",
+        "/InputGroupN/Compressor/ThresholdDb - Threshold in dB (float, -60.0 to 0.0)",
+        "/InputGroupN/Compressor/Ratio - Compression ratio (float, 1.0-20.0)",
+        "/InputGroupN/Compressor/AttackMs - Attack time in ms (float, 0.1-100.0)",
+        "/InputGroupN/Compressor/ReleaseMs - Release time in ms (float, 10.0-1000.0)",
+        "/InputGroupN/Compressor/MakeupGainDb - Makeup gain in dB (float, 0.0-24.0)",
+        "/InputGroupN/Compressor/AutomakeupGain - Auto makeup gain (int, 0 or 1)"
+      ],
+      "expander": [
+        "/InputGroupN/Expander/Enabled - Enable expander/gate (int, 0 or 1)",
+        "/InputGroupN/Expander/ThresholdDb - Threshold in dB (float, -60.0 to 0.0)",
+        "/InputGroupN/Expander/Ratio - Expansion ratio (float, 1.0-20.0)",
+        "/InputGroupN/Expander/AttackMs - Attack time in ms (float, 0.1-100.0)",
+        "/InputGroupN/Expander/ReleaseMs - Release time in ms (float, 10.0-1000.0)",
+        "/InputGroupN/Expander/MakeupGainDb - Makeup gain in dB (float, 0.0-24.0)",
+        "/InputGroupN/Expander/AutomakeupGain - Auto makeup gain (int, 0 or 1)"
+      ],
+      "eq": [
+        "/InputGroupN/EQ/Enabled - Enable EQ (int, 0 or 1)",
+        "/InputGroupN/EQ/LowShelfGain - Low shelf gain in dB (float, -12.0 to 12.0)",
+        "/InputGroupN/EQ/LowShelfFreq - Low shelf frequency in Hz (float, 20.0-500.0)",
+        "/InputGroupN/EQ/Para1Gain - Parametric 1 gain in dB (float, -12.0 to 12.0)",
+        "/InputGroupN/EQ/Para1Freq - Parametric 1 frequency in Hz (float, 20.0-20000.0)",
+        "/InputGroupN/EQ/Para1Q - Parametric 1 Q factor (float, 0.1-10.0)",
+        "/InputGroupN/EQ/Para2Gain - Parametric 2 gain in dB (float, -12.0 to 12.0)",
+        "/InputGroupN/EQ/Para2Freq - Parametric 2 frequency in Hz (float, 20.0-20000.0)",
+        "/InputGroupN/EQ/Para2Q - Parametric 2 Q factor (float, 0.1-10.0)",
+        "/InputGroupN/EQ/HighShelfGain - High shelf gain in dB (float, -12.0 to 12.0)",
+        "/InputGroupN/EQ/HighShelfFreq - High shelf frequency in Hz (float, 1000.0-20000.0)"
+      ],
+      "limiter": [
+        "/InputGroupN/Limiter/Enabled - Enable limiter (int, 0 or 1)",
+        "/InputGroupN/Limiter/ThresholdDb - Threshold in dB (float, -60.0 to 0.0)",
+        "/InputGroupN/Limiter/Ratio - Limiting ratio (float, 10.0-100.0)",
+        "/InputGroupN/Limiter/AttackMs - Attack time in ms (float, 0.01-10.0)",
+        "/InputGroupN/Limiter/ReleaseMs - Release time in ms (float, 10.0-1000.0)"
+      ],
+      "monitor_delay": [
+        "/InputGroupN/MonitorDelay/Enabled - Enable monitor delay (int, 0 or 1)",
+        "/InputGroupN/MonitorDelay/DelayTimeMs - Delay time in ms (float, 0.0-1000.0)"
+      ]
+    },
+    "example_addresses": {
+      "description": "Concrete examples for specific groups",
+      "group_1": "/InputGroup1/Gain",
+      "group_2": "/InputGroup2/Compressor/ThresholdDb",
+      "group_16": "/InputGroup16/EQ/Para1Freq"
+    }
+  },
+  "implementation_notes": [
+    "This .tosc file defines OSC control mappings for TouchOSC or similar OSC controller applications.",
+    "Only Input Group 1 tabs are fully defined above as an example.",
+    "To support all 16 input groups, duplicate the Input Group 1 tabs for groups 2-16.",
+    "Each group follows the same structure with the group number in the OSC address.",
+    "The 'osc_mapping_reference' section documents all available OSC addresses.",
+    "Controllers should send OSC messages to SonoBus on the configured port (default varies).",
+    "SonoBus will respond to these OSC addresses if OSC control is enabled in settings.",
+    "Value ranges are suggestions - actual implementation may vary based on SonoBus OSC handler.",
+    "Some controls may need to be registered in SonoBus code to be fully functional."
+  ]
+}
