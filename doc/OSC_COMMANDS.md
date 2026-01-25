@@ -375,6 +375,180 @@ SonoBus supports OSC control for up to 16 Input Groups. Each Input Group can be 
 **Range**: Audio level (0.0 - 1.0)  
 **Note**: Part of the M.FX (Monitoring Effects) controls
 
+#### `/InputGroup[1-16]Mute`
+**Type**: Toggle Button  
+**Description**: Mutes/unmutes the specified Input Group  
+**Data Type**: Integer (0 = unmuted, 1 = muted)  
+**Note**: Stateful control - maintains mute state
+
+#### `/InputGroup[1-16]Solo`
+**Type**: Toggle Button  
+**Description**: Solos/unsolos the specified Input Group  
+**Data Type**: Integer (0 = not soloed, 1 = soloed)  
+**Note**: Stateful control - when any Input Group is soloed, only soloed groups are heard
+
+#### `/InputGroup[1-16]InputReverbSend`
+**Type**: Slider  
+**Description**: Controls the input reverb send level (applied before sending to peers)  
+**Data Type**: Float  
+**Range**: Audio level (0.0 - 1.0)  
+**Note**: Part of the Input FX controls
+
+#### `/InputGroup[1-16]PolarityInvert`
+**Type**: Toggle Button  
+**Description**: Inverts the polarity/phase of the specified Input Group  
+**Data Type**: Integer (0 = normal, 1 = inverted)  
+**Note**: Part of the Input FX controls
+
+### Input Group Compressor Controls
+
+#### `/InputGroup[1-16]CompressorEnable`
+**Type**: Toggle Button  
+**Description**: Enables/disables the compressor effect for the specified Input Group  
+**Data Type**: Integer (0 = disabled, 1 = enabled)  
+**Note**: Part of the Input FX controls
+
+#### `/InputGroup[1-16]CompressorThreshold`
+**Type**: Slider  
+**Description**: Sets the compressor threshold in dB  
+**Data Type**: Float  
+**Range**: -60.0 to 0.0 dB  
+
+#### `/InputGroup[1-16]CompressorRatio`
+**Type**: Slider  
+**Description**: Sets the compressor ratio  
+**Data Type**: Float  
+**Range**: 1.0 to 20.0 (e.g., 4.0 means 4:1 ratio)  
+
+#### `/InputGroup[1-16]CompressorAttack`
+**Type**: Slider  
+**Description**: Sets the compressor attack time in milliseconds  
+**Data Type**: Float  
+**Range**: 1.0 to 1000.0 ms  
+
+#### `/InputGroup[1-16]CompressorRelease`
+**Type**: Slider  
+**Description**: Sets the compressor release time in milliseconds  
+**Data Type**: Float  
+**Range**: 1.0 to 1000.0 ms  
+
+#### `/InputGroup[1-16]CompressorMakeupGain`
+**Type**: Slider  
+**Description**: Sets the compressor makeup gain in dB  
+**Data Type**: Float  
+**Range**: 0.0 to 60.0 dB  
+
+#### `/InputGroup[1-16]CompressorAuto`
+**Type**: Toggle Button  
+**Description**: Enables/disables automatic makeup gain calculation  
+**Data Type**: Integer (0 = manual, 1 = automatic)  
+
+### Input Group Expander (Noise Gate) Controls
+
+#### `/InputGroup[1-16]ExpanderEnable`
+**Type**: Toggle Button  
+**Description**: Enables/disables the noise gate effect for the specified Input Group  
+**Data Type**: Integer (0 = disabled, 1 = enabled)  
+**Note**: Part of the Input FX controls
+
+#### `/InputGroup[1-16]ExpanderNoiseFloor`
+**Type**: Slider  
+**Description**: Sets the noise gate threshold (noise floor) in dB  
+**Data Type**: Float  
+**Range**: -96.0 to 0.0 dB  
+
+#### `/InputGroup[1-16]ExpanderRatio`
+**Type**: Slider  
+**Description**: Sets the expander ratio  
+**Data Type**: Float  
+**Range**: 1.0 to 20.0  
+
+#### `/InputGroup[1-16]ExpanderAttack`
+**Type**: Slider  
+**Description**: Sets the expander attack time in milliseconds  
+**Data Type**: Float  
+**Range**: 1.0 to 1000.0 ms  
+
+#### `/InputGroup[1-16]ExpanderRelease`
+**Type**: Slider  
+**Description**: Sets the expander release time in milliseconds  
+**Data Type**: Float  
+**Range**: 1.0 to 1000.0 ms  
+
+### Input Group Parametric EQ Controls
+
+#### `/InputGroup[1-16]EqEnable`
+**Type**: Toggle Button  
+**Description**: Enables/disables the parametric EQ effect for the specified Input Group  
+**Data Type**: Integer (0 = disabled, 1 = enabled)  
+**Note**: Part of the Input FX controls
+
+#### `/InputGroup[1-16]EqLowShelfFreq`
+**Type**: Slider  
+**Description**: Sets the low shelf filter frequency in Hz  
+**Data Type**: Float  
+**Range**: 20.0 to 2000.0 Hz  
+**Default**: 60.0 Hz
+
+#### `/InputGroup[1-16]EqLowShelfGain`
+**Type**: Slider  
+**Description**: Sets the low shelf filter gain in dB  
+**Data Type**: Float  
+**Range**: -24.0 to 24.0 dB  
+
+#### `/InputGroup[1-16]EqPara1Freq`
+**Type**: Slider  
+**Description**: Sets the parametric band 1 center frequency in Hz  
+**Data Type**: Float  
+**Range**: 20.0 to 20000.0 Hz  
+**Default**: 90.0 Hz
+
+#### `/InputGroup[1-16]EqPara1Gain`
+**Type**: Slider  
+**Description**: Sets the parametric band 1 gain in dB  
+**Data Type**: Float  
+**Range**: -24.0 to 24.0 dB  
+
+#### `/InputGroup[1-16]EqPara1Q`
+**Type**: Slider  
+**Description**: Sets the parametric band 1 Q (bandwidth)  
+**Data Type**: Float  
+**Range**: 0.1 to 10.0  
+**Default**: 1.5
+
+#### `/InputGroup[1-16]EqHighShelfFreq`
+**Type**: Slider  
+**Description**: Sets the high shelf filter frequency in Hz  
+**Data Type**: Float  
+**Range**: 500.0 to 16000.0 Hz  
+**Default**: 10000.0 Hz
+
+#### `/InputGroup[1-16]EqHighShelfGain`
+**Type**: Slider  
+**Description**: Sets the high shelf filter gain in dB  
+**Data Type**: Float  
+**Range**: -24.0 to 24.0 dB  
+
+#### `/InputGroup[1-16]EqPara2Freq`
+**Type**: Slider  
+**Description**: Sets the parametric band 2 center frequency in Hz  
+**Data Type**: Float  
+**Range**: 20.0 to 20000.0 Hz  
+**Default**: 360.0 Hz
+
+#### `/InputGroup[1-16]EqPara2Gain`
+**Type**: Slider  
+**Description**: Sets the parametric band 2 gain in dB  
+**Data Type**: Float  
+**Range**: -24.0 to 24.0 dB  
+
+#### `/InputGroup[1-16]EqPara2Q`
+**Type**: Slider  
+**Description**: Sets the parametric band 2 Q (bandwidth)  
+**Data Type**: Float  
+**Range**: 0.1 to 10.0  
+**Default**: 4.0
+
 ### File Playback Controls
 
 #### `/FilePlaybackPreLevel`

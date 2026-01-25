@@ -264,6 +264,15 @@ void ChannelGroupEffectsView::compressorParamsChanged(CompressorView *comp, Sono
         if (wason != ison) {
             listeners.call (&ChannelGroupEffectsView::Listener::effectsEnableChanged, this);
         }
+        
+        // Send OSC updates for compressor parameters
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "CompressorEnable", params.enabled ? 1.0f : 0.0f);
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "CompressorThreshold", params.thresholdDb);
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "CompressorRatio", params.ratio);
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "CompressorAttack", params.attackMs);
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "CompressorRelease", params.releaseMs);
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "CompressorMakeupGain", params.makeupGainDb);
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "CompressorAuto", params.automakeupGain ? 1.0f : 0.0f);
     }
 
 }
@@ -289,6 +298,13 @@ void ChannelGroupEffectsView::expanderParamsChanged(ExpanderView *comp, SonoAudi
         if (wason != ison) {
             listeners.call (&ChannelGroupEffectsView::Listener::effectsEnableChanged, this);
         }
+        
+        // Send OSC updates for expander (noise gate) parameters
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "ExpanderEnable", params.enabled ? 1.0f : 0.0f);
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "ExpanderNoiseFloor", params.thresholdDb);
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "ExpanderRatio", params.ratio);
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "ExpanderAttack", params.attackMs);
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "ExpanderRelease", params.releaseMs);
     }
 }
 
@@ -312,6 +328,19 @@ void ChannelGroupEffectsView::parametricEqParamsChanged(ParametricEqView *comp, 
         if (wason != ison) {
             listeners.call (&ChannelGroupEffectsView::Listener::effectsEnableChanged, this);
         }
+        
+        // Send OSC updates for EQ parameters
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "EqEnable", params.enabled ? 1.0f : 0.0f);
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "EqLowShelfFreq", params.lowShelfFreq);
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "EqLowShelfGain", params.lowShelfGain);
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "EqPara1Freq", params.para1Freq);
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "EqPara1Gain", params.para1Gain);
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "EqPara1Q", params.para1Q);
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "EqHighShelfFreq", params.highShelfFreq);
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "EqHighShelfGain", params.highShelfGain);
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "EqPara2Freq", params.para2Freq);
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "EqPara2Gain", params.para2Gain);
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "EqPara2Q", params.para2Q);
     }
 }
 
@@ -337,6 +366,9 @@ void ChannelGroupEffectsView::reverbSendLevelChanged(ReverbSendView *comp, float
         if (wason != ison) {
             listeners.call (&ChannelGroupEffectsView::Listener::effectsEnableChanged, this);
         }
+        
+        // Send OSC update for input reverb send
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "InputReverbSend", revlevel);
     }
 }
 
@@ -348,6 +380,10 @@ void ChannelGroupEffectsView::polarityInvertChanged(PolarityInvertView *comp, bo
     else {
         // input mode
         processor.setInputPolarityInvert(groupIndex, polinv);
+        
+        // Send OSC update for polarity invert
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "PolarityInvert", polinv ? 1.0f : 0.0f);
+    }
     }
     listeners.call (&ChannelGroupEffectsView::Listener::effectsEnableChanged, this);
 }
@@ -3577,6 +3613,7 @@ void ChannelGroupsView::buttonClicked (Button* buttonThatWasClicked)
 
             if (pvf->muteButton.get() == buttonThatWasClicked) {
                 processor.setInputGroupMuted(changroup, buttonThatWasClicked->getToggleState());
+                processor.getOSCManager().sendMessage("/InputGroup" + String(changroup + 1) + "Mute", buttonThatWasClicked->getToggleState() ? 1.0f : 0.0f);
                 updateChannelViews();
                 break;
             }
@@ -3610,6 +3647,8 @@ void ChannelGroupsView::buttonClicked (Button* buttonThatWasClicked)
                         else {
                             processor.setInputGroupSoloed(j, false);
                         }
+                        // Send OSC for each group
+                        processor.getOSCManager().sendMessage("/InputGroup" + String(j + 1) + "Solo", (newsolo && changroup == j) ? 1.0f : 0.0f);
                     }
 
                     // change solo for main monitor too
@@ -3619,6 +3658,7 @@ void ChannelGroupsView::buttonClicked (Button* buttonThatWasClicked)
                 } else {
                     bool newsolo = buttonThatWasClicked->getToggleState();
                     processor.setInputGroupSoloed (changroup, newsolo);
+                    processor.getOSCManager().sendMessage("/InputGroup" + String(changroup + 1) + "Solo", newsolo ? 1.0f : 0.0f);
 
                     //if (newsolo) {
                        // only enable main in solo

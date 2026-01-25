@@ -237,6 +237,88 @@ sleep 2
 oscsend localhost 6000 /InputGroup1MonReverbSend f 0.4
 sleep 2
 
+echo "=== Input Group 1 Mute/Solo Controls ==="
+oscsend localhost 6000 /InputGroup1Mute i 1
+sleep 2
+oscsend localhost 6000 /InputGroup1Mute i 0
+sleep 2
+
+oscsend localhost 6000 /InputGroup1Solo i 1
+sleep 2
+oscsend localhost 6000 /InputGroup1Solo i 0
+sleep 2
+
+echo "=== Input Group 1 FX Controls ==="
+oscsend localhost 6000 /InputGroup1InputReverbSend f 0.6
+sleep 2
+oscsend localhost 6000 /InputGroup1InputReverbSend f 0.3
+sleep 2
+
+oscsend localhost 6000 /InputGroup1PolarityInvert i 1
+sleep 2
+oscsend localhost 6000 /InputGroup1PolarityInvert i 0
+sleep 2
+
+echo "=== Input Group 1 Compressor Controls ==="
+oscsend localhost 6000 /InputGroup1CompressorEnable i 1
+sleep 2
+oscsend localhost 6000 /InputGroup1CompressorThreshold f -20.0
+sleep 2
+oscsend localhost 6000 /InputGroup1CompressorRatio f 4.0
+sleep 2
+oscsend localhost 6000 /InputGroup1CompressorAttack f 15.0
+sleep 2
+oscsend localhost 6000 /InputGroup1CompressorRelease f 100.0
+sleep 2
+oscsend localhost 6000 /InputGroup1CompressorMakeupGain f 10.0
+sleep 2
+oscsend localhost 6000 /InputGroup1CompressorAuto i 1
+sleep 2
+oscsend localhost 6000 /InputGroup1CompressorAuto i 0
+sleep 2
+oscsend localhost 6000 /InputGroup1CompressorEnable i 0
+sleep 2
+
+echo "=== Input Group 1 Expander (Noise Gate) Controls ==="
+oscsend localhost 6000 /InputGroup1ExpanderEnable i 1
+sleep 2
+oscsend localhost 6000 /InputGroup1ExpanderNoiseFloor f -40.0
+sleep 2
+oscsend localhost 6000 /InputGroup1ExpanderRatio f 3.0
+sleep 2
+oscsend localhost 6000 /InputGroup1ExpanderAttack f 5.0
+sleep 2
+oscsend localhost 6000 /InputGroup1ExpanderRelease f 150.0
+sleep 2
+oscsend localhost 6000 /InputGroup1ExpanderEnable i 0
+sleep 2
+
+echo "=== Input Group 1 Parametric EQ Controls ==="
+oscsend localhost 6000 /InputGroup1EqEnable i 1
+sleep 2
+oscsend localhost 6000 /InputGroup1EqLowShelfFreq f 80.0
+sleep 2
+oscsend localhost 6000 /InputGroup1EqLowShelfGain f 3.0
+sleep 2
+oscsend localhost 6000 /InputGroup1EqPara1Freq f 200.0
+sleep 2
+oscsend localhost 6000 /InputGroup1EqPara1Gain f -2.0
+sleep 2
+oscsend localhost 6000 /InputGroup1EqPara1Q f 2.0
+sleep 2
+oscsend localhost 6000 /InputGroup1EqHighShelfFreq f 8000.0
+sleep 2
+oscsend localhost 6000 /InputGroup1EqHighShelfGain f -3.0
+sleep 2
+oscsend localhost 6000 /InputGroup1EqPara2Freq f 500.0
+sleep 2
+oscsend localhost 6000 /InputGroup1EqPara2Gain f 4.0
+sleep 2
+oscsend localhost 6000 /InputGroup1EqPara2Q f 3.0
+sleep 2
+oscsend localhost 6000 /InputGroup1EqEnable i 0
+sleep 2
+
 echo "=== Input Group 2 Controls (if exists) ==="
 oscsend localhost 6000 /InputGroup2PreLevel f 0.7
 sleep 2

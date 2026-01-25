@@ -2652,6 +2652,510 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
         });
     }
 
+    // Register Input Group Mute, Solo, and FX controls (support up to 16 input groups)
+    for (int groupIndex = 0; groupIndex < 16; ++groupIndex) {
+        // Mute toggle
+        String muteAddress = "/InputGroup" + String(groupIndex + 1) + "Mute";
+        oscManager.registerControl(muteAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                bool muted = message[0].getFloat32() > 0.5f;
+                juce::MessageManager::callAsync([this, groupIndex, muted]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        processor.setInputGroupMuted(groupIndex, muted);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Solo toggle
+        String soloAddress = "/InputGroup" + String(groupIndex + 1) + "Solo";
+        oscManager.registerControl(soloAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                bool soloed = message[0].getFloat32() > 0.5f;
+                juce::MessageManager::callAsync([this, groupIndex, soloed]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        processor.setInputGroupSoloed(groupIndex, soloed);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Input Reverb Send slider
+        String inputReverbSendAddress = "/InputGroup" + String(groupIndex + 1) + "InputReverbSend";
+        oscManager.registerControl(inputReverbSendAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float reverbSend = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, reverbSend]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        processor.setInputReverbSend(groupIndex, reverbSend, true);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Polarity Invert toggle
+        String polarityInvertAddress = "/InputGroup" + String(groupIndex + 1) + "PolarityInvert";
+        oscManager.registerControl(polarityInvertAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                bool inverted = message[0].getFloat32() > 0.5f;
+                juce::MessageManager::callAsync([this, groupIndex, inverted]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        processor.setInputPolarityInvert(groupIndex, inverted);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Compressor Enable toggle
+        String compressorEnableAddress = "/InputGroup" + String(groupIndex + 1) + "CompressorEnable";
+        oscManager.registerControl(compressorEnableAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                bool enabled = message[0].getFloat32() > 0.5f;
+                juce::MessageManager::callAsync([this, groupIndex, enabled]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getInputCompressorParams(groupIndex, params);
+                        params.enabled = enabled;
+                        processor.setInputCompressorParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Compressor Threshold
+        String compressorThresholdAddress = "/InputGroup" + String(groupIndex + 1) + "CompressorThreshold";
+        oscManager.registerControl(compressorThresholdAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float threshold = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, threshold]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getInputCompressorParams(groupIndex, params);
+                        params.thresholdDb = threshold;
+                        processor.setInputCompressorParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Compressor Ratio
+        String compressorRatioAddress = "/InputGroup" + String(groupIndex + 1) + "CompressorRatio";
+        oscManager.registerControl(compressorRatioAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float ratio = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, ratio]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getInputCompressorParams(groupIndex, params);
+                        params.ratio = ratio;
+                        processor.setInputCompressorParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Compressor Attack
+        String compressorAttackAddress = "/InputGroup" + String(groupIndex + 1) + "CompressorAttack";
+        oscManager.registerControl(compressorAttackAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float attack = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, attack]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getInputCompressorParams(groupIndex, params);
+                        params.attackMs = attack;
+                        processor.setInputCompressorParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Compressor Release
+        String compressorReleaseAddress = "/InputGroup" + String(groupIndex + 1) + "CompressorRelease";
+        oscManager.registerControl(compressorReleaseAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float release = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, release]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getInputCompressorParams(groupIndex, params);
+                        params.releaseMs = release;
+                        processor.setInputCompressorParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Compressor Makeup Gain
+        String compressorMakeupGainAddress = "/InputGroup" + String(groupIndex + 1) + "CompressorMakeupGain";
+        oscManager.registerControl(compressorMakeupGainAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float makeupGain = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, makeupGain]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getInputCompressorParams(groupIndex, params);
+                        params.makeupGainDb = makeupGain;
+                        processor.setInputCompressorParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Compressor Auto Makeup Gain
+        String compressorAutoAddress = "/InputGroup" + String(groupIndex + 1) + "CompressorAuto";
+        oscManager.registerControl(compressorAutoAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                bool autoMakeup = message[0].getFloat32() > 0.5f;
+                juce::MessageManager::callAsync([this, groupIndex, autoMakeup]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getInputCompressorParams(groupIndex, params);
+                        params.automakeupGain = autoMakeup;
+                        processor.setInputCompressorParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Expander (Noise Gate) Enable toggle
+        String expanderEnableAddress = "/InputGroup" + String(groupIndex + 1) + "ExpanderEnable";
+        oscManager.registerControl(expanderEnableAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                bool enabled = message[0].getFloat32() > 0.5f;
+                juce::MessageManager::callAsync([this, groupIndex, enabled]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getInputExpanderParams(groupIndex, params);
+                        params.enabled = enabled;
+                        processor.setInputExpanderParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Expander Noise Floor
+        String expanderNoiseFloorAddress = "/InputGroup" + String(groupIndex + 1) + "ExpanderNoiseFloor";
+        oscManager.registerControl(expanderNoiseFloorAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float noiseFloor = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, noiseFloor]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getInputExpanderParams(groupIndex, params);
+                        params.thresholdDb = noiseFloor;
+                        processor.setInputExpanderParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Expander Ratio
+        String expanderRatioAddress = "/InputGroup" + String(groupIndex + 1) + "ExpanderRatio";
+        oscManager.registerControl(expanderRatioAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float ratio = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, ratio]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getInputExpanderParams(groupIndex, params);
+                        params.ratio = ratio;
+                        processor.setInputExpanderParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Expander Attack
+        String expanderAttackAddress = "/InputGroup" + String(groupIndex + 1) + "ExpanderAttack";
+        oscManager.registerControl(expanderAttackAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float attack = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, attack]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getInputExpanderParams(groupIndex, params);
+                        params.attackMs = attack;
+                        processor.setInputExpanderParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Expander Release
+        String expanderReleaseAddress = "/InputGroup" + String(groupIndex + 1) + "ExpanderRelease";
+        oscManager.registerControl(expanderReleaseAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float release = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, release]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getInputExpanderParams(groupIndex, params);
+                        params.releaseMs = release;
+                        processor.setInputExpanderParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Parametric EQ Enable toggle
+        String eqEnableAddress = "/InputGroup" + String(groupIndex + 1) + "EqEnable";
+        oscManager.registerControl(eqEnableAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                bool enabled = message[0].getFloat32() > 0.5f;
+                juce::MessageManager::callAsync([this, groupIndex, enabled]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getInputEqParams(groupIndex, params);
+                        params.enabled = enabled;
+                        processor.setInputEqParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // EQ Low Shelf Frequency
+        String eqLowShelfFreqAddress = "/InputGroup" + String(groupIndex + 1) + "EqLowShelfFreq";
+        oscManager.registerControl(eqLowShelfFreqAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float freq = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, freq]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getInputEqParams(groupIndex, params);
+                        params.lowShelfFreq = freq;
+                        processor.setInputEqParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // EQ Low Shelf Gain
+        String eqLowShelfGainAddress = "/InputGroup" + String(groupIndex + 1) + "EqLowShelfGain";
+        oscManager.registerControl(eqLowShelfGainAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float gain = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, gain]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getInputEqParams(groupIndex, params);
+                        params.lowShelfGain = gain;
+                        processor.setInputEqParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // EQ Parametric 1 Frequency
+        String eqPara1FreqAddress = "/InputGroup" + String(groupIndex + 1) + "EqPara1Freq";
+        oscManager.registerControl(eqPara1FreqAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float freq = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, freq]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getInputEqParams(groupIndex, params);
+                        params.para1Freq = freq;
+                        processor.setInputEqParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // EQ Parametric 1 Gain
+        String eqPara1GainAddress = "/InputGroup" + String(groupIndex + 1) + "EqPara1Gain";
+        oscManager.registerControl(eqPara1GainAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float gain = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, gain]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getInputEqParams(groupIndex, params);
+                        params.para1Gain = gain;
+                        processor.setInputEqParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // EQ Parametric 1 Q
+        String eqPara1QAddress = "/InputGroup" + String(groupIndex + 1) + "EqPara1Q";
+        oscManager.registerControl(eqPara1QAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float q = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, q]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getInputEqParams(groupIndex, params);
+                        params.para1Q = q;
+                        processor.setInputEqParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // EQ High Shelf Frequency
+        String eqHighShelfFreqAddress = "/InputGroup" + String(groupIndex + 1) + "EqHighShelfFreq";
+        oscManager.registerControl(eqHighShelfFreqAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float freq = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, freq]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getInputEqParams(groupIndex, params);
+                        params.highShelfFreq = freq;
+                        processor.setInputEqParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // EQ High Shelf Gain
+        String eqHighShelfGainAddress = "/InputGroup" + String(groupIndex + 1) + "EqHighShelfGain";
+        oscManager.registerControl(eqHighShelfGainAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float gain = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, gain]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getInputEqParams(groupIndex, params);
+                        params.highShelfGain = gain;
+                        processor.setInputEqParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // EQ Parametric 2 Frequency
+        String eqPara2FreqAddress = "/InputGroup" + String(groupIndex + 1) + "EqPara2Freq";
+        oscManager.registerControl(eqPara2FreqAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float freq = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, freq]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getInputEqParams(groupIndex, params);
+                        params.para2Freq = freq;
+                        processor.setInputEqParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // EQ Parametric 2 Gain
+        String eqPara2GainAddress = "/InputGroup" + String(groupIndex + 1) + "EqPara2Gain";
+        oscManager.registerControl(eqPara2GainAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float gain = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, gain]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getInputEqParams(groupIndex, params);
+                        params.para2Gain = gain;
+                        processor.setInputEqParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+        
+        // EQ Parametric 2 Q
+        String eqPara2QAddress = "/InputGroup" + String(groupIndex + 1) + "EqPara2Q";
+        oscManager.registerControl(eqPara2QAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float q = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, groupIndex, q]() {
+                    if (groupIndex < processor.getInputGroupCount()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getInputEqParams(groupIndex, params);
+                        params.para2Q = q;
+                        processor.setInputEqParams(groupIndex, params);
+                        if (auto* channelGroups = getInputChannelGroupsView()) {
+                            channelGroups->updateChannelViews();
+                        }
+                    }
+                });
+            }
+        });
+    }
+
     // handles registering commands
     updateUseKeybindings();
         
@@ -2768,6 +3272,33 @@ SonobusAudioProcessorEditor::~SonobusAudioProcessorEditor()
         oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "MonDelayTime");
         oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "MonDelayLink");
         oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "MonReverbSend");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "Mute");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "Solo");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "InputReverbSend");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "PolarityInvert");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "CompressorEnable");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "CompressorThreshold");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "CompressorRatio");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "CompressorAttack");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "CompressorRelease");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "CompressorMakeupGain");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "CompressorAuto");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "ExpanderEnable");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "ExpanderNoiseFloor");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "ExpanderRatio");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "ExpanderAttack");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "ExpanderRelease");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "EqEnable");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "EqLowShelfFreq");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "EqLowShelfGain");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "EqPara1Freq");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "EqPara1Gain");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "EqPara1Q");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "EqHighShelfFreq");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "EqHighShelfGain");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "EqPara2Freq");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "EqPara2Gain");
+        oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "EqPara2Q");
     }
     
     if (menuBarModel) {
