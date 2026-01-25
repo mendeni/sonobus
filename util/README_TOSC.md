@@ -162,11 +162,20 @@ The provided .tosc file includes 5 basic controls as a starting point. To add mo
 6. Save and export the modified layout
 
 **Alternative**: You can also decompress, edit the XML, and recompress:
-1. Decompress: `python3 -c "import zlib; open('layout.xml','wb').write(zlib.decompress(open('sonobus_comprehensive.tosc','rb').read()))"`
-2. Edit `layout.xml` (add more `<node>` elements for controls)
-3. Recompress: `python3 -c "import zlib; open('sonobus_comprehensive.tosc','wb').write(zlib.compress(open('layout.xml','rb').read(), level=9))"`
 
-Note: Replace filenames as needed for your setup.
+```bash
+# From the repository root:
+
+# 1. Decompress the .tosc file
+python3 -c "import zlib; open('util/layout.xml','wb').write(zlib.decompress(open('util/sonobus_comprehensive.tosc','rb').read()))"
+
+# 2. Edit util/layout.xml (add more <node> elements for controls)
+
+# 3. Recompress to .tosc
+python3 -c "import zlib; open('util/sonobus_comprehensive.tosc','wb').write(zlib.compress(open('util/layout.xml','rb').read(), level=9))"
+```
+
+For easier editing, consider creating a helper script to handle compression/decompression.
 
 ## Examples
 
@@ -204,17 +213,15 @@ The `sonobus_comprehensive.tosc` file uses the **TouchOSC v2.x format**:
 
 To inspect the contents:
 ```bash
-# Decompress and view (from util directory)
-cd util
-python3 -c "import zlib; open('layout.xml','wb').write(zlib.decompress(open('sonobus_comprehensive.tosc','rb').read()))"
-cat layout.xml
+# From the repository root
+python3 -c "import zlib; open('util/layout.xml','wb').write(zlib.decompress(open('util/sonobus_comprehensive.tosc','rb').read()))"
+cat util/layout.xml
 ```
 
 To recompress after editing:
 ```bash
-# Compress back to .tosc (from util directory)
-cd util
-python3 -c "import zlib; open('sonobus_comprehensive.tosc','wb').write(zlib.compress(open('layout.xml','rb').read(), level=9))"
+# From the repository root
+python3 -c "import zlib; open('util/sonobus_comprehensive.tosc','wb').write(zlib.compress(open('util/layout.xml','rb').read(), level=9))"
 ```
 
 **Note**: This is different from TouchOSC v1.x (Mk1) which used ZIP archives with different XML structure.
