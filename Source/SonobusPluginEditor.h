@@ -182,6 +182,8 @@ public:
     void registerAllOSCControls();
     void unregisterAllOSCControls();
     void sendAllOSCState();
+    void sendPeerOSCState(int peerIndex);
+    void clearPeerOSCState(int peerIndex);
 
 private:
 

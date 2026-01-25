@@ -619,6 +619,19 @@ SonoBus supports OSC control for up to 16 remote peers (connected users). Each p
 - `/Peer1Level` - Controls level for Peer 1
 - `/Peer2Level` - Controls level for Peer 2
 
+**Note**: Adjusts the output level/gain for the peer's audio. This is equivalent to moving the level slider in the peer's UI panel.
+
+#### `/Peer[1-16]RemotePeerUserName`
+**Type**: Read-Only Text Field  
+**Description**: Provides the username of the connected peer  
+**Data Type**: String  
+**Direction**: Send only (SonoBus → OSC controller)  
+**Examples**:
+- `/Peer1RemotePeerUserName` - Username of Peer 1
+- `/Peer2RemotePeerUserName` - Username of Peer 2
+
+**Note**: This is a read-only control. SonoBus automatically sends the username when a peer joins the session and clears it to an empty string when the peer leaves. OSC messages sent to this address are ignored.
+
 **Note**: This control adjusts the receive level/gain for audio from the peer. Values above 1.0 provide gain boost.
 
 ### Peer Input Effects (FX) Controls
