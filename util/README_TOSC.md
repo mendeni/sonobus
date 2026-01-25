@@ -6,12 +6,19 @@ This directory contains TouchOSC layout files and OSC control documentation for 
 
 ### sonobus_comprehensive.tosc
 
-A **TouchOSC layout file** (ZIP archive containing XML) that can be directly imported into the TouchOSC editor. This file provides:
+A **TouchOSC layout file** (zlib-compressed XML) that can be directly imported into the TouchOSC editor. This file provides:
 
-- **Tab-based Layout**: Organized sections for different control categories
-- **Visual UI Elements**: Faders, toggles, rotaries, and labels
-- **Pre-configured OSC Addresses**: All controls are mapped to SonoBus OSC commands
-- **Ready to Use**: Import directly into TouchOSC desktop or mobile apps
+- **Simplified Layout**: 5 essential controls (2 faders, 2 buttons, 1 label)
+- **Visual UI Elements**: Faders for gain controls, buttons for mute/sync
+- **Ready to Configure**: Import into TouchOSC and configure OSC addresses via the editor
+- **Lightweight**: Minimal controls to ensure stability
+
+**Controls included:**
+- **OutGain** (Fader) - Output gain control → `/OutGainSlider`
+- **MainMute** (Button) - Main mute button → `/MainMuteButton`
+- **RecvSync** (Button) - Receive sync button → `/RecvSyncButton`
+- **Group1Gain** (Fader) - Input Group 1 gain → `/InputGroup1/Gain`
+- **TitleLabel** (Label) - Layout title display
 
 ### sonobus_osc_reference.json
 
@@ -120,13 +127,17 @@ Where `N` is the group number (1-16).
 2. Import the `sonobus_comprehensive.tosc` file:
    - **Desktop**: File → Open, select the .tosc file
    - **Mobile**: Transfer via iTunes/Files and import in app
-3. Configure OSC connection settings to point to SonoBus:
+3. **Configure OSC Addresses**: After importing, you must configure each control's OSC address:
+   - Select each control in the editor
+   - In the "Messages" or "OSC" section, add the appropriate OSC address from the reference below
+   - Example: OutGain fader → OSC Address: `/OutGainSlider`, Type: Float, Range: 0-1
+4. Configure OSC connection settings to point to SonoBus:
    - Host: IP address of machine running SonoBus
    - Port: OSC receive port configured in SonoBus (typically 9000-9999)
-4. Enable OSC in SonoBus settings
-5. Use the visual controls to send OSC messages to SonoBus
+5. Enable OSC in SonoBus settings
+6. Use the visual controls to send OSC messages to SonoBus
 
-**Note**: The .tosc file is a ZIP archive containing XML layout definitions. TouchOSC will handle this format automatically.
+**Note**: The .tosc file is a zlib-compressed XML layout. TouchOSC v2.x will handle this format automatically. OSC addresses must be configured manually in the TouchOSC editor as the layout only includes the visual controls.
 
 ### With Other OSC Controllers
 
@@ -139,22 +150,21 @@ The OSC address structure is documented in `sonobus_osc_reference.json` and can 
 
 ### Extending the Layout
 
-The provided .tosc file includes controls for:
-- **Global Controls**: All 5 global parameters
-- **Input Group 1**: Basic controls, compressor, and EQ tabs
-
-To add controls for Input Groups 2-16:
+The provided .tosc file includes 5 basic controls as a starting point. To add more controls:
 
 1. Open `sonobus_comprehensive.tosc` in TouchOSC editor
-2. Duplicate existing tabs (Global, Group 1, G1 Comp, G1 EQ)
-3. Update the group number in OSC addresses (e.g., `/InputGroup2/...`)
-4. Adjust tab names and labels
-5. Save and export the modified layout
+2. Add new controls (faders, buttons, labels, etc.) from the control palette
+3. Configure each control's visual properties (position, size, color)
+4. Add OSC addresses in the Messages/OSC section for each control
+5. Use the OSC address patterns from `sonobus_osc_reference.json`:
+   - Global: `/OutGainSlider`, `/MainMuteButton`, etc.
+   - Input Groups: `/InputGroupN/Gain`, `/InputGroupN/Compressor/ThresholdDb`, etc.
+6. Save and export the modified layout
 
-**Alternatively**, manually edit the XML:
-1. Extract the .tosc file: `unzip sonobus_comprehensive.tosc`
-2. Edit `index.xml` to add more tabpages and controls
-3. Re-zip: `zip sonobus_comprehensive.tosc index.xml`
+**Alternative**: You can also decompress, edit the XML, and recompress:
+1. Decompress: `python3 -c "import zlib; open('layout.xml','wb').write(zlib.decompress(open('sonobus_comprehensive.tosc','rb').read()))"`
+2. Edit `layout.xml` (add more `<node>` elements for controls)
+3. Recompress: `python3 -c "import zlib; open('sonobus_comprehensive.tosc','wb').write(zlib.compress(open('layout.xml','rb').read()))"`
 
 ## Examples
 
@@ -183,23 +193,27 @@ Value: 3.5 (float, represents +3.5dB)
 
 ### .tosc File Format
 
-The `sonobus_comprehensive.tosc` file is a **ZIP archive** containing XML layout definitions, which is the standard format for TouchOSC v1.x (Mk1) layouts. This format:
+The `sonobus_comprehensive.tosc` file uses the **TouchOSC v2.x format**:
 
-- **Container**: ZIP archive with `.tosc` extension
-- **Contents**: `index.xml` file with TouchOSC layout definition
-- **Compatibility**: TouchOSC v1.x and v2.x (legacy mode)
-- **Editing**: Can be opened in TouchOSC editor or manually by extracting ZIP
+- **Container**: Zlib-compressed XML data (not ZIP archive)
+- **Contents**: `<lexml version="5">` root with hierarchical `<node>` elements
+- **Compatibility**: TouchOSC v2.x (current version)
+- **Editing**: Can be opened in TouchOSC editor or manually by decompressing
 
 To inspect the contents:
 ```bash
-unzip -l sonobus_comprehensive.tosc
+# Decompress and view
+python3 -c "import zlib; open('layout.xml','wb').write(zlib.decompress(open('util/sonobus_comprehensive.tosc','rb').read()))"
+cat layout.xml
 ```
 
-To extract and view the XML:
+To recompress after editing:
 ```bash
-unzip sonobus_comprehensive.tosc
-cat index.xml
+# Compress back to .tosc
+python3 -c "import zlib; open('util/sonobus_comprehensive.tosc','wb').write(zlib.compress(open('layout.xml','rb').read(), level=9))"
 ```
+
+**Note**: This is different from TouchOSC v1.x (Mk1) which used ZIP archives with different XML structure.
 
 ### Data Types
 
