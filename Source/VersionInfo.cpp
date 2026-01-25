@@ -67,7 +67,7 @@ bool VersionInfo::isNewerVersionThanCurrent()
 
 std::unique_ptr<VersionInfo> VersionInfo::fetch (const String& endpoint)
 {
-    URL latestVersionURL ("https://api.github.com/repos/sonosaurus/sonobus/releases/" + endpoint);
+    URL latestVersionURL ("https://api.github.com/repos/mendeni/sonobus/releases/" + endpoint);
     String extraHeaders;      
     String authuserpass = SystemStats::getEnvironmentVariable("GITUSERPASS", "");
     
