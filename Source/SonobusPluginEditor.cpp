@@ -3356,7 +3356,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
                     if (peerIndex < processor.getNumberRemotePeers()) {
                         SonoAudio::CompressorParams params;
                         processor.getRemotePeerCompressorParams(peerIndex, 0, params);
-                        params.automakeup = autoMakeup;
+                        params.automakeupGain = autoMakeup;
                         processor.setRemotePeerCompressorParams(peerIndex, 0, params);
                         // Update peer views
                         if (auto* peersContainer = getPeersContainerView()) {
