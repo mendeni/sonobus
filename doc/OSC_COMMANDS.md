@@ -610,6 +610,17 @@ SonoBus supports OSC control for up to 16 remote peers (connected users). Each p
 
 **Note**: This is a momentary push button with no state. Send value 1 to trigger the action. Clears the dropped packet counter for the peer.
 
+#### `/Peer[1-16]Level`
+**Type**: Slider  
+**Description**: Controls the level/gain for the specified peer  
+**Data Type**: Float  
+**Range**: 0.0 - 2.0 (0.0 = silence, 1.0 = unity gain, 2.0 = +6dB)  
+**Examples**:
+- `/Peer1Level` - Controls level for Peer 1
+- `/Peer2Level` - Controls level for Peer 2
+
+**Note**: This control adjusts the receive level/gain for audio from the peer. Values above 1.0 provide gain boost.
+
 ### Peer Input Effects (FX) Controls
 
 All FX controls operate on the first/main channel group (channel group 0) of each peer. These controls affect the audio received from the peer before it is mixed with other audio.

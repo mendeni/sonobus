@@ -4898,6 +4898,11 @@ void ChannelGroupsView::sliderValueChanged (Slider* slider)
 
         if (slider == mMainChannelView->levelSlider.get()) {
             processor.setRemotePeerLevelGain(mPeerIndex, mMainChannelView->levelSlider->getValue());
+            
+            // Send OSC feedback for peer level slider (only for first 16 peers)
+            if (processor.getOSCEnabled() && mPeerIndex < 16) {
+                processor.getOSCManager().sendMessage("/Peer" + String(mPeerIndex + 1) + "Level", static_cast<float>(mMainChannelView->levelSlider->getValue()));
+            }
             return;
         }
         else if (slider == mMainChannelView->panSlider.get()) {

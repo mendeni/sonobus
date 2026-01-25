@@ -3295,6 +3295,27 @@ void SonobusAudioProcessorEditor::registerAllOSCControls()
             }
         });
         
+        // Peer Level - Controls the level/gain for the peer
+        String peerLevelAddress = "/Peer" + String(peerIndex + 1) + "Level";
+        oscManager.registerControl(peerLevelAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float level = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, peerIndex, level]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        processor.setRemotePeerLevelGain(peerIndex, level);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                        // Send OSC feedback
+                        if (processor.getOSCEnabled()) {
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "Level", level);
+                        }
+                    }
+                });
+            }
+        });
+        
         // Peer Input Reverb Send (channel group 0)
         String peerInputReverbSendAddress = "/Peer" + String(peerIndex + 1) + "InputReverbSend";
         oscManager.registerControl(peerInputReverbSendAddress, [this, peerIndex](const juce::OSCMessage& message) {
@@ -4018,6 +4039,7 @@ void SonobusAudioProcessorEditor::unregisterAllOSCControls()
         oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "Solo");
         oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "BufferMin");
         oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "ResetDrop");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "Level");
         oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "InputReverbSend");
         oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "PolarityInvert");
         oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "CompressorEnable");
