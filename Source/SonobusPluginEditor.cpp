@@ -4077,6 +4077,7 @@ void SonobusAudioProcessorEditor::sendAllOSCState()
     }
     
     OSCManager& oscManager = processor.getOSCManager();
+    auto& vts = processor.getValueTreeState();
     
     // Send main controls
     if (mOutGainSlider) {
@@ -4101,6 +4102,16 @@ void SonobusAudioProcessorEditor::sendAllOSCState()
         oscManager.sendMessage("/InSoloButton", mInSoloButton->getToggleState() ? 1 : 0);
     }
     
+    // Send recording controls
+    if (mRecordingButton) {
+        oscManager.sendMessage("/RecordingButton", mRecordingButton->getToggleState() ? 1 : 0);
+    }
+    
+    // Send buffer controls
+    if (auto* param = vts.getParameter(SonobusAudioProcessor::paramBufferTime)) {
+        oscManager.sendMessage("/BufferTimeSlider", param->convertFrom0to1(param->getValue()));
+    }
+    
     // Send metronome controls
     if (mMetLevelSlider) {
         oscManager.sendMessage("/MetLevelSlider", static_cast<float>(mMetLevelSlider->getValue()));
@@ -4110,6 +4121,20 @@ void SonobusAudioProcessorEditor::sendAllOSCState()
     }
     if (mMetTempoSlider) {
         oscManager.sendMessage("/MetTempoSlider", static_cast<float>(mMetTempoSlider->getValue()));
+    }
+    if (auto* param = vts.getParameter(SonobusAudioProcessor::paramMetIsRecorded)) {
+        oscManager.sendMessage("/OptionsMetRecordedButton", param->getValue() > 0.5f ? 1 : 0);
+    }
+    if (auto* param = vts.getParameter(SonobusAudioProcessor::paramSendMetAudio)) {
+        oscManager.sendMessage("/MetSendButton", param->getValue() > 0.5f ? 1 : 0);
+    }
+    if (auto* param = vts.getParameter(SonobusAudioProcessor::paramSyncMetToFilePlayback)) {
+        oscManager.sendMessage("/MetSyncFileButton", param->getValue() > 0.5f ? 1 : 0);
+    }
+    
+    // Send file playback controls
+    if (auto* param = vts.getParameter(SonobusAudioProcessor::paramSendFileAudio)) {
+        oscManager.sendMessage("/FileSendButton", param->getValue() > 0.5f ? 1 : 0);
     }
     
     // Send reverb controls
@@ -4128,6 +4153,24 @@ void SonobusAudioProcessorEditor::sendAllOSCState()
     if (mReverbPreDelaySlider) {
         oscManager.sendMessage("/ReverbPreDelaySlider", static_cast<float>(mReverbPreDelaySlider->getValue()));
     }
+    
+    // Send options controls that we know exist
+    if (auto* param = vts.getParameter(SonobusAudioProcessor::paramMaxRecvPaddingMs)) {
+        oscManager.sendMessage("/OptionsMaxRecvPaddingSlider", param->convertFrom0to1(param->getValue()));
+    }
+    if (auto* param = vts.getParameter(SonobusAudioProcessor::paramDynamicResampling)) {
+        oscManager.sendMessage("/OptionsDynamicResamplingButton", param->getValue() > 0.5f ? 1 : 0);
+    }
+    if (auto* param = vts.getParameter(SonobusAudioProcessor::paramAutoReconnectLast)) {
+        oscManager.sendMessage("/OptionsAutoReconnectButton", param->getValue() > 0.5f ? 1 : 0);
+    }
+    if (auto* param = vts.getParameter(SonobusAudioProcessor::paramDefaultNetbufMs)) {
+        oscManager.sendMessage("/OptionsDefaultLevelSlider", param->convertFrom0to1(param->getValue()));
+    }
+    if (auto* param = vts.getParameter(SonobusAudioProcessor::paramDefaultAutoNetbuf)) {
+        oscManager.sendMessage("/OptionsAutosizeDefaultChoice", static_cast<int>(param->getValue()));
+    }
+    oscManager.sendMessage("/OptionsRecStealth", processor.getRecordStealth() ? 1 : 0);
     
     // Send peer controls
     int numPeers = processor.getNumberRemotePeers();
