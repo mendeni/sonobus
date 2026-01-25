@@ -2642,7 +2642,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
                 float reverbSend = message[0].getFloat32();
                 juce::MessageManager::callAsync([this, groupIndex, reverbSend]() {
                     if (groupIndex < processor.getInputGroupCount()) {
-                        processor.setInputMonitorReverbSend(groupIndex, reverbSend);
+                        processor.setInputReverbSend(groupIndex, reverbSend, false);
                         if (auto* channelGroups = getInputChannelGroupsView()) {
                             channelGroups->updateChannelViews();
                         }
