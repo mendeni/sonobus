@@ -70,6 +70,36 @@ public:
 
     Slider* getOptionsMaxRecvPaddingSlider() { return mOptionsMaxRecvPaddingSlider.get(); }
     ToggleButton* getOptionsRecStealth() { return mOptionsRecStealth.get(); }
+    
+    // Additional getters for OSC support
+    ToggleButton* getOptionsDynamicResamplingButton() { return mOptionsDynamicResamplingButton.get(); }
+    ToggleButton* getOptionsAutoReconnectButton() { return mOptionsAutoReconnectButton.get(); }
+    ToggleButton* getOptionsInputLimiterButton() { return mOptionsInputLimiterButton.get(); }
+    Slider* getOptionsDefaultLevelSlider() { return mOptionsDefaultLevelSlider.get(); }
+    Slider* getOptionsAutoDropThreshSlider() { return mOptionsAutoDropThreshSlider.get(); }
+    SonoChoiceButton* getOptionsAutosizeDefaultChoice() { return mOptionsAutosizeDefaultChoice.get(); }
+    SonoChoiceButton* getOptionsFormatChoiceDefaultChoice() { return mOptionsFormatChoiceDefaultChoice.get(); }
+    ToggleButton* getOptionsMetRecordedButton() { return mOptionsMetRecordedButton.get(); }
+    ToggleButton* getOptionsRecFinishOpenButton() { return mOptionsRecFinishOpenButton.get(); }
+    ToggleButton* getOptionsRecMixButton() { return mOptionsRecMixButton.get(); }
+    ToggleButton* getOptionsRecMixMinusButton() { return mOptionsRecMixMinusButton.get(); }
+    ToggleButton* getOptionsRecSelfButton() { return mOptionsRecSelfButton.get(); }
+    ToggleButton* getOptionsRecOthersButton() { return mOptionsRecOthersButton.get(); }
+    ToggleButton* getOptionsRecSelfPostFxButton() { return mOptionsRecSelfPostFxButton.get(); }
+    ToggleButton* getOptionsRecSelfSilenceMutedButton() { return mOptionsRecSelfSilenceMutedButton.get(); }
+    ToggleButton* getOptionsChangeAllFormatButton() { return mOptionsChangeAllFormatButton.get(); }
+    ToggleButton* getOptionsSliderSnapToMouseButton() { return mOptionsSliderSnapToMouseButton.get(); }
+    ToggleButton* getOptionsDisableShortcutButton() { return mOptionsDisableShortcutButton.get(); }
+    SonoChoiceButton* getRecFormatChoice() { return mRecFormatChoice.get(); }
+    SonoChoiceButton* getRecBitsChoice() { return mRecBitsChoice.get(); }
+    Slider* getBufferTimeSlider() { return mBufferTimeSlider.get(); }
+    ToggleButton* getOptionsUseSpecificUdpPortButton() { return mOptionsUseSpecificUdpPortButton.get(); }
+    ToggleButton* getOptionsOverrideSamplerateButton() { return mOptionsOverrideSamplerateButton.get(); }
+    ToggleButton* getOptionsShouldCheckForUpdateButton() { return mOptionsShouldCheckForUpdateButton.get(); }
+    TextEditor* getOptionsUdpPortEditor() { return mOptionsUdpPortEditor.get(); }
+    TextEditor* getOSCTargetIPAddressEditor() { return mOSCTargetIPAddressEditor.get(); }
+    TextEditor* getOSCTargetPortEditor() { return mOSCTargetPortEditor.get(); }
+    TextEditor* getOSCReceivePortEditor() { return mOSCReceivePortEditor.get(); }
 
     std::function<AudioDeviceManager*()> getAudioDeviceManager; // = []() { return 0; };
     std::function<Value*()> getShouldOverrideSampleRateValue; // = []() { return 0; };

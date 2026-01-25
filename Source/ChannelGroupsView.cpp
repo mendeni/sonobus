@@ -264,6 +264,15 @@ void ChannelGroupEffectsView::compressorParamsChanged(CompressorView *comp, Sono
         if (wason != ison) {
             listeners.call (&ChannelGroupEffectsView::Listener::effectsEnableChanged, this);
         }
+        
+        // Send OSC updates for compressor parameters
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "CompressorEnable", params.enabled ? 1.0f : 0.0f);
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "CompressorThreshold", params.thresholdDb);
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "CompressorRatio", params.ratio);
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "CompressorAttack", params.attackMs);
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "CompressorRelease", params.releaseMs);
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "CompressorMakeupGain", params.makeupGainDb);
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "CompressorAuto", params.automakeupGain ? 1.0f : 0.0f);
     }
 
 }
@@ -289,6 +298,13 @@ void ChannelGroupEffectsView::expanderParamsChanged(ExpanderView *comp, SonoAudi
         if (wason != ison) {
             listeners.call (&ChannelGroupEffectsView::Listener::effectsEnableChanged, this);
         }
+        
+        // Send OSC updates for expander (noise gate) parameters
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "ExpanderEnable", params.enabled ? 1.0f : 0.0f);
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "ExpanderNoiseFloor", params.thresholdDb);
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "ExpanderRatio", params.ratio);
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "ExpanderAttack", params.attackMs);
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "ExpanderRelease", params.releaseMs);
     }
 }
 
@@ -312,6 +328,19 @@ void ChannelGroupEffectsView::parametricEqParamsChanged(ParametricEqView *comp, 
         if (wason != ison) {
             listeners.call (&ChannelGroupEffectsView::Listener::effectsEnableChanged, this);
         }
+        
+        // Send OSC updates for EQ parameters
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "EqEnable", params.enabled ? 1.0f : 0.0f);
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "EqLowShelfFreq", params.lowShelfFreq);
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "EqLowShelfGain", params.lowShelfGain);
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "EqPara1Freq", params.para1Freq);
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "EqPara1Gain", params.para1Gain);
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "EqPara1Q", params.para1Q);
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "EqHighShelfFreq", params.highShelfFreq);
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "EqHighShelfGain", params.highShelfGain);
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "EqPara2Freq", params.para2Freq);
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "EqPara2Gain", params.para2Gain);
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "EqPara2Q", params.para2Q);
     }
 }
 
@@ -337,6 +366,9 @@ void ChannelGroupEffectsView::reverbSendLevelChanged(ReverbSendView *comp, float
         if (wason != ison) {
             listeners.call (&ChannelGroupEffectsView::Listener::effectsEnableChanged, this);
         }
+        
+        // Send OSC update for input reverb send
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "InputReverbSend", revlevel);
     }
 }
 
@@ -348,6 +380,9 @@ void ChannelGroupEffectsView::polarityInvertChanged(PolarityInvertView *comp, bo
     else {
         // input mode
         processor.setInputPolarityInvert(groupIndex, polinv);
+        
+        // Send OSC update for polarity invert
+        processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "PolarityInvert", polinv ? 1.0f : 0.0f);
     }
     listeners.call (&ChannelGroupEffectsView::Listener::effectsEnableChanged, this);
 }
@@ -503,6 +538,9 @@ void ChannelGroupMonitorEffectsView::updateStateForInput()
 {
     DelayParams monDelayParams;
 
+    // Set the group index for OSC addressing
+    delayView->setGroupIndex(groupIndex);
+
     if (groupIndex == -1) {
         // met
         if (processor.getMetronomeMonitorDelayParams(monDelayParams)) {
@@ -612,6 +650,11 @@ void ChannelGroupMonitorEffectsView::reverbSendLevelChanged(ReverbSendView *comp
         if (wason != ison) {
             listeners.call (&ChannelGroupMonitorEffectsView::Listener::monitorEffectsEnableChanged, this);
         }
+        
+        // Send OSC message for Input Group Mon Reverb Send change
+        if (groupIndex >= 0 && processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "MonReverbSend", revlevel);
+        }
     }
 }
 
@@ -652,6 +695,12 @@ void ChannelGroupMonitorEffectsView::monitorDelayParamsChanged(MonitorDelayView 
         } else {
             wason = processor.getInputMonitorEffectsActive(groupIndex);
             processor.setInputMonitorDelayParams(groupIndex, params);
+            
+            // Send OSC messages for Input Group Mon Delay parameters
+            if (groupIndex >= 0 && processor.getOSCEnabled()) {
+                processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "MonDelayEnable", params.enabled ? 1.0f : 0.0f);
+                processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "MonDelayTime", params.delayTimeMs);
+            }
         }
 
         if (processor.getLinkMonitoringDelayTimes()) {
@@ -681,6 +730,16 @@ void ChannelGroupMonitorEffectsView::monitorDelayParamsChanged(MonitorDelayView 
             if (eparam.delayTimeMs != deltimems) {
                 eparam.delayTimeMs = deltimems;
                 processor.getSoundboardProcessor()->setMonitorDelayParams(eparam);
+            }
+            
+            // Send OSC message for Link Delay Time (global setting)
+            if (processor.getOSCEnabled()) {
+                processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "MonDelayLink", 1.0f);
+            }
+        } else {
+            // Send OSC message for Link Delay Time being disabled
+            if (groupIndex >= 0 && processor.getOSCEnabled()) {
+                processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "MonDelayLink", 0.0f);
             }
         }
 
@@ -961,6 +1020,10 @@ ChannelGroupsView::ChannelGroupsView(SonobusAudioProcessor& proc, bool peerMode,
         } else {
             showInputReverbView(false);
         }
+        // Send OSC message for InReverbButton click
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/InReverbButton", 1);
+        }
     };
 
     mMonDelayButton = std::make_unique<TextButton>(TRANS("Monitor Delay"));
@@ -969,6 +1032,10 @@ ChannelGroupsView::ChannelGroupsView(SonobusAudioProcessor& proc, bool peerMode,
     addChildComponent(mMonDelayButton.get());
     mMonDelayButton->onClick = [this]() {
         toggleAllMonitorDelay();
+        // Send OSC message for MonDelayButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/MonDelayButton", mMonDelayButton->getToggleState() ? 1 : 0);
+        }
     };
 
 
@@ -1688,10 +1755,18 @@ void ChannelGroupsView::rebuildChannelViews(bool notify)
 
             mMetChannelView->panSlider->onValueChange = [this]() {
                 processor.setMetronomePan(mMetChannelView->panSlider->getValue());
+                // Send OSC message for MetPanSlider value change
+                if (processor.getOSCEnabled()) {
+                    processor.getOSCManager().sendMessage("/MetPanSlider", static_cast<float>(mMetChannelView->panSlider->getValue()));
+                }
             };
 
             mMetChannelView->monitorSlider->onValueChange = [this]() {
                 processor.setMetronomeMonitor(mMetChannelView->monitorSlider->getValue());
+                // Send OSC message for MetMonitorSlider value change
+                if (processor.getOSCEnabled()) {
+                    processor.getOSCManager().sendMessage("/MetMonitorSlider", static_cast<float>(mMetChannelView->monitorSlider->getValue()));
+                }
             };
 
             setupChildren(mMetChannelView.get());
@@ -1761,6 +1836,10 @@ void ChannelGroupsView::rebuildChannelViews(bool notify)
 
             mFileChannelView->levelSlider->onValueChange = [this]() {
                 processor.setFilePlaybackGain(mFileChannelView->levelSlider->getValue());
+                // Send OSC message for File Playback Pre Level change
+                if (processor.getOSCEnabled()) {
+                    processor.getOSCManager().sendMessage("/FilePlaybackPreLevel", static_cast<float>(mFileChannelView->levelSlider->getValue()));
+                }
             };
 
             //mFileChannelView->panSlider->onValueChange = [this]() {
@@ -1769,6 +1848,10 @@ void ChannelGroupsView::rebuildChannelViews(bool notify)
 
             mFileChannelView->monitorSlider->onValueChange = [this]() {
                 processor.setFilePlaybackMonitor(mFileChannelView->monitorSlider->getValue());
+                // Send OSC message for FileMonitorSlider value change
+                if (processor.getOSCEnabled()) {
+                    processor.getOSCManager().sendMessage("/FileMonitorSlider", static_cast<float>(mFileChannelView->monitorSlider->getValue()));
+                }
             };
 
             setupChildren(mFileChannelView.get());
@@ -1823,6 +1906,10 @@ void ChannelGroupsView::rebuildChannelViews(bool notify)
 
             mSoundboardChannelView->levelSlider->onValueChange = [this]() {
                 processor.getSoundboardProcessor()->setGain(mSoundboardChannelView->levelSlider->getValue());
+                // Send OSC message for SoundboardLevelSlider value change
+                if (processor.getOSCEnabled()) {
+                    processor.getOSCManager().sendMessage("/SoundboardLevelSlider", static_cast<float>(mSoundboardChannelView->levelSlider->getValue()));
+                }
             };
 
             //mSoundboardChannelView->panSlider->onValueChange = [this]() {
@@ -1831,6 +1918,10 @@ void ChannelGroupsView::rebuildChannelViews(bool notify)
 
             mSoundboardChannelView->monitorSlider->onValueChange = [this]() {
                 processor.getSoundboardProcessor()->setMonitorGain(mSoundboardChannelView->monitorSlider->getValue());
+                // Send OSC message for SoundboardMonitorSlider value change
+                if (processor.getOSCEnabled()) {
+                    processor.getOSCManager().sendMessage("/SoundboardMonitorSlider", static_cast<float>(mSoundboardChannelView->monitorSlider->getValue()));
+                }
             };
 
             setupChildren(mSoundboardChannelView.get());
@@ -3521,6 +3612,7 @@ void ChannelGroupsView::buttonClicked (Button* buttonThatWasClicked)
 
             if (pvf->muteButton.get() == buttonThatWasClicked) {
                 processor.setInputGroupMuted(changroup, buttonThatWasClicked->getToggleState());
+                processor.getOSCManager().sendMessage("/InputGroup" + String(changroup + 1) + "Mute", buttonThatWasClicked->getToggleState() ? 1.0f : 0.0f);
                 updateChannelViews();
                 break;
             }
@@ -3554,6 +3646,8 @@ void ChannelGroupsView::buttonClicked (Button* buttonThatWasClicked)
                         else {
                             processor.setInputGroupSoloed(j, false);
                         }
+                        // Send OSC for each group
+                        processor.getOSCManager().sendMessage("/InputGroup" + String(j + 1) + "Solo", (newsolo && changroup == j) ? 1.0f : 0.0f);
                     }
 
                     // change solo for main monitor too
@@ -3563,6 +3657,7 @@ void ChannelGroupsView::buttonClicked (Button* buttonThatWasClicked)
                 } else {
                     bool newsolo = buttonThatWasClicked->getToggleState();
                     processor.setInputGroupSoloed (changroup, newsolo);
+                    processor.getOSCManager().sendMessage("/InputGroup" + String(changroup + 1) + "Solo", newsolo ? 1.0f : 0.0f);
 
                     //if (newsolo) {
                        // only enable main in solo
@@ -4815,10 +4910,18 @@ void ChannelGroupsView::sliderValueChanged (Slider* slider)
 
             if (pvf->levelSlider.get() == slider) {
                 processor.setInputGroupGain(changroup, pvf->levelSlider->getValue());
+                // Send OSC message for Input Group Pre Level change
+                if (processor.getOSCEnabled()) {
+                    processor.getOSCManager().sendMessage("/InputGroup" + String(changroup + 1) + "PreLevel", static_cast<float>(pvf->levelSlider->getValue()));
+                }
                 break;
             }
             else if (pvf->monitorSlider.get() == slider) {
                 processor.setInputMonitor(changroup, pvf->monitorSlider->getValue());
+                // Send OSC message for Input Group Monitor change
+                if (processor.getOSCEnabled()) {
+                    processor.getOSCManager().sendMessage("/InputGroup" + String(changroup + 1) + "Monitor", static_cast<float>(pvf->monitorSlider->getValue()));
+                }
                 break;
             }
             else if (pvf->panSlider.get() == slider) {
@@ -4827,9 +4930,18 @@ void ChannelGroupsView::sliderValueChanged (Slider* slider)
                     float pan2 = pvf->panSlider->getMaxValue();
                     processor.setInputChannelPan(changroup, 0, pan1);
                     processor.setInputChannelPan(changroup, 1, pan2);
+                    // Send OSC message for Input Group Pan (dual channel)
+                    if (processor.getOSCEnabled()) {
+                        processor.getOSCManager().sendMessage("/InputGroup" + String(changroup + 1) + "PanLeft", pan1);
+                        processor.getOSCManager().sendMessage("/InputGroup" + String(changroup + 1) + "PanRight", pan2);
+                    }
                 }
                 else {
                     processor.setInputChannelPan(changroup, chi, pvf->panSlider->getValue());
+                    // Send OSC message for Input Group Pan (single channel)
+                    if (processor.getOSCEnabled()) {
+                        processor.getOSCManager().sendMessage("/InputGroup" + String(changroup + 1) + "Pan", static_cast<float>(pvf->panSlider->getValue()));
+                    }
                 }
                 break;
             }

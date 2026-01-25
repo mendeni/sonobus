@@ -334,6 +334,11 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mOptionsAutoDropThreshSlider->onValueChange = [this]() {
         auto thresh = 1.0 / jmax(1.0, mOptionsAutoDropThreshSlider->getValue());
         processor.setAutoresizeBufferDropRateThreshold(thresh);
+        
+        // Send OSC message for OptionsAutoDropThreshSlider value change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OptionsAutoDropThreshSlider", static_cast<float>(mOptionsAutoDropThreshSlider->getValue()));
+        }
     };
 
     mOptionsAutoDropThreshSlider->setTooltip(TRANS("This controls how sensitive the auto-jitter buffer adjustment is when there are audio dropouts. The jitter buffer size will be increased if there are any dropouts within the number of seconds specified here. When this value is smaller it will be less likely to increase the jitter buffer size automatically."));
@@ -1184,6 +1189,11 @@ void OptionsView::textEditorFocusLost (TextEditor& ed)
     }
     else if (&ed == mOSCTargetIPAddressEditor.get()) {
         processor.setOSCTargetIPAddress(mOSCTargetIPAddressEditor->getText());
+        
+        // Send OSC message for OSCTargetIPAddress change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OSCTargetIPAddress", mOSCTargetIPAddressEditor->getText());
+        }
     }
     else if (&ed == mOSCTargetPortEditor.get()) {
         int port = mOSCTargetPortEditor->getText().getIntValue();
@@ -1193,6 +1203,11 @@ void OptionsView::textEditorFocusLost (TextEditor& ed)
             mOSCTargetPortEditor->setText(String(port), dontSendNotification);
         }
         processor.setOSCTargetPort(port);
+        
+        // Send OSC message for OSCTargetPort change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OSCTargetPort", port);
+        }
     }
     else if (&ed == mOSCReceivePortEditor.get()) {
         int port = mOSCReceivePortEditor->getText().getIntValue();
@@ -1202,6 +1217,11 @@ void OptionsView::textEditorFocusLost (TextEditor& ed)
             mOSCReceivePortEditor->setText(String(port), dontSendNotification);
         }
         processor.setOSCReceivePort(port);
+        
+        // Send OSC message for OSCReceivePort change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OSCReceivePort", port);
+        }
     }
 }
 
@@ -1212,6 +1232,11 @@ void OptionsView::changeUdpPort(int port)
         processor.setUseSpecificUdpPort(port);
 
         //updateState();
+        
+        // Send OSC message for OptionsUdpPortEditor change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OptionsUdpPortEditor", port);
+        }
     }
     updateState(true);
 
@@ -1248,6 +1273,11 @@ void OptionsView::buttonClicked (Button* buttonThatWasClicked)
             params.enabled = mOptionsInputLimiterButton->getToggleState();
             processor.setInputLimiterParams(j, params);
         }
+        
+        // Send OSC message for OptionsInputLimiterButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OptionsInputLimiterButton", mOptionsInputLimiterButton->getToggleState() ? 1 : 0);
+        }
     }
     else if (buttonThatWasClicked == mOptionsRecMixButton.get()
              || buttonThatWasClicked == mOptionsRecSelfButton.get()
@@ -1267,15 +1297,38 @@ void OptionsView::buttonClicked (Button* buttonThatWasClicked)
         }
 
         processor.setDefaultRecordingOptions(recmask);
+        
+        // Send OSC messages for recording button state changes
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OptionsRecMixButton", mOptionsRecMixButton->getToggleState() ? 1 : 0);
+            processor.getOSCManager().sendMessage("/OptionsRecSelfButton", mOptionsRecSelfButton->getToggleState() ? 1 : 0);
+            processor.getOSCManager().sendMessage("/OptionsRecOthersButton", mOptionsRecOthersButton->getToggleState() ? 1 : 0);
+            processor.getOSCManager().sendMessage("/OptionsRecMixMinusButton", mOptionsRecMixMinusButton->getToggleState() ? 1 : 0);
+        }
     }
     else if (buttonThatWasClicked == mOptionsChangeAllFormatButton.get()) {
         processor.setChangingDefaultAudioCodecSetsExisting(mOptionsChangeAllFormatButton->getToggleState());
+        
+        // Send OSC message for OptionsChangeAllFormatButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OptionsChangeAllFormatButton", mOptionsChangeAllFormatButton->getToggleState() ? 1 : 0);
+        }
     }
     else if (buttonThatWasClicked == mOptionsRecSelfPostFxButton.get()) {
         processor.setSelfRecordingPreFX(!mOptionsRecSelfPostFxButton->getToggleState());
+        
+        // Send OSC message for OptionsRecSelfPostFxButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OptionsRecSelfPostFxButton", mOptionsRecSelfPostFxButton->getToggleState() ? 1 : 0);
+        }
     }
     else if (buttonThatWasClicked == mOptionsRecSelfSilenceMutedButton.get()) {
         processor.setSelfRecordingSilenceWhenMuted(mOptionsRecSelfSilenceMutedButton->getToggleState());
+        
+        // Send OSC message for OptionsRecSelfSilenceMutedButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OptionsRecSelfSilenceMutedButton", mOptionsRecSelfSilenceMutedButton->getToggleState() ? 1 : 0);
+        }
     }
     else if (buttonThatWasClicked == mOptionsRecFinishOpenButton.get()) {
         processor.setRecordFinishOpens(mOptionsRecFinishOpenButton->getToggleState());
@@ -1319,12 +1372,22 @@ void OptionsView::buttonClicked (Button* buttonThatWasClicked)
         } else {
             updateState(true);
         }
+        
+        // Send OSC message for OptionsUseSpecificUdpPortButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OptionsUseSpecificUdpPortButton", mOptionsUseSpecificUdpPortButton->getToggleState() ? 1 : 0);
+        }
     }
     else if (buttonThatWasClicked == mOptionsOverrideSamplerateButton.get()) {
 
         if (JUCEApplicationBase::isStandaloneApp() && getShouldOverrideSampleRateValue) {
             Value * val = getShouldOverrideSampleRateValue();
             val->setValue((bool)mOptionsOverrideSamplerateButton->getToggleState());
+        }
+        
+        // Send OSC message for OptionsOverrideSamplerateButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OptionsOverrideSamplerateButton", mOptionsOverrideSamplerateButton->getToggleState() ? 1 : 0);
         }
     }
     else if (buttonThatWasClicked == mOptionsAllowBluetoothInput.get()) {
@@ -1350,6 +1413,11 @@ void OptionsView::buttonClicked (Button* buttonThatWasClicked)
             //    startTimer(CheckForNewVersionTimerId, 3000);
             //}
         }
+        
+        // Send OSC message for OptionsShouldCheckForUpdateButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OptionsShouldCheckForUpdateButton", mOptionsShouldCheckForUpdateButton->getToggleState() ? 1 : 0);
+        }
     }
     else if (buttonThatWasClicked == mOptionsSliderSnapToMouseButton.get()) {
         bool newval = mOptionsSliderSnapToMouseButton->getToggleState();
@@ -1360,12 +1428,22 @@ void OptionsView::buttonClicked (Button* buttonThatWasClicked)
         if (updateSliderSnap) {
             updateSliderSnap();
         }
+        
+        // Send OSC message for OptionsSliderSnapToMouseButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OptionsSliderSnapToMouseButton", newval ? 1 : 0);
+        }
     }
     else if (buttonThatWasClicked == mOptionsDisableShortcutButton.get()) {
         bool newval = mOptionsDisableShortcutButton->getToggleState();
         processor.setDisableKeyboardShortcuts(newval);
         if (updateKeybindings) {
             updateKeybindings();
+        }
+        
+        // Send OSC message for OptionsDisableShortcutButton state change
+        if (processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/OptionsDisableShortcutButton", newval ? 1 : 0);
         }
     }
     else if (buttonThatWasClicked == mOptionsSavePluginDefaultButton.get()) {
