@@ -612,6 +612,11 @@ void ChannelGroupMonitorEffectsView::reverbSendLevelChanged(ReverbSendView *comp
         if (wason != ison) {
             listeners.call (&ChannelGroupMonitorEffectsView::Listener::monitorEffectsEnableChanged, this);
         }
+        
+        // Send OSC message for Input Group Mon Reverb Send change
+        if (groupIndex >= 0 && processor.getOSCEnabled()) {
+            processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "MonReverbSend", revlevel);
+        }
     }
 }
 
@@ -652,6 +657,12 @@ void ChannelGroupMonitorEffectsView::monitorDelayParamsChanged(MonitorDelayView 
         } else {
             wason = processor.getInputMonitorEffectsActive(groupIndex);
             processor.setInputMonitorDelayParams(groupIndex, params);
+            
+            // Send OSC messages for Input Group Mon Delay parameters
+            if (groupIndex >= 0 && processor.getOSCEnabled()) {
+                processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "MonDelayEnable", params.enabled ? 1.0f : 0.0f);
+                processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "MonDelayTime", params.delayTimeMs);
+            }
         }
 
         if (processor.getLinkMonitoringDelayTimes()) {
@@ -681,6 +692,16 @@ void ChannelGroupMonitorEffectsView::monitorDelayParamsChanged(MonitorDelayView 
             if (eparam.delayTimeMs != deltimems) {
                 eparam.delayTimeMs = deltimems;
                 processor.getSoundboardProcessor()->setMonitorDelayParams(eparam);
+            }
+            
+            // Send OSC message for Link Delay Time (global setting)
+            if (processor.getOSCEnabled()) {
+                processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "MonDelayLink", 1.0f);
+            }
+        } else {
+            // Send OSC message for Link Delay Time being disabled
+            if (groupIndex >= 0 && processor.getOSCEnabled()) {
+                processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "MonDelayLink", 0.0f);
             }
         }
 
