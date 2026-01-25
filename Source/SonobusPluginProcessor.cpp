@@ -99,6 +99,7 @@ static String defRecordDirKey("DefaultRecordDir");
 static String defRecordDirURLKey("DefaultRecordDirURL");
 static String lastBrowseDirKey("LastBrowseDir");
 static String oscEnabledKey("OSCEnabled");
+static String oscSendStateOnStartKey("OSCSendStateOnStart");
 static String oscTargetIPAddressKey("OSCTargetIPAddress");
 static String oscTargetPortKey("OSCTargetPort");
 static String oscReceivePortKey("OSCReceivePort");
@@ -8620,6 +8621,7 @@ void SonobusAudioProcessor::getStateInformationWithOptions(MemoryBlock& destData
 
     // OSC Configuration
     extraTree.setProperty(oscEnabledKey, mOSCEnabled, nullptr);
+    extraTree.setProperty(oscSendStateOnStartKey, mOSCSendStateOnStart, nullptr);
     extraTree.setProperty(oscTargetIPAddressKey, mOSCTargetIPAddress, nullptr);
     extraTree.setProperty(oscTargetPortKey, mOSCTargetPort, nullptr);
     extraTree.setProperty(oscReceivePortKey, mOSCReceivePort, nullptr);
@@ -8769,6 +8771,7 @@ void SonobusAudioProcessor::setStateInformationWithOptions (const void* data, in
             
             // OSC Configuration
             mOSCEnabled = extraTree.getProperty(oscEnabledKey, mOSCEnabled);
+            mOSCSendStateOnStart = extraTree.getProperty(oscSendStateOnStartKey, mOSCSendStateOnStart);
             mOSCTargetIPAddress = extraTree.getProperty(oscTargetIPAddressKey, mOSCTargetIPAddress);
             mOSCTargetPort = extraTree.getProperty(oscTargetPortKey, mOSCTargetPort);
             mOSCReceivePort = extraTree.getProperty(oscReceivePortKey, mOSCReceivePort);

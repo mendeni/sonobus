@@ -787,6 +787,9 @@ public:
     bool getOSCEnabled() const { return mOSCEnabled; }
     void setOSCEnabled(bool enabled);
     
+    bool getOSCSendStateOnStart() const { return mOSCSendStateOnStart; }
+    void setOSCSendStateOnStart(bool enabled) { mOSCSendStateOnStart = enabled; }
+    
     String getOSCTargetIPAddress() const { return mOSCTargetIPAddress; }
     void setOSCTargetIPAddress(const String& ipAddress);
     
@@ -1247,6 +1250,7 @@ private:
     
     // OSC Configuration
     bool mOSCEnabled = false;  // OSC disabled by default
+    bool mOSCSendStateOnStart = false;  // Don't send state on start by default
     String mOSCTargetIPAddress = "127.0.0.1";
     int mOSCTargetPort = 6001;
     int mOSCReceivePort = 6000;

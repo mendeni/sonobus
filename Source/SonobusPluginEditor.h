@@ -181,6 +181,7 @@ public:
     // OSC control registration methods
     void registerAllOSCControls();
     void unregisterAllOSCControls();
+    void sendAllOSCState();
 
 private:
 
