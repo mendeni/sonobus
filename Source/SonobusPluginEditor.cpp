@@ -3156,6 +3156,538 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
         });
     }
 
+    // Register Peer OSC controls (support up to 16 remote peers)
+    // Each peer maps to the first channel group (changroup=0) for FX controls
+    for (int peerIndex = 0; peerIndex < 16; ++peerIndex) {
+        // Peer Mute - Controls receive active state
+        String peerMuteAddress = "/Peer" + String(peerIndex + 1) + "Mute";
+        oscManager.registerControl(peerMuteAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isInt32()) {
+                bool muted = message[0].getInt32() != 0;
+                juce::MessageManager::callAsync([this, peerIndex, muted]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        processor.setRemotePeerRecvActive(peerIndex, !muted);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer Solo
+        String peerSoloAddress = "/Peer" + String(peerIndex + 1) + "Solo";
+        oscManager.registerControl(peerSoloAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isInt32()) {
+                bool soloed = message[0].getInt32() != 0;
+                juce::MessageManager::callAsync([this, peerIndex, soloed]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        processor.setRemotePeerSoloed(peerIndex, soloed);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer Input Reverb Send (channel group 0)
+        String peerInputReverbSendAddress = "/Peer" + String(peerIndex + 1) + "InputReverbSend";
+        oscManager.registerControl(peerInputReverbSendAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float revSend = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, peerIndex, revSend]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        processor.setRemotePeerChannelReverbSend(peerIndex, 0, revSend);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer Polarity Invert (channel group 0)
+        String peerPolarityInvertAddress = "/Peer" + String(peerIndex + 1) + "PolarityInvert";
+        oscManager.registerControl(peerPolarityInvertAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isInt32()) {
+                bool inverted = message[0].getInt32() != 0;
+                juce::MessageManager::callAsync([this, peerIndex, inverted]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        processor.setRemotePeerPolarityInvert(peerIndex, 0, inverted);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer Compressor Enable (channel group 0)
+        String peerCompressorEnableAddress = "/Peer" + String(peerIndex + 1) + "CompressorEnable";
+        oscManager.registerControl(peerCompressorEnableAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isInt32()) {
+                bool enabled = message[0].getInt32() != 0;
+                juce::MessageManager::callAsync([this, peerIndex, enabled]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getRemotePeerCompressorParams(peerIndex, 0, params);
+                        params.enabled = enabled;
+                        processor.setRemotePeerCompressorParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer Compressor Threshold (channel group 0)
+        String peerCompressorThresholdAddress = "/Peer" + String(peerIndex + 1) + "CompressorThreshold";
+        oscManager.registerControl(peerCompressorThresholdAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float threshold = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, peerIndex, threshold]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getRemotePeerCompressorParams(peerIndex, 0, params);
+                        params.thresholdDb = threshold;
+                        processor.setRemotePeerCompressorParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer Compressor Ratio (channel group 0)
+        String peerCompressorRatioAddress = "/Peer" + String(peerIndex + 1) + "CompressorRatio";
+        oscManager.registerControl(peerCompressorRatioAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float ratio = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, peerIndex, ratio]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getRemotePeerCompressorParams(peerIndex, 0, params);
+                        params.ratio = ratio;
+                        processor.setRemotePeerCompressorParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer Compressor Attack (channel group 0)
+        String peerCompressorAttackAddress = "/Peer" + String(peerIndex + 1) + "CompressorAttack";
+        oscManager.registerControl(peerCompressorAttackAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float attack = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, peerIndex, attack]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getRemotePeerCompressorParams(peerIndex, 0, params);
+                        params.attackMs = attack;
+                        processor.setRemotePeerCompressorParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer Compressor Release (channel group 0)
+        String peerCompressorReleaseAddress = "/Peer" + String(peerIndex + 1) + "CompressorRelease";
+        oscManager.registerControl(peerCompressorReleaseAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float release = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, peerIndex, release]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getRemotePeerCompressorParams(peerIndex, 0, params);
+                        params.releaseMs = release;
+                        processor.setRemotePeerCompressorParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer Compressor Makeup Gain (channel group 0)
+        String peerCompressorMakeupGainAddress = "/Peer" + String(peerIndex + 1) + "CompressorMakeupGain";
+        oscManager.registerControl(peerCompressorMakeupGainAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float makeupGain = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, peerIndex, makeupGain]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getRemotePeerCompressorParams(peerIndex, 0, params);
+                        params.makeupGainDb = makeupGain;
+                        processor.setRemotePeerCompressorParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer Compressor Auto (channel group 0)
+        String peerCompressorAutoAddress = "/Peer" + String(peerIndex + 1) + "CompressorAuto";
+        oscManager.registerControl(peerCompressorAutoAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isInt32()) {
+                bool autoMakeup = message[0].getInt32() != 0;
+                juce::MessageManager::callAsync([this, peerIndex, autoMakeup]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getRemotePeerCompressorParams(peerIndex, 0, params);
+                        params.automakeup = autoMakeup;
+                        processor.setRemotePeerCompressorParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer Expander (Noise Gate) Enable (channel group 0)
+        String peerExpanderEnableAddress = "/Peer" + String(peerIndex + 1) + "ExpanderEnable";
+        oscManager.registerControl(peerExpanderEnableAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isInt32()) {
+                bool enabled = message[0].getInt32() != 0;
+                juce::MessageManager::callAsync([this, peerIndex, enabled]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getRemotePeerExpanderParams(peerIndex, 0, params);
+                        params.enabled = enabled;
+                        processor.setRemotePeerExpanderParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer Expander Noise Floor (channel group 0)
+        String peerExpanderNoiseFloorAddress = "/Peer" + String(peerIndex + 1) + "ExpanderNoiseFloor";
+        oscManager.registerControl(peerExpanderNoiseFloorAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float noiseFloor = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, peerIndex, noiseFloor]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getRemotePeerExpanderParams(peerIndex, 0, params);
+                        params.thresholdDb = noiseFloor;
+                        processor.setRemotePeerExpanderParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer Expander Ratio (channel group 0)
+        String peerExpanderRatioAddress = "/Peer" + String(peerIndex + 1) + "ExpanderRatio";
+        oscManager.registerControl(peerExpanderRatioAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float ratio = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, peerIndex, ratio]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getRemotePeerExpanderParams(peerIndex, 0, params);
+                        params.ratio = ratio;
+                        processor.setRemotePeerExpanderParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer Expander Attack (channel group 0)
+        String peerExpanderAttackAddress = "/Peer" + String(peerIndex + 1) + "ExpanderAttack";
+        oscManager.registerControl(peerExpanderAttackAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float attack = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, peerIndex, attack]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getRemotePeerExpanderParams(peerIndex, 0, params);
+                        params.attackMs = attack;
+                        processor.setRemotePeerExpanderParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer Expander Release (channel group 0)
+        String peerExpanderReleaseAddress = "/Peer" + String(peerIndex + 1) + "ExpanderRelease";
+        oscManager.registerControl(peerExpanderReleaseAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float release = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, peerIndex, release]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::CompressorParams params;
+                        processor.getRemotePeerExpanderParams(peerIndex, 0, params);
+                        params.releaseMs = release;
+                        processor.setRemotePeerExpanderParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer Parametric EQ Enable (channel group 0)
+        String peerEqEnableAddress = "/Peer" + String(peerIndex + 1) + "EqEnable";
+        oscManager.registerControl(peerEqEnableAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isInt32()) {
+                bool enabled = message[0].getInt32() != 0;
+                juce::MessageManager::callAsync([this, peerIndex, enabled]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getRemotePeerEqParams(peerIndex, 0, params);
+                        params.enabled = enabled;
+                        processor.setRemotePeerEqParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer EQ Low Shelf Frequency (channel group 0)
+        String peerEqLowShelfFreqAddress = "/Peer" + String(peerIndex + 1) + "EqLowShelfFreq";
+        oscManager.registerControl(peerEqLowShelfFreqAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float freq = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, peerIndex, freq]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getRemotePeerEqParams(peerIndex, 0, params);
+                        params.lowShelfFreq = freq;
+                        processor.setRemotePeerEqParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer EQ Low Shelf Gain (channel group 0)
+        String peerEqLowShelfGainAddress = "/Peer" + String(peerIndex + 1) + "EqLowShelfGain";
+        oscManager.registerControl(peerEqLowShelfGainAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float gain = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, peerIndex, gain]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getRemotePeerEqParams(peerIndex, 0, params);
+                        params.lowShelfGain = gain;
+                        processor.setRemotePeerEqParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer EQ Parametric 1 Frequency (channel group 0)
+        String peerEqPara1FreqAddress = "/Peer" + String(peerIndex + 1) + "EqPara1Freq";
+        oscManager.registerControl(peerEqPara1FreqAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float freq = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, peerIndex, freq]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getRemotePeerEqParams(peerIndex, 0, params);
+                        params.para1Freq = freq;
+                        processor.setRemotePeerEqParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer EQ Parametric 1 Gain (channel group 0)
+        String peerEqPara1GainAddress = "/Peer" + String(peerIndex + 1) + "EqPara1Gain";
+        oscManager.registerControl(peerEqPara1GainAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float gain = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, peerIndex, gain]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getRemotePeerEqParams(peerIndex, 0, params);
+                        params.para1Gain = gain;
+                        processor.setRemotePeerEqParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer EQ Parametric 1 Q (channel group 0)
+        String peerEqPara1QAddress = "/Peer" + String(peerIndex + 1) + "EqPara1Q";
+        oscManager.registerControl(peerEqPara1QAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float q = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, peerIndex, q]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getRemotePeerEqParams(peerIndex, 0, params);
+                        params.para1Q = q;
+                        processor.setRemotePeerEqParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer EQ High Shelf Frequency (channel group 0)
+        String peerEqHighShelfFreqAddress = "/Peer" + String(peerIndex + 1) + "EqHighShelfFreq";
+        oscManager.registerControl(peerEqHighShelfFreqAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float freq = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, peerIndex, freq]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getRemotePeerEqParams(peerIndex, 0, params);
+                        params.highShelfFreq = freq;
+                        processor.setRemotePeerEqParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer EQ High Shelf Gain (channel group 0)
+        String peerEqHighShelfGainAddress = "/Peer" + String(peerIndex + 1) + "EqHighShelfGain";
+        oscManager.registerControl(peerEqHighShelfGainAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float gain = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, peerIndex, gain]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getRemotePeerEqParams(peerIndex, 0, params);
+                        params.highShelfGain = gain;
+                        processor.setRemotePeerEqParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer EQ Parametric 2 Frequency (channel group 0)
+        String peerEqPara2FreqAddress = "/Peer" + String(peerIndex + 1) + "EqPara2Freq";
+        oscManager.registerControl(peerEqPara2FreqAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float freq = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, peerIndex, freq]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getRemotePeerEqParams(peerIndex, 0, params);
+                        params.para2Freq = freq;
+                        processor.setRemotePeerEqParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer EQ Parametric 2 Gain (channel group 0)
+        String peerEqPara2GainAddress = "/Peer" + String(peerIndex + 1) + "EqPara2Gain";
+        oscManager.registerControl(peerEqPara2GainAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float gain = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, peerIndex, gain]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getRemotePeerEqParams(peerIndex, 0, params);
+                        params.para2Gain = gain;
+                        processor.setRemotePeerEqParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                    }
+                });
+            }
+        });
+        
+        // Peer EQ Parametric 2 Q (channel group 0)
+        String peerEqPara2QAddress = "/Peer" + String(peerIndex + 1) + "EqPara2Q";
+        oscManager.registerControl(peerEqPara2QAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float q = message[0].getFloat32();
+                juce::MessageManager::callAsync([this, peerIndex, q]() {
+                    if (peerIndex < processor.getNumberRemotePeers()) {
+                        SonoAudio::ParametricEqParams params;
+                        processor.getRemotePeerEqParams(peerIndex, 0, params);
+                        params.para2Q = q;
+                        processor.setRemotePeerEqParams(peerIndex, 0, params);
+                        // Update peer views
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            peersContainer->updatePeerViews(peerIndex);
+                        }
+                    }
+                });
+            }
+        });
+    }
+
     // handles registering commands
     updateUseKeybindings();
         
@@ -3299,6 +3831,37 @@ SonobusAudioProcessorEditor::~SonobusAudioProcessorEditor()
         oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "EqPara2Freq");
         oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "EqPara2Gain");
         oscManager.unregisterControl("/InputGroup" + String(groupIndex + 1) + "EqPara2Q");
+    }
+    
+    // Unregister Peer OSC controls (up to 16 peers)
+    for (int peerIndex = 0; peerIndex < 16; ++peerIndex) {
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "Mute");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "Solo");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "InputReverbSend");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "PolarityInvert");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "CompressorEnable");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "CompressorThreshold");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "CompressorRatio");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "CompressorAttack");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "CompressorRelease");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "CompressorMakeupGain");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "CompressorAuto");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "ExpanderEnable");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "ExpanderNoiseFloor");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "ExpanderRatio");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "ExpanderAttack");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "ExpanderRelease");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "EqEnable");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "EqLowShelfFreq");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "EqLowShelfGain");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "EqPara1Freq");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "EqPara1Gain");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "EqPara1Q");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "EqHighShelfFreq");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "EqHighShelfGain");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "EqPara2Freq");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "EqPara2Gain");
+        oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "EqPara2Q");
     }
     
     if (menuBarModel) {

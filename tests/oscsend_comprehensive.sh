@@ -474,4 +474,102 @@ sleep 2
 oscsend localhost 6000 /OptionsRecMixMinusButton i 0
 sleep 2
 
+echo "=== Peer 1 Controls ==="
+oscsend localhost 6000 /Peer1Mute i 1
+sleep 2
+oscsend localhost 6000 /Peer1Mute i 0
+sleep 2
+
+oscsend localhost 6000 /Peer1Solo i 1
+sleep 2
+oscsend localhost 6000 /Peer1Solo i 0
+sleep 2
+
+echo "=== Peer 1 FX Controls ==="
+oscsend localhost 6000 /Peer1InputReverbSend f 0.6
+sleep 2
+oscsend localhost 6000 /Peer1InputReverbSend f 0.3
+sleep 2
+
+oscsend localhost 6000 /Peer1PolarityInvert i 1
+sleep 2
+oscsend localhost 6000 /Peer1PolarityInvert i 0
+sleep 2
+
+echo "=== Peer 1 Compressor Controls ==="
+oscsend localhost 6000 /Peer1CompressorEnable i 1
+sleep 2
+oscsend localhost 6000 /Peer1CompressorThreshold f -20.0
+sleep 2
+oscsend localhost 6000 /Peer1CompressorRatio f 4.0
+sleep 2
+oscsend localhost 6000 /Peer1CompressorAttack f 15.0
+sleep 2
+oscsend localhost 6000 /Peer1CompressorRelease f 100.0
+sleep 2
+oscsend localhost 6000 /Peer1CompressorMakeupGain f 10.0
+sleep 2
+oscsend localhost 6000 /Peer1CompressorAuto i 1
+sleep 2
+oscsend localhost 6000 /Peer1CompressorAuto i 0
+sleep 2
+oscsend localhost 6000 /Peer1CompressorEnable i 0
+sleep 2
+
+echo "=== Peer 1 Expander (Noise Gate) Controls ==="
+oscsend localhost 6000 /Peer1ExpanderEnable i 1
+sleep 2
+oscsend localhost 6000 /Peer1ExpanderNoiseFloor f -40.0
+sleep 2
+oscsend localhost 6000 /Peer1ExpanderRatio f 3.0
+sleep 2
+oscsend localhost 6000 /Peer1ExpanderAttack f 5.0
+sleep 2
+oscsend localhost 6000 /Peer1ExpanderRelease f 150.0
+sleep 2
+oscsend localhost 6000 /Peer1ExpanderEnable i 0
+sleep 2
+
+echo "=== Peer 1 Parametric EQ Controls ==="
+oscsend localhost 6000 /Peer1EqEnable i 1
+sleep 2
+oscsend localhost 6000 /Peer1EqLowShelfFreq f 80.0
+sleep 2
+oscsend localhost 6000 /Peer1EqLowShelfGain f 3.0
+sleep 2
+oscsend localhost 6000 /Peer1EqPara1Freq f 200.0
+sleep 2
+oscsend localhost 6000 /Peer1EqPara1Gain f -2.0
+sleep 2
+oscsend localhost 6000 /Peer1EqPara1Q f 2.0
+sleep 2
+oscsend localhost 6000 /Peer1EqHighShelfFreq f 8000.0
+sleep 2
+oscsend localhost 6000 /Peer1EqHighShelfGain f -3.0
+sleep 2
+oscsend localhost 6000 /Peer1EqPara2Freq f 500.0
+sleep 2
+oscsend localhost 6000 /Peer1EqPara2Gain f 4.0
+sleep 2
+oscsend localhost 6000 /Peer1EqPara2Q f 3.0
+sleep 2
+oscsend localhost 6000 /Peer1EqEnable i 0
+sleep 2
+
+echo "=== Peer 2 Controls (if connected) ==="
+oscsend localhost 6000 /Peer2Mute i 1
+sleep 2
+oscsend localhost 6000 /Peer2Mute i 0
+sleep 2
+
+oscsend localhost 6000 /Peer2Solo i 1
+sleep 2
+oscsend localhost 6000 /Peer2Solo i 0
+sleep 2
+
+oscsend localhost 6000 /Peer2InputReverbSend f 0.5
+sleep 2
+oscsend localhost 6000 /Peer2InputReverbSend f 0.2
+sleep 2
+
 echo "=== OSC Test Complete ==="
