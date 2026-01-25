@@ -4649,9 +4649,23 @@ void SonobusAudioProcessorEditor::aooClientPeerJoinBlocked(SonobusAudioProcessor
 void SonobusAudioProcessorEditor::aooClientPeerLeft(SonobusAudioProcessor *comp, const String & group, const String & user)  
 {
     DBG("Client peer '" << user  << "' left group '" <<  group << "'");
+    
+    // Find peer index NOW before the peer is removed from the processor's list
+    int peerIndex = -1;
+    if (processor.getOSCEnabled()) {
+        int numPeers = processor.getNumberRemotePeers();
+        for (int i = 0; i < jmin(numPeers, 16); ++i) {
+            if (processor.getRemotePeerUserName(i) == user) {
+                peerIndex = i;
+                break;
+            }
+        }
+    }
+    
     {
         const ScopedLock sl (clientStateLock);        
-        clientEvents.add(ClientEvent(ClientEvent::PeerLeaveEvent, group, true, "", user));
+        // Store the peer index in floatVal so we can clear OSC state in async handler
+        clientEvents.add(ClientEvent(ClientEvent::PeerLeaveEvent, group, true, "", user, static_cast<float>(peerIndex)));
     }
     triggerAsyncUpdate();
 
@@ -7307,16 +7321,11 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
                 mChatView->addNewChatMessage(SBChatEvent(SBChatEvent::SystemType, ev.group, ev.user, "", "", mesg));
             }
 
-            // Find peer index and clear OSC state BEFORE they're removed
-            // (Otherwise indices shift when peer is removed)
-            if (processor.getOSCEnabled()) {
-                int numPeers = processor.getNumberRemotePeers();
-                for (int i = 0; i < jmin(numPeers, 16); ++i) {
-                    if (processor.getRemotePeerUserName(i) == ev.user) {
-                        clearPeerOSCState(i);
-                        break;
-                    }
-                }
+            // Clear OSC state using the peer index that was captured when aooClientPeerLeft was called
+            // (stored in floatVal field)
+            if (processor.getOSCEnabled() && ev.floatVal >= 0.0f) {
+                int peerIndex = static_cast<int>(ev.floatVal);
+                clearPeerOSCState(peerIndex);
             }
 
             mPeerContainer->peerLeftGroup(ev.group, ev.user);
