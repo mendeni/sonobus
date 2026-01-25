@@ -503,6 +503,9 @@ void ChannelGroupMonitorEffectsView::updateStateForInput()
 {
     DelayParams monDelayParams;
 
+    // Set the group index for OSC addressing
+    delayView->setGroupIndex(groupIndex);
+
     if (groupIndex == -1) {
         // met
         if (processor.getMetronomeMonitorDelayParams(monDelayParams)) {
