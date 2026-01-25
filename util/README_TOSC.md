@@ -194,7 +194,11 @@ Where `N` is the group number (1-16).
 5. Enable OSC in SonoBus settings
 6. Use the visual controls to send OSC messages to SonoBus
 
-**Note**: The .tosc file is a zlib-compressed XML layout. TouchOSC v2.x will handle this format automatically. OSC addresses must be configured manually in the TouchOSC editor as the layout only includes the visual controls. The layout includes 51 controls covering all major parameters for global settings and Input Group 1.
+**Note**: 
+- The .tosc file is a zlib-compressed XML layout
+- TouchOSC v2.x will handle this format automatically
+- OSC addresses must be configured manually in the TouchOSC editor (the layout only includes visual controls)
+- The layout includes 51 controls covering all major parameters for global settings and Input Group 1
 
 ### With Other OSC Controllers
 
