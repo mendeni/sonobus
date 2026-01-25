@@ -384,8 +384,6 @@ void ChannelGroupEffectsView::polarityInvertChanged(PolarityInvertView *comp, bo
         // Send OSC update for polarity invert
         processor.getOSCManager().sendMessage("/InputGroup" + String(groupIndex + 1) + "PolarityInvert", polinv ? 1.0f : 0.0f);
     }
-    }
-    listeners.call (&ChannelGroupEffectsView::Listener::effectsEnableChanged, this);
 }
 
 
