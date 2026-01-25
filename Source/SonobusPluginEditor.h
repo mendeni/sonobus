@@ -178,6 +178,10 @@ public:
 
     bool setupLocalisation(const String & overrideLang = {});
 
+    // OSC control registration methods
+    void registerAllOSCControls();
+    void unregisterAllOSCControls();
+
 private:
 
     void updateLayout();
@@ -730,6 +734,7 @@ private:
 
     File mSettingsFolder;
     
+    bool mOSCControlsRegistered = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SonobusAudioProcessorEditor)
 };

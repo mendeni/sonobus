@@ -1399,6 +1399,50 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     processor.getTransportSource().addChangeListener (this);
     
     // Register OSC controls with the OSCManager
+    // OSC controls are registered via registerAllOSCControls() when OSC is enabled
+    
+    // Register OSC controls if OSC is enabled
+    if (processor.getOSCEnabled()) {
+        registerAllOSCControls();
+    }
+    
+    // handles registering commands
+    updateUseKeybindings();
+        
+    commandManager.commandStatusChanged();
+    
+    setWantsKeyboardFocus(true);
+    
+    startTimer(PeriodicUpdateTimerId, 1000);
+
+#if (JUCE_WINDOWS || JUCE_MAC)
+    if (JUCEApplicationBase::isStandaloneApp()) {
+        startTimer(CheckForNewVersionTimerId, 5000);
+    }
+#endif
+
+   // Make sure that before the constructor has finished, you've set the
+   // editor's size to whatever you need it to be.
+
+    //auto defbounds = processor.getLastPluginBounds();
+
+    //setSize (defbounds.getWidth(), defbounds.getHeight());
+
+
+    // to make sure transport area is initialized with the current state
+    if (updateTransportWithURL(processor.getCurrentLoadedTransportURL())) {
+        processor.getTransportSource().sendChangeMessage();
+    }
+
+}
+
+
+void SonobusAudioProcessorEditor::registerAllOSCControls()
+{
+    if (mOSCControlsRegistered) {
+        return; // Already registered
+    }
+    
     OSCManager& oscManager = processor.getOSCManager();
     
     // Register OutGainSlider - updates slider value with a float
@@ -3846,39 +3890,16 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
         });
     }
 
-    // handles registering commands
-    updateUseKeybindings();
-        
-    commandManager.commandStatusChanged();
     
-    setWantsKeyboardFocus(true);
-    
-    startTimer(PeriodicUpdateTimerId, 1000);
-
-#if (JUCE_WINDOWS || JUCE_MAC)
-    if (JUCEApplicationBase::isStandaloneApp()) {
-        startTimer(CheckForNewVersionTimerId, 5000);
-    }
-#endif
-
-   // Make sure that before the constructor has finished, you've set the
-   // editor's size to whatever you need it to be.
-
-    //auto defbounds = processor.getLastPluginBounds();
-
-    //setSize (defbounds.getWidth(), defbounds.getHeight());
-
-
-    // to make sure transport area is initialized with the current state
-    if (updateTransportWithURL(processor.getCurrentLoadedTransportURL())) {
-        processor.getTransportSource().sendChangeMessage();
-    }
-
+    mOSCControlsRegistered = true;
 }
 
-SonobusAudioProcessorEditor::~SonobusAudioProcessorEditor()
+void SonobusAudioProcessorEditor::unregisterAllOSCControls()
 {
-    // Unregister OSC controls to prevent use-after-free
+    if (!mOSCControlsRegistered) {
+        return; // Not registered
+    }
+    
     OSCManager& oscManager = processor.getOSCManager();
     oscManager.unregisterControl("/OutGainSlider");
     oscManager.unregisterControl("/MainMuteButton");
@@ -4023,6 +4044,15 @@ SonobusAudioProcessorEditor::~SonobusAudioProcessorEditor()
         oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "EqPara2Gain");
         oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "EqPara2Q");
     }
+    
+    
+    mOSCControlsRegistered = false;
+}
+
+SonobusAudioProcessorEditor::~SonobusAudioProcessorEditor()
+{
+    // Unregister OSC controls to prevent use-after-free
+    unregisterAllOSCControls();
     
     if (menuBarModel) {
         menuBarModel->setApplicationCommandManagerToWatch(nullptr);

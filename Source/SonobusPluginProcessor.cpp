@@ -8471,7 +8471,17 @@ void SonobusAudioProcessor::setOSCEnabled(bool enabled)
         // Initialize OSC when enabled
         oscManager.initializeReceiver(mOSCReceivePort);
         oscManager.initializeSender(mOSCTargetIPAddress, mOSCTargetPort);
+        
+        // Register OSC controls in the editor
+        if (auto* editor = dynamic_cast<SonobusAudioProcessorEditor*>(getActiveEditor())) {
+            editor->registerAllOSCControls();
+        }
     } else {
+        // Unregister OSC controls in the editor
+        if (auto* editor = dynamic_cast<SonobusAudioProcessorEditor*>(getActiveEditor())) {
+            editor->unregisterAllOSCControls();
+        }
+        
         // Disconnect OSC when disabled
         oscManager.disconnectReceiver();
         oscManager.disconnectSender();
