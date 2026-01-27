@@ -4249,6 +4249,10 @@ void SonobusAudioProcessorEditor::sendAllOSCState()
             float level = processor.getRemotePeerLevelGain(peerIndex);
             oscManager.sendMessage("/Peer" + peerNum + "Level", level);
             
+            // Peer pan
+            float pan = processor.getRemotePeerChannelPan(peerIndex, 0, 0);
+            oscManager.sendMessage("/Peer" + peerNum + "Pan", pan);
+            
             // Peer FX - Compressor
             SonoAudio::CompressorParams compParams;
             processor.getRemotePeerCompressorParams(peerIndex, 0, compParams);
@@ -4297,6 +4301,7 @@ void SonobusAudioProcessorEditor::sendAllOSCState()
             oscManager.sendMessage("/Peer" + peerNum + "Mute", 0);
             oscManager.sendMessage("/Peer" + peerNum + "Solo", 0);
             oscManager.sendMessage("/Peer" + peerNum + "Level", 1.0f);
+            oscManager.sendMessage("/Peer" + peerNum + "Pan", 0.0f);  // Center pan
             
             // Clear compressor
             oscManager.sendMessage("/Peer" + peerNum + "CompressorEnable", 0);
