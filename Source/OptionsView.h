@@ -12,6 +12,8 @@
 #include "SonoDrawableButton.h"
 #include "GenericItemChooser.h"
 
+// Forward declaration
+class SonobusAudioProcessorEditor;
 
 class OptionsView :
 public Component,
@@ -187,6 +189,7 @@ protected:
 
     // OSC Configuration UI elements
     std::unique_ptr<ToggleButton> mOSCEnabledButton;
+    std::unique_ptr<ToggleButton> mOSCSendStateOnStartButton;
     std::unique_ptr<Label> mOSCTargetIPAddressLabel;
     std::unique_ptr<TextEditor> mOSCTargetIPAddressEditor;
     std::unique_ptr<Label> mOSCTargetPortLabel;
@@ -233,6 +236,7 @@ protected:
     FlexBox optionsMaxRecvPaddingBox;
     FlexBox optionsPluginDefaultBox;
     FlexBox optionsOSCEnabledBox;
+    FlexBox optionsOSCSendStateOnStartBox;
     FlexBox optionsOSCTargetIPBox;
     FlexBox optionsOSCTargetPortBox;
     FlexBox optionsOSCReceivePortBox;

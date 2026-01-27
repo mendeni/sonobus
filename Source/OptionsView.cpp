@@ -2,6 +2,7 @@
 // Copyright (C) 2021 Jesse Chappell
 
 #include "OptionsView.h"
+#include "SonobusPluginEditor.h"
 
 #if JUCE_ANDROID
 #include "juce_core/native/juce_BasicNativeHeaders.h"
@@ -377,6 +378,10 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mOSCEnabledButton->addListener(this);
     mOSCEnabledButton->setTooltip(TRANS("Enable or disable OSC (Open Sound Control) functionality"));
 
+    mOSCSendStateOnStartButton = std::make_unique<ToggleButton>(TRANS("Send state to target on start"));
+    mOSCSendStateOnStartButton->addListener(this);
+    mOSCSendStateOnStartButton->setTooltip(TRANS("When enabled, sends current values of all OSC-enabled controls to the target address when OSC is enabled"));
+
     // OSC Configuration UI elements
     mOSCTargetIPAddressLabel = std::make_unique<Label>("", TRANS("OSC Target IP Address:"));
     configLabel(mOSCTargetIPAddressLabel.get(), false);
@@ -455,6 +460,7 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     
     // Add OSC Configuration UI elements
     mOptionsComponent->addAndMakeVisible(mOSCEnabledButton.get());
+    mOptionsComponent->addAndMakeVisible(mOSCSendStateOnStartButton.get());
     mOptionsComponent->addAndMakeVisible(mOSCTargetIPAddressLabel.get());
     mOptionsComponent->addAndMakeVisible(mOSCTargetIPAddressEditor.get());
     mOptionsComponent->addAndMakeVisible(mOSCTargetPortLabel.get());
@@ -739,11 +745,14 @@ void OptionsView::updateState(bool ignorecheck)
     // Update OSC Configuration UI
     bool oscEnabled = processor.getOSCEnabled();
     mOSCEnabledButton->setToggleState(oscEnabled, dontSendNotification);
+    mOSCSendStateOnStartButton->setToggleState(processor.getOSCSendStateOnStart(), dontSendNotification);
     mOSCTargetIPAddressEditor->setText(processor.getOSCTargetIPAddress(), dontSendNotification);
     mOSCTargetPortEditor->setText(String(processor.getOSCTargetPort()), dontSendNotification);
     mOSCReceivePortEditor->setText(String(processor.getOSCReceivePort()), dontSendNotification);
     
     // Enable/disable OSC fields based on OSC enabled state
+    mOSCSendStateOnStartButton->setEnabled(oscEnabled);
+    mOSCSendStateOnStartButton->setAlpha(oscEnabled ? 1.0 : 0.6);
     mOSCTargetIPAddressEditor->setEnabled(oscEnabled);
     mOSCTargetIPAddressEditor->setAlpha(oscEnabled ? 1.0 : 0.6);
     mOSCTargetPortEditor->setEnabled(oscEnabled);
@@ -857,6 +866,11 @@ void OptionsView::updateLayout()
     optionsOSCEnabledBox.items.add(FlexItem(10, 12).withFlex(0));
     optionsOSCEnabledBox.items.add(FlexItem(180, minpassheight, *mOSCEnabledButton).withMargin(0).withFlex(1));
     
+    optionsOSCSendStateOnStartBox.items.clear();
+    optionsOSCSendStateOnStartBox.flexDirection = FlexBox::Direction::row;
+    optionsOSCSendStateOnStartBox.items.add(FlexItem(10, 12).withFlex(0));
+    optionsOSCSendStateOnStartBox.items.add(FlexItem(220, minpassheight, *mOSCSendStateOnStartButton).withMargin(0).withFlex(1));
+    
     optionsOSCTargetIPBox.items.clear();
     optionsOSCTargetIPBox.flexDirection = FlexBox::Direction::row;
     optionsOSCTargetIPBox.items.add(FlexItem(10, 12));
@@ -963,6 +977,8 @@ void OptionsView::updateLayout()
     
     // Add OSC Configuration boxes
     optionsBox.items.add(FlexItem(100, minpassheight, optionsOSCEnabledBox).withMargin(2).withFlex(0));
+    optionsBox.items.add(FlexItem(4, 3));
+    optionsBox.items.add(FlexItem(100, minpassheight, optionsOSCSendStateOnStartBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(4, 3));
     optionsBox.items.add(FlexItem(100, minitemheight, optionsOSCTargetIPBox).withMargin(2).withFlex(0));
     optionsBox.items.add(FlexItem(4, 3));
@@ -1346,24 +1362,36 @@ void OptionsView::buttonClicked (Button* buttonThatWasClicked)
         processor.setOSCEnabled(enabled);
         
         // Update the enabled/disabled state of OSC fields
+        mOSCSendStateOnStartButton->setEnabled(enabled);
+        mOSCSendStateOnStartButton->setAlpha(enabled ? 1.0 : 0.6);
         mOSCTargetIPAddressEditor->setEnabled(enabled);
         mOSCTargetIPAddressEditor->setAlpha(enabled ? 1.0 : 0.6);
         mOSCTargetPortEditor->setEnabled(enabled);
         mOSCTargetPortEditor->setAlpha(enabled ? 1.0 : 0.6);
         mOSCReceivePortEditor->setEnabled(enabled);
         mOSCReceivePortEditor->setAlpha(enabled ? 1.0 : 0.6);
-    }
-    else if (buttonThatWasClicked == mOSCEnabledButton.get()) {
-        bool enabled = mOSCEnabledButton->getToggleState();
-        processor.setOSCEnabled(enabled);
         
-        // Update the enabled/disabled state of OSC fields
-        mOSCTargetIPAddressEditor->setEnabled(enabled);
-        mOSCTargetIPAddressEditor->setAlpha(enabled ? 1.0 : 0.6);
-        mOSCTargetPortEditor->setEnabled(enabled);
-        mOSCTargetPortEditor->setAlpha(enabled ? 1.0 : 0.6);
-        mOSCReceivePortEditor->setEnabled(enabled);
-        mOSCReceivePortEditor->setAlpha(enabled ? 1.0 : 0.6);
+        // If enabling OSC and send state on start is enabled, send all current values
+        if (enabled && processor.getOSCSendStateOnStart()) {
+            if (auto* editor = processor.getActiveEditor()) {
+                if (auto* sonobusEditor = dynamic_cast<SonobusAudioProcessorEditor*>(editor)) {
+                    sonobusEditor->sendAllOSCState();
+                }
+            }
+        }
+    }
+    else if (buttonThatWasClicked == mOSCSendStateOnStartButton.get()) {
+        bool enabled = mOSCSendStateOnStartButton->getToggleState();
+        processor.setOSCSendStateOnStart(enabled);
+        
+        // If enabled and OSC is active, send all current values immediately
+        if (enabled && processor.getOSCEnabled()) {
+            if (auto* editor = processor.getActiveEditor()) {
+                if (auto* sonobusEditor = dynamic_cast<SonobusAudioProcessorEditor*>(editor)) {
+                    sonobusEditor->sendAllOSCState();
+                }
+            }
+        }
     }
     else if (buttonThatWasClicked == mOptionsUseSpecificUdpPortButton.get()) {
         if (!mOptionsUseSpecificUdpPortButton->getToggleState()) {

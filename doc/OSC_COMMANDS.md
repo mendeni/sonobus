@@ -557,6 +557,298 @@ SonoBus supports OSC control for up to 16 Input Groups. Each Input Group can be 
 **Data Type**: Float  
 **Range**: Audio level (0.0 - 2.0, where 1.0 is unity gain)
 
+## Peer Controls
+
+SonoBus supports OSC control for up to 16 remote peers (connected users). Each peer can be controlled independently using numbered OSC addresses. Peer controls dynamically map to connected peers and will only respond when the specified peer index exists.
+
+**Important Notes:**
+- Peers are numbered 1-16 in OSC addresses (e.g., `/Peer1Mute`, `/Peer2Solo`)
+- Only peers that are currently connected will respond to OSC messages
+- FX controls (Compressor, Expander/Noise Gate, EQ, etc.) operate on the first/main channel group (channel group 0) of each peer
+- Peer numbering corresponds to the order peers connect to the session
+
+### Peer Mute and Solo Controls
+
+#### `/Peer[1-16]Mute`
+**Type**: Toggle Button  
+**Description**: Mutes/unmutes receiving audio from the specified peer  
+**Data Type**: Integer (0 = unmuted/receiving, 1 = muted/not receiving)  
+**Examples**:
+- `/Peer1Mute` - Mutes/unmutes Peer 1
+- `/Peer2Mute` - Mutes/unmutes Peer 2
+- `/Peer16Mute` - Mutes/unmutes Peer 16
+
+**Note**: Muting a peer prevents their audio from being heard locally. This is equivalent to clicking the MUTE button in the peer's UI panel.
+
+#### `/Peer[1-16]Solo`
+**Type**: Toggle Button  
+**Description**: Solos/unsolos the specified peer  
+**Data Type**: Integer (0 = not soloed, 1 = soloed)  
+**Examples**:
+- `/Peer1Solo` - Solos/unsolos Peer 1
+- `/Peer2Solo` - Solos/unsolos Peer 2
+
+**Note**: When any peer is soloed, only soloed peers are heard. This is equivalent to clicking the SOLO button in the peer's UI panel.
+
+#### `/Peer[1-16]BufferMin`
+**Type**: Push Button  
+**Description**: Resets the jitter buffer to the minimum for the specified peer  
+**Data Type**: Integer (1 to trigger)  
+**Examples**:
+- `/Peer1BufferMin` - Resets jitter buffer for Peer 1
+- `/Peer2BufferMin` - Resets jitter buffer for Peer 2
+
+**Note**: This is a momentary push button with no state. Send value 1 to trigger the action.
+
+#### `/Peer[1-16]ResetDrop`
+**Type**: Push Button  
+**Description**: Resets packet drop statistics for the specified peer  
+**Data Type**: Integer (1 to trigger)  
+**Examples**:
+- `/Peer1ResetDrop` - Resets drop stats for Peer 1
+- `/Peer2ResetDrop` - Resets drop stats for Peer 2
+
+**Note**: This is a momentary push button with no state. Send value 1 to trigger the action. Clears the dropped packet counter for the peer.
+
+#### `/Peer[1-16]Level`
+**Type**: Slider  
+**Description**: Controls the level/gain for the specified peer  
+**Data Type**: Float  
+**Range**: 0.0 - 2.0 (0.0 = silence, 1.0 = unity gain, 2.0 = +6dB)  
+**Examples**:
+- `/Peer1Level` - Controls level for Peer 1
+- `/Peer2Level` - Controls level for Peer 2
+
+**Note**: Adjusts the output level/gain for the peer's audio. This is equivalent to moving the level slider in the peer's UI panel.
+
+#### `/Peer[1-16]Pan`
+**Type**: Slider  
+**Description**: Controls the stereo pan position for the specified peer (channel group 0, channel 0)  
+**Data Type**: Float  
+**Range**: -1.0 to 1.0 (-1.0 = full left, 0.0 = center, 1.0 = full right)  
+**Examples**:
+- `/Peer1Pan` - Controls pan for Peer 1
+- `/Peer2Pan` - Controls pan for Peer 2
+
+**Note**: Adjusts the stereo pan position for the peer's audio. This is equivalent to moving the pan slider in the peer's UI panel.
+
+#### `/Peer[1-16]RemotePeerUserName`
+**Type**: Read-Only Text Field  
+**Description**: Provides the username of the connected peer  
+**Data Type**: String  
+**Direction**: Send only (SonoBus → OSC controller)  
+**Examples**:
+- `/Peer1RemotePeerUserName` - Username of Peer 1
+- `/Peer2RemotePeerUserName` - Username of Peer 2
+
+**Note**: This is a read-only control. SonoBus automatically sends the username when a peer joins the session and clears it to an empty string when the peer leaves. OSC messages sent to this address are ignored.
+
+**Note**: This control adjusts the receive level/gain for audio from the peer. Values above 1.0 provide gain boost.
+
+### Peer Input Effects (FX) Controls
+
+All FX controls operate on the first/main channel group (channel group 0) of each peer. These controls affect the audio received from the peer before it is mixed with other audio.
+
+#### `/Peer[1-16]InputReverbSend`
+**Type**: Slider  
+**Description**: Controls the input reverb send level for the specified peer  
+**Data Type**: Float  
+**Range**: 0.0 - 1.0 (0.0 = no reverb, 1.0 = maximum reverb send)  
+**Examples**:
+- `/Peer1InputReverbSend` - Controls input reverb send for Peer 1
+- `/Peer2InputReverbSend` - Controls input reverb send for Peer 2
+
+**Note**: This sends the peer's audio to the input reverb effect before mixing.
+
+#### `/Peer[1-16]PolarityInvert`
+**Type**: Toggle Button  
+**Description**: Inverts the polarity/phase of audio received from the specified peer  
+**Data Type**: Integer (0 = normal polarity, 1 = inverted polarity)  
+**Examples**:
+- `/Peer1PolarityInvert` - Inverts polarity for Peer 1
+- `/Peer2PolarityInvert` - Inverts polarity for Peer 2
+
+**Note**: Polarity inversion can be useful for correcting phase issues between microphones.
+
+### Peer Compressor Controls
+
+#### `/Peer[1-16]CompressorEnable`
+**Type**: Toggle Button  
+**Description**: Enables/disables the compressor effect for the specified peer  
+**Data Type**: Integer (0 = disabled, 1 = enabled)  
+**Examples**:
+- `/Peer1CompressorEnable` - Enables/disables compressor for Peer 1
+- `/Peer2CompressorEnable` - Enables/disables compressor for Peer 2
+
+#### `/Peer[1-16]CompressorThreshold`
+**Type**: Slider  
+**Description**: Sets the compressor threshold in dB for the specified peer  
+**Data Type**: Float  
+**Range**: -60.0 to 0.0 dB  
+**Note**: Signals above this level will be compressed
+
+#### `/Peer[1-16]CompressorRatio`
+**Type**: Slider  
+**Description**: Sets the compressor ratio for the specified peer  
+**Data Type**: Float  
+**Range**: 1.0 to 20.0 (e.g., 4.0 means 4:1 ratio)  
+**Note**: Higher ratios result in more aggressive compression
+
+#### `/Peer[1-16]CompressorAttack`
+**Type**: Slider  
+**Description**: Sets the compressor attack time in milliseconds for the specified peer  
+**Data Type**: Float  
+**Range**: 1.0 to 1000.0 ms  
+**Note**: How quickly the compressor responds to signals exceeding the threshold
+
+#### `/Peer[1-16]CompressorRelease`
+**Type**: Slider  
+**Description**: Sets the compressor release time in milliseconds for the specified peer  
+**Data Type**: Float  
+**Range**: 1.0 to 1000.0 ms  
+**Note**: How quickly the compressor recovers after the signal drops below threshold
+
+#### `/Peer[1-16]CompressorMakeupGain`
+**Type**: Slider  
+**Description**: Sets the compressor makeup gain in dB for the specified peer  
+**Data Type**: Float  
+**Range**: 0.0 to 60.0 dB  
+**Note**: Gain applied after compression to compensate for level reduction
+
+#### `/Peer[1-16]CompressorAuto`
+**Type**: Toggle Button  
+**Description**: Enables/disables automatic makeup gain calculation for the specified peer  
+**Data Type**: Integer (0 = manual makeup gain, 1 = automatic)  
+**Note**: When enabled, makeup gain is automatically calculated based on threshold and ratio
+
+### Peer Expander (Noise Gate) Controls
+
+The expander acts as a noise gate, reducing the level of signals below the threshold.
+
+#### `/Peer[1-16]ExpanderEnable`
+**Type**: Toggle Button  
+**Description**: Enables/disables the noise gate effect for the specified peer  
+**Data Type**: Integer (0 = disabled, 1 = enabled)  
+**Examples**:
+- `/Peer1ExpanderEnable` - Enables/disables noise gate for Peer 1
+- `/Peer2ExpanderEnable` - Enables/disables noise gate for Peer 2
+
+#### `/Peer[1-16]ExpanderNoiseFloor`
+**Type**: Slider  
+**Description**: Sets the noise gate threshold (noise floor) in dB for the specified peer  
+**Data Type**: Float  
+**Range**: -96.0 to 0.0 dB  
+**Note**: Signals below this level will be attenuated
+
+#### `/Peer[1-16]ExpanderRatio`
+**Type**: Slider  
+**Description**: Sets the expander ratio for the specified peer  
+**Data Type**: Float  
+**Range**: 1.0 to 20.0  
+**Note**: Higher ratios result in more aggressive gating
+
+#### `/Peer[1-16]ExpanderAttack`
+**Type**: Slider  
+**Description**: Sets the expander attack time in milliseconds for the specified peer  
+**Data Type**: Float  
+**Range**: 1.0 to 1000.0 ms  
+**Note**: How quickly the gate opens when signal exceeds threshold
+
+#### `/Peer[1-16]ExpanderRelease`
+**Type**: Slider  
+**Description**: Sets the expander release time in milliseconds for the specified peer  
+**Data Type**: Float  
+**Range**: 1.0 to 1000.0 ms  
+**Note**: How quickly the gate closes when signal drops below threshold
+
+### Peer Parametric EQ Controls
+
+The parametric EQ provides four bands of equalization: low shelf, two parametric bands, and high shelf.
+
+#### `/Peer[1-16]EqEnable`
+**Type**: Toggle Button  
+**Description**: Enables/disables the parametric EQ effect for the specified peer  
+**Data Type**: Integer (0 = disabled, 1 = enabled)  
+**Examples**:
+- `/Peer1EqEnable` - Enables/disables EQ for Peer 1
+- `/Peer2EqEnable` - Enables/disables EQ for Peer 2
+
+#### `/Peer[1-16]EqLowShelfFreq`
+**Type**: Slider  
+**Description**: Sets the low shelf filter frequency in Hz for the specified peer  
+**Data Type**: Float  
+**Range**: 20.0 to 2000.0 Hz  
+**Default**: 60.0 Hz  
+**Note**: Frequency at which the low shelf filter takes effect
+
+#### `/Peer[1-16]EqLowShelfGain`
+**Type**: Slider  
+**Description**: Sets the low shelf filter gain in dB for the specified peer  
+**Data Type**: Float  
+**Range**: -24.0 to 24.0 dB  
+**Note**: Boost or cut applied to frequencies below the low shelf frequency
+
+#### `/Peer[1-16]EqPara1Freq`
+**Type**: Slider  
+**Description**: Sets the parametric band 1 center frequency in Hz for the specified peer  
+**Data Type**: Float  
+**Range**: 20.0 to 20000.0 Hz  
+**Default**: 90.0 Hz  
+**Note**: Center frequency of the first parametric band
+
+#### `/Peer[1-16]EqPara1Gain`
+**Type**: Slider  
+**Description**: Sets the parametric band 1 gain in dB for the specified peer  
+**Data Type**: Float  
+**Range**: -24.0 to 24.0 dB  
+**Note**: Boost or cut applied at the parametric band 1 frequency
+
+#### `/Peer[1-16]EqPara1Q`
+**Type**: Slider  
+**Description**: Sets the parametric band 1 Q (bandwidth) for the specified peer  
+**Data Type**: Float  
+**Range**: 0.1 to 10.0  
+**Default**: 1.5  
+**Note**: Higher Q values result in narrower bandwidth (more selective filtering)
+
+#### `/Peer[1-16]EqHighShelfFreq`
+**Type**: Slider  
+**Description**: Sets the high shelf filter frequency in Hz for the specified peer  
+**Data Type**: Float  
+**Range**: 500.0 to 16000.0 Hz  
+**Default**: 10000.0 Hz  
+**Note**: Frequency at which the high shelf filter takes effect
+
+#### `/Peer[1-16]EqHighShelfGain`
+**Type**: Slider  
+**Description**: Sets the high shelf filter gain in dB for the specified peer  
+**Data Type**: Float  
+**Range**: -24.0 to 24.0 dB  
+**Note**: Boost or cut applied to frequencies above the high shelf frequency
+
+#### `/Peer[1-16]EqPara2Freq`
+**Type**: Slider  
+**Description**: Sets the parametric band 2 center frequency in Hz for the specified peer  
+**Data Type**: Float  
+**Range**: 20.0 to 20000.0 Hz  
+**Default**: 360.0 Hz  
+**Note**: Center frequency of the second parametric band
+
+#### `/Peer[1-16]EqPara2Gain`
+**Type**: Slider  
+**Description**: Sets the parametric band 2 gain in dB for the specified peer  
+**Data Type**: Float  
+**Range**: -24.0 to 24.0 dB  
+**Note**: Boost or cut applied at the parametric band 2 frequency
+
+#### `/Peer[1-16]EqPara2Q`
+**Type**: Slider  
+**Description**: Sets the parametric band 2 Q (bandwidth) for the specified peer  
+**Data Type**: Float  
+**Range**: 0.1 to 10.0  
+**Default**: 4.0  
+**Note**: Higher Q values result in narrower bandwidth (more selective filtering)
+
 ## Options Tab Controls
 
 ### Audio Options
@@ -789,6 +1081,42 @@ SonoBus supports OSC control for up to 16 Input Groups. Each Input Group can be 
 
 # Set default format to specific codec
 /OptionsFormatChoiceDefaultChoice 4
+
+# Mute Peer 1
+/Peer1Mute 1
+
+# Unmute Peer 1
+/Peer1Mute 0
+
+# Solo Peer 2
+/Peer2Solo 1
+
+# Enable compressor for Peer 1
+/Peer1CompressorEnable 1
+
+# Set compressor threshold for Peer 1
+/Peer1CompressorThreshold -20.0
+
+# Set compressor ratio for Peer 1
+/Peer1CompressorRatio 4.0
+
+# Enable noise gate for Peer 2
+/Peer2ExpanderEnable 1
+
+# Set noise gate threshold for Peer 2
+/Peer2ExpanderNoiseFloor -40.0
+
+# Enable EQ for Peer 1
+/Peer1EqEnable 1
+
+# Boost low frequencies for Peer 1
+/Peer1EqLowShelfGain 3.0
+
+# Set input reverb send for Peer 3
+/Peer3InputReverbSend 0.5
+
+# Invert polarity for Peer 1
+/Peer1PolarityInvert 1
 ```
 
 ### Using Python with python-osc
@@ -813,6 +1141,26 @@ client.send_message("/MetTempoSlider", 120.0)
 
 # Start recording
 client.send_message("/RecordingButton", 1)
+
+# Mute Peer 1
+client.send_message("/Peer1Mute", 1)
+
+# Solo Peer 2
+client.send_message("/Peer2Solo", 1)
+
+# Enable compressor for Peer 1
+client.send_message("/Peer1CompressorEnable", 1)
+client.send_message("/Peer1CompressorThreshold", -20.0)
+client.send_message("/Peer1CompressorRatio", 4.0)
+
+# Enable noise gate for Peer 2
+client.send_message("/Peer2ExpanderEnable", 1)
+client.send_message("/Peer2ExpanderNoiseFloor", -40.0)
+
+# Apply EQ to Peer 1
+client.send_message("/Peer1EqEnable", 1)
+client.send_message("/Peer1EqLowShelfGain", 3.0)
+client.send_message("/Peer1EqHighShelfGain", -2.0)
 ```
 
 ### Using TouchOSC
@@ -822,6 +1170,9 @@ Create controls with the following OSC addresses:
 - Fader with address `/OutGainSlider` sending float values
 - Button with address `/RecordingButton` sending 0/1
 - XY Pad with `/MetTempoSlider` on one axis
+- Toggle buttons for `/Peer1Mute`, `/Peer2Mute`, etc. sending 0/1
+- Toggle buttons for `/Peer1Solo`, `/Peer2Solo`, etc. sending 0/1
+- Faders for peer FX controls like `/Peer1CompressorThreshold`, `/Peer1EqLowShelfGain`, etc.
 
 ## Receiving OSC Messages from SonoBus
 

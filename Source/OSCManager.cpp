@@ -2,7 +2,7 @@
 
 OSCManager::OSCManager()
 {
-    juce::Logger::writeToLog("OSCManager initialized.");
+    // OSCManager object created, but not initialized until OSC is enabled
 }
 
 OSCManager::~OSCManager()
