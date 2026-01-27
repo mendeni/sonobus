@@ -4159,6 +4159,38 @@ void SonobusAudioProcessorEditor::sendAllOSCState()
     if (auto* param = vts.getParameter(SonobusAudioProcessor::paramSendFileAudio)) {
         oscManager.sendMessage("/FileSendButton", param->getValue() > 0.5f ? 1 : 0);
     }
+    if (mPlaybackSlider) {
+        oscManager.sendMessage("/PlaybackSlider", static_cast<float>(mPlaybackSlider->getValue()));
+    }
+    oscManager.sendMessage("/FilePlaybackPreLevel", processor.getFilePlaybackGain());
+    oscManager.sendMessage("/FileMonitorSlider", processor.getFilePlaybackMonitor());
+    
+    // Send soundboard controls
+    if (auto* param = vts.getParameter(SonobusAudioProcessor::paramSendSoundboardAudio)) {
+        oscManager.sendMessage("/SoundboardSendButton", param->getValue() > 0.5f ? 1 : 0);
+    }
+    if (processor.getSoundboardProcessor()) {
+        oscManager.sendMessage("/SoundboardLevelSlider", processor.getSoundboardProcessor()->getGain());
+        oscManager.sendMessage("/SoundboardMonitorSlider", processor.getSoundboardProcessor()->getMonitorGain());
+    }
+    
+    // Send metronome additional controls
+    oscManager.sendMessage("/MetPanSlider", processor.getMetronomePan());
+    oscManager.sendMessage("/MetMonitorSlider", processor.getMetronomeMonitor());
+    
+    // Send input reverb controls
+    if (auto* param = vts.getParameter(SonobusAudioProcessor::paramInputReverbLevel)) {
+        oscManager.sendMessage("/InputReverbLevel", param->convertFrom0to1(param->getValue()));
+    }
+    if (auto* param = vts.getParameter(SonobusAudioProcessor::paramInputReverbSize)) {
+        oscManager.sendMessage("/InputReverbSize", param->convertFrom0to1(param->getValue()));
+    }
+    if (auto* param = vts.getParameter(SonobusAudioProcessor::paramInputReverbDamping)) {
+        oscManager.sendMessage("/InputReverbDamping", param->convertFrom0to1(param->getValue()));
+    }
+    if (auto* param = vts.getParameter(SonobusAudioProcessor::paramInputReverbPreDelay)) {
+        oscManager.sendMessage("/InputReverbPreDelay", param->convertFrom0to1(param->getValue()));
+    }
     
     // Send reverb controls
     if (mReverbEnabledButton) {
