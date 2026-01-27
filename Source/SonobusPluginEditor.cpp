@@ -1476,8 +1476,8 @@ void SonobusAudioProcessorEditor::registerAllOSCControls()
     
     // Register RecvSyncButton - triggers button click event (accepts only integer 1)
     oscManager.registerControl("/RecvSyncButton", [this](const juce::OSCMessage& message) {
-        if (message.size() > 0 && message[0].isInt32()) {
-            int value = message[0].getInt32();
+        if (message.size() > 0 && message[0].isFloat32()) {
+            int value = message[0].getFloat32();
             if (value == 1) {
                 juce::MessageManager::callAsync([this]() {
                     if (mRecvSyncButton) {
@@ -1649,8 +1649,8 @@ void SonobusAudioProcessorEditor::registerAllOSCControls()
     
     // Register BufferMinButton - triggers buffer reset button click event (accepts only integer 1)
     oscManager.registerControl("/BufferMinButton", [this](const juce::OSCMessage& message) {
-        if (message.size() > 0 && message[0].isInt32()) {
-            int value = message[0].getInt32();
+        if (message.size() > 0 && message[0].isFloat32()) {
+            int value = message[0].getFloat32();
             if (value == 1) {
                 juce::MessageManager::callAsync([this]() {
                     if (mBufferMinButton) {
