@@ -4429,18 +4429,17 @@ float SonobusAudioProcessorEditor::getDefaultPeerLevel() const
 
 void SonobusAudioProcessorEditor::clearPeerOSCState(int peerIndex)
 {
-    DBG("clearPeerOSCState called for peerIndex: " << peerIndex);
+    juce::Logger::writeToLog("clearPeerOSCState called for peerIndex: " + String(peerIndex));
     
     if (!processor.getOSCEnabled() || peerIndex < 0 || peerIndex >= 16) {
-        DBG("clearPeerOSCState early return - OSCEnabled: " << processor.getOSCEnabled() << ", peerIndex: " << peerIndex);
+        juce::Logger::writeToLog("clearPeerOSCState early return - OSCEnabled: " + String(processor.getOSCEnabled()) + ", peerIndex: " + String(peerIndex));
         return;
     }
     
     OSCManager& oscManager = processor.getOSCManager();
     String peerNum = String(peerIndex + 1);
-    float defaultLevel = getDefaultPeerLevel();
     
-    DBG("Clearing OSC state for Peer" << peerNum << " with defaultLevel: " << defaultLevel);
+    juce::Logger::writeToLog("Clearing OSC state for Peer" + peerNum);
     
     // Clear username to empty string
     oscManager.sendMessage("/Peer" + peerNum + "RemotePeerUserName", "");
@@ -4448,7 +4447,7 @@ void SonobusAudioProcessorEditor::clearPeerOSCState(int peerIndex)
     // Clear all other peer controls to default/off states
     oscManager.sendMessage("/Peer" + peerNum + "Mute", 0);
     oscManager.sendMessage("/Peer" + peerNum + "Solo", 0);
-    oscManager.sendMessage("/Peer" + peerNum + "Level", defaultLevel);
+    oscManager.sendMessage("/Peer" + peerNum + "Level", 0);
     oscManager.sendMessage("/Peer" + peerNum + "Pan", 0.0f);  // Center pan
     
     // Clear compressor
@@ -4828,25 +4827,25 @@ void SonobusAudioProcessorEditor::aooClientPeerLeft(SonobusAudioProcessor *comp,
     int peerIndex = -1;
     if (processor.getOSCEnabled()) {
         int numPeers = processor.getNumberRemotePeers();
-        DBG("Looking for peer '" << user << "' among " << numPeers << " peers for OSC clear");
+        juce::Logger::writeToLog("Looking for peer '" + user + "' among " + String(numPeers) + " peers for OSC clear");
         for (int i = 0; i < jmin(numPeers, 16); ++i) {
             String peerName = processor.getRemotePeerUserName(i);
-            DBG("Checking peer " << i << ": " << peerName);
+            juce::Logger::writeToLog("Checking peer " + String(i) + ": " + peerName);
             if (peerName == user) {
                 peerIndex = i;
-                DBG("Found peer '" << user << "' at index " << peerIndex);
+                juce::Logger::writeToLog("Found peer '" + user + "' at index " + String(peerIndex));
                 break;
             }
         }
         if (peerIndex < 0) {
-            DBG("WARNING: Could not find peer '" << user << "' in peer list - OSC state will not be cleared");
+            juce::Logger::writeToLog("WARNING: Could not find peer '" + user + "' in peer list - OSC state will not be cleared");
         }
     }
     
     {
         const ScopedLock sl (clientStateLock);        
         // Store the peer index in floatVal so we can clear OSC state in async handler
-        DBG("Storing peerIndex " << peerIndex << " for peer '" << user << "' in PeerLeaveEvent");
+        juce::Logger::writeToLog("Storing peerIndex " + String(peerIndex) + " for peer '" + user + "' in PeerLeaveEvent");
         clientEvents.add(ClientEvent(ClientEvent::PeerLeaveEvent, group, true, "", user, static_cast<float>(peerIndex)));
     }
     triggerAsyncUpdate();
@@ -7507,10 +7506,7 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
             // (stored in floatVal field)
             if (processor.getOSCEnabled() && ev.floatVal >= 0.0f) {
                 int peerIndex = static_cast<int>(ev.floatVal);
-                DBG("PeerLeaveEvent async handler: calling clearPeerOSCState for peerIndex " << peerIndex << " (user: " << ev.user << ")");
                 clearPeerOSCState(peerIndex);
-            } else {
-                DBG("PeerLeaveEvent async handler: NOT clearing OSC - OSCEnabled: " << processor.getOSCEnabled() << ", floatVal: " << ev.floatVal);
             }
 
             mPeerContainer->peerLeftGroup(ev.group, ev.user);
