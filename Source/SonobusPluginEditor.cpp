@@ -7507,7 +7507,10 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
             // (stored in floatVal field)
             if (processor.getOSCEnabled() && ev.floatVal >= 0.0f) {
                 int peerIndex = static_cast<int>(ev.floatVal);
+                DBG("PeerLeaveEvent async handler: calling clearPeerOSCState for peerIndex " << peerIndex << " (user: " << ev.user << ")");
                 clearPeerOSCState(peerIndex);
+            } else {
+                DBG("PeerLeaveEvent async handler: NOT clearing OSC - OSCEnabled: " << processor.getOSCEnabled() << ", floatVal: " << ev.floatVal);
             }
 
             mPeerContainer->peerLeftGroup(ev.group, ev.user);
