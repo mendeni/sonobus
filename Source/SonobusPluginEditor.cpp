@@ -4432,7 +4432,7 @@ void SonobusAudioProcessorEditor::clearPeerOSCState(int peerIndex)
     juce::Logger::writeToLog("clearPeerOSCState called for peerIndex: " + String(peerIndex));
     
     if (!processor.getOSCEnabled() || peerIndex < 0 || peerIndex >= 16) {
-        juce::Logger::writeToLog("clearPeerOSCState early return - OSCEnabled: " + String(processor.getOSCEnabled()) + ", peerIndex: " + String(peerIndex));
+        juce::Logger::writeToLog("clearPeerOSCState early return - OSCEnabled: " + String(processor.getOSCEnabled() ? "true" : "false") + ", peerIndex: " + String(peerIndex));
         return;
     }
     
