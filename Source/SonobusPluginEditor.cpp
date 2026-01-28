@@ -5112,6 +5112,13 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
             mConnectButton->setTextJustification(Justification::centredTop);
             mConnectionTimeLabel->setEnabled(true);
 
+            // Clear OSC state for all peer slots when disconnecting
+            if (processor.getOSCEnabled()) {
+                for (int i = 0; i < 16; ++i) {
+                    clearPeerOSCState(i);
+                }
+            }
+
             if (processor.getWatchPublicGroups()) {
                 processor.leaveServerGroup(processor.getCurrentJoinedGroup());
             }
