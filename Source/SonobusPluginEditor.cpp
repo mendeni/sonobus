@@ -4232,12 +4232,7 @@ void SonobusAudioProcessorEditor::sendAllOSCState()
     // Send peer controls for all 16 slots
     // Send active peer states for existing peers, and empty states for unused slots
     int numPeers = processor.getNumberRemotePeers();
-    
-    // Get the default peer level from the options parameter
-    float defaultLevel = 1.0f;  // Fallback default
-    if (auto* param = vts.getParameter(SonobusAudioProcessor::paramDefaultPeerLevel)) {
-        defaultLevel = param->getValue();
-    }
+    float defaultLevel = getDefaultPeerLevel();
     
     for (int peerIndex = 0; peerIndex < 16; ++peerIndex) {
         String peerNum = String(peerIndex + 1);
@@ -4422,6 +4417,16 @@ void SonobusAudioProcessorEditor::sendPeerOSCState(int peerIndex)
     oscManager.sendMessage("/Peer" + peerNum + "PolarityInvert", polarityInvert ? 1 : 0);
 }
 
+float SonobusAudioProcessorEditor::getDefaultPeerLevel() const
+{
+    // Get the default peer level from the options parameter
+    float defaultLevel = 1.0f;  // Fallback default
+    if (auto* param = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramDefaultPeerLevel)) {
+        defaultLevel = param->getValue();
+    }
+    return defaultLevel;
+}
+
 void SonobusAudioProcessorEditor::clearPeerOSCState(int peerIndex)
 {
     DBG("clearPeerOSCState called for peerIndex: " << peerIndex);
@@ -4433,12 +4438,7 @@ void SonobusAudioProcessorEditor::clearPeerOSCState(int peerIndex)
     
     OSCManager& oscManager = processor.getOSCManager();
     String peerNum = String(peerIndex + 1);
-    
-    // Get the default peer level from the options parameter
-    float defaultLevel = 1.0f;  // Fallback default
-    if (auto* param = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramDefaultPeerLevel)) {
-        defaultLevel = param->getValue();
-    }
+    float defaultLevel = getDefaultPeerLevel();
     
     DBG("Clearing OSC state for Peer" << peerNum << " with defaultLevel: " << defaultLevel);
     

@@ -184,6 +184,7 @@ public:
     void sendAllOSCState();
     void sendPeerOSCState(int peerIndex);
     void clearPeerOSCState(int peerIndex);
+    float getDefaultPeerLevel() const;
 
 private:
 
