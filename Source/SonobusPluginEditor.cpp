@@ -1404,6 +1404,8 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     // Register OSC controls if OSC is enabled
     if (processor.getOSCEnabled()) {
         registerAllOSCControls();
+        // Send all OSC state on startup to ensure controllers receive complete state
+        sendAllOSCState();
     }
     
     // handles registering commands
@@ -4230,6 +4232,13 @@ void SonobusAudioProcessorEditor::sendAllOSCState()
     // Send peer controls for all 16 slots
     // Send active peer states for existing peers, and empty states for unused slots
     int numPeers = processor.getNumberRemotePeers();
+    
+    // Get the default peer level from the options parameter
+    float defaultLevel = 1.0f;  // Fallback default
+    if (auto* param = vts.getParameter(SonobusAudioProcessor::paramDefaultPeerLevel)) {
+        defaultLevel = param->getValue();
+    }
+    
     for (int peerIndex = 0; peerIndex < 16; ++peerIndex) {
         String peerNum = String(peerIndex + 1);
         
@@ -4300,7 +4309,7 @@ void SonobusAudioProcessorEditor::sendAllOSCState()
             oscManager.sendMessage("/Peer" + peerNum + "RemotePeerUserName", "");
             oscManager.sendMessage("/Peer" + peerNum + "Mute", 0);
             oscManager.sendMessage("/Peer" + peerNum + "Solo", 0);
-            oscManager.sendMessage("/Peer" + peerNum + "Level", 1.0f);
+            oscManager.sendMessage("/Peer" + peerNum + "Level", defaultLevel);
             oscManager.sendMessage("/Peer" + peerNum + "Pan", 0.0f);  // Center pan
             
             // Clear compressor
@@ -4422,13 +4431,19 @@ void SonobusAudioProcessorEditor::clearPeerOSCState(int peerIndex)
     OSCManager& oscManager = processor.getOSCManager();
     String peerNum = String(peerIndex + 1);
     
+    // Get the default peer level from the options parameter
+    float defaultLevel = 1.0f;  // Fallback default
+    if (auto* param = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramDefaultPeerLevel)) {
+        defaultLevel = param->getValue();
+    }
+    
     // Clear username to empty string
     oscManager.sendMessage("/Peer" + peerNum + "RemotePeerUserName", "");
     
     // Clear all other peer controls to default/off states
     oscManager.sendMessage("/Peer" + peerNum + "Mute", 0);
     oscManager.sendMessage("/Peer" + peerNum + "Solo", 0);
-    oscManager.sendMessage("/Peer" + peerNum + "Level", 1.0f);
+    oscManager.sendMessage("/Peer" + peerNum + "Level", defaultLevel);
     oscManager.sendMessage("/Peer" + peerNum + "Pan", 0.0f);  // Center pan
     
     // Clear compressor
