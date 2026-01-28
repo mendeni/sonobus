@@ -4424,7 +4424,10 @@ void SonobusAudioProcessorEditor::sendPeerOSCState(int peerIndex)
 
 void SonobusAudioProcessorEditor::clearPeerOSCState(int peerIndex)
 {
+    DBG("clearPeerOSCState called for peerIndex: " << peerIndex);
+    
     if (!processor.getOSCEnabled() || peerIndex < 0 || peerIndex >= 16) {
+        DBG("clearPeerOSCState early return - OSCEnabled: " << processor.getOSCEnabled() << ", peerIndex: " << peerIndex);
         return;
     }
     
@@ -4436,6 +4439,8 @@ void SonobusAudioProcessorEditor::clearPeerOSCState(int peerIndex)
     if (auto* param = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramDefaultPeerLevel)) {
         defaultLevel = param->getValue();
     }
+    
+    DBG("Clearing OSC state for Peer" << peerNum << " with defaultLevel: " << defaultLevel);
     
     // Clear username to empty string
     oscManager.sendMessage("/Peer" + peerNum + "RemotePeerUserName", "");
@@ -4823,17 +4828,25 @@ void SonobusAudioProcessorEditor::aooClientPeerLeft(SonobusAudioProcessor *comp,
     int peerIndex = -1;
     if (processor.getOSCEnabled()) {
         int numPeers = processor.getNumberRemotePeers();
+        DBG("Looking for peer '" << user << "' among " << numPeers << " peers for OSC clear");
         for (int i = 0; i < jmin(numPeers, 16); ++i) {
-            if (processor.getRemotePeerUserName(i) == user) {
+            String peerName = processor.getRemotePeerUserName(i);
+            DBG("Checking peer " << i << ": " << peerName);
+            if (peerName == user) {
                 peerIndex = i;
+                DBG("Found peer '" << user << "' at index " << peerIndex);
                 break;
             }
+        }
+        if (peerIndex < 0) {
+            DBG("WARNING: Could not find peer '" << user << "' in peer list - OSC state will not be cleared");
         }
     }
     
     {
         const ScopedLock sl (clientStateLock);        
         // Store the peer index in floatVal so we can clear OSC state in async handler
+        DBG("Storing peerIndex " << peerIndex << " for peer '" << user << "' in PeerLeaveEvent");
         clientEvents.add(ClientEvent(ClientEvent::PeerLeaveEvent, group, true, "", user, static_cast<float>(peerIndex)));
     }
     triggerAsyncUpdate();
