@@ -1404,6 +1404,8 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     // Register OSC controls if OSC is enabled
     if (processor.getOSCEnabled()) {
         registerAllOSCControls();
+        // Send all OSC state on startup to ensure controllers receive complete state
+        sendAllOSCState();
     }
     
     // handles registering commands
@@ -4159,6 +4161,38 @@ void SonobusAudioProcessorEditor::sendAllOSCState()
     if (auto* param = vts.getParameter(SonobusAudioProcessor::paramSendFileAudio)) {
         oscManager.sendMessage("/FileSendButton", param->getValue() > 0.5f ? 1 : 0);
     }
+    if (mPlaybackSlider) {
+        oscManager.sendMessage("/PlaybackSlider", static_cast<float>(mPlaybackSlider->getValue()));
+    }
+    oscManager.sendMessage("/FilePlaybackPreLevel", processor.getFilePlaybackGain());
+    oscManager.sendMessage("/FileMonitorSlider", processor.getFilePlaybackMonitor());
+    
+    // Send soundboard controls
+    if (auto* param = vts.getParameter(SonobusAudioProcessor::paramSendSoundboardAudio)) {
+        oscManager.sendMessage("/SoundboardSendButton", param->getValue() > 0.5f ? 1 : 0);
+    }
+    if (processor.getSoundboardProcessor()) {
+        oscManager.sendMessage("/SoundboardLevelSlider", processor.getSoundboardProcessor()->getGain());
+        oscManager.sendMessage("/SoundboardMonitorSlider", processor.getSoundboardProcessor()->getMonitorGain());
+    }
+    
+    // Send metronome additional controls
+    oscManager.sendMessage("/MetPanSlider", processor.getMetronomePan());
+    oscManager.sendMessage("/MetMonitorSlider", processor.getMetronomeMonitor());
+    
+    // Send input reverb controls
+    if (auto* param = vts.getParameter(SonobusAudioProcessor::paramInputReverbLevel)) {
+        oscManager.sendMessage("/InputReverbLevel", param->convertFrom0to1(param->getValue()));
+    }
+    if (auto* param = vts.getParameter(SonobusAudioProcessor::paramInputReverbSize)) {
+        oscManager.sendMessage("/InputReverbSize", param->convertFrom0to1(param->getValue()));
+    }
+    if (auto* param = vts.getParameter(SonobusAudioProcessor::paramInputReverbDamping)) {
+        oscManager.sendMessage("/InputReverbDamping", param->convertFrom0to1(param->getValue()));
+    }
+    if (auto* param = vts.getParameter(SonobusAudioProcessor::paramInputReverbPreDelay)) {
+        oscManager.sendMessage("/InputReverbPreDelay", param->convertFrom0to1(param->getValue()));
+    }
     
     // Send reverb controls
     if (mReverbEnabledButton) {
@@ -4195,66 +4229,79 @@ void SonobusAudioProcessorEditor::sendAllOSCState()
     }
     oscManager.sendMessage("/OptionsRecStealth", processor.getRecordStealth() ? 1 : 0);
     
-    // Send peer controls
+    // Send peer controls for all 16 slots
+    // Send active peer states for existing peers
     int numPeers = processor.getNumberRemotePeers();
-    for (int peerIndex = 0; peerIndex < jmin(numPeers, 16); ++peerIndex) {
-        // Send username (read-only control)
+    
+    for (int peerIndex = 0; peerIndex < numPeers && peerIndex < 16; ++peerIndex) {
+        String peerNum = String(peerIndex + 1);
+        
+        // Send active peer state
         String username = processor.getRemotePeerUserName(peerIndex);
-        oscManager.sendMessage("/Peer" + String(peerIndex + 1) + "RemotePeerUserName", username);
+        oscManager.sendMessage("/Peer" + peerNum + "RemotePeerUserName", username);
         
         // Peer mute/solo
         bool muted = !processor.getRemotePeerRecvAllow(peerIndex);
-        oscManager.sendMessage("/Peer" + String(peerIndex + 1) + "Mute", muted ? 1 : 0);
+        oscManager.sendMessage("/Peer" + peerNum + "Mute", muted ? 1 : 0);
         
         bool soloed = processor.getRemotePeerSoloed(peerIndex);
-        oscManager.sendMessage("/Peer" + String(peerIndex + 1) + "Solo", soloed ? 1 : 0);
+        oscManager.sendMessage("/Peer" + peerNum + "Solo", soloed ? 1 : 0);
         
         // Peer level
         float level = processor.getRemotePeerLevelGain(peerIndex);
-        oscManager.sendMessage("/Peer" + String(peerIndex + 1) + "Level", level);
+        oscManager.sendMessage("/Peer" + peerNum + "Level", level);
+        
+        // Peer pan
+        float pan = processor.getRemotePeerChannelPan(peerIndex, 0, 0);
+        oscManager.sendMessage("/Peer" + peerNum + "Pan", pan);
         
         // Peer FX - Compressor
         SonoAudio::CompressorParams compParams;
         processor.getRemotePeerCompressorParams(peerIndex, 0, compParams);
-        oscManager.sendMessage("/Peer" + String(peerIndex + 1) + "CompressorEnable", compParams.enabled ? 1 : 0);
-        oscManager.sendMessage("/Peer" + String(peerIndex + 1) + "CompressorThreshold", compParams.thresholdDb);
-        oscManager.sendMessage("/Peer" + String(peerIndex + 1) + "CompressorRatio", compParams.ratio);
-        oscManager.sendMessage("/Peer" + String(peerIndex + 1) + "CompressorAttack", compParams.attackMs);
-        oscManager.sendMessage("/Peer" + String(peerIndex + 1) + "CompressorRelease", compParams.releaseMs);
-        oscManager.sendMessage("/Peer" + String(peerIndex + 1) + "CompressorMakeupGain", compParams.makeupGainDb);
-        oscManager.sendMessage("/Peer" + String(peerIndex + 1) + "CompressorAuto", compParams.automakeupGain ? 1 : 0);
+        oscManager.sendMessage("/Peer" + peerNum + "CompressorEnable", compParams.enabled ? 1 : 0);
+        oscManager.sendMessage("/Peer" + peerNum + "CompressorThreshold", compParams.thresholdDb);
+        oscManager.sendMessage("/Peer" + peerNum + "CompressorRatio", compParams.ratio);
+        oscManager.sendMessage("/Peer" + peerNum + "CompressorAttack", compParams.attackMs);
+        oscManager.sendMessage("/Peer" + peerNum + "CompressorRelease", compParams.releaseMs);
+        oscManager.sendMessage("/Peer" + peerNum + "CompressorMakeupGain", compParams.makeupGainDb);
+        oscManager.sendMessage("/Peer" + peerNum + "CompressorAuto", compParams.automakeupGain ? 1 : 0);
         
         // Peer FX - Expander
         SonoAudio::CompressorParams expanderParams;
         processor.getRemotePeerExpanderParams(peerIndex, 0, expanderParams);
-        oscManager.sendMessage("/Peer" + String(peerIndex + 1) + "ExpanderEnable", expanderParams.enabled ? 1 : 0);
-        oscManager.sendMessage("/Peer" + String(peerIndex + 1) + "ExpanderNoiseFloor", expanderParams.thresholdDb);
-        oscManager.sendMessage("/Peer" + String(peerIndex + 1) + "ExpanderRatio", expanderParams.ratio);
-        oscManager.sendMessage("/Peer" + String(peerIndex + 1) + "ExpanderAttack", expanderParams.attackMs);
-        oscManager.sendMessage("/Peer" + String(peerIndex + 1) + "ExpanderRelease", expanderParams.releaseMs);
+        oscManager.sendMessage("/Peer" + peerNum + "ExpanderEnable", expanderParams.enabled ? 1 : 0);
+        oscManager.sendMessage("/Peer" + peerNum + "ExpanderNoiseFloor", expanderParams.thresholdDb);
+        oscManager.sendMessage("/Peer" + peerNum + "ExpanderRatio", expanderParams.ratio);
+        oscManager.sendMessage("/Peer" + peerNum + "ExpanderAttack", expanderParams.attackMs);
+        oscManager.sendMessage("/Peer" + peerNum + "ExpanderRelease", expanderParams.releaseMs);
         
         // Peer FX - EQ
         SonoAudio::ParametricEqParams eqParams;
         processor.getRemotePeerEqParams(peerIndex, 0, eqParams);
-        oscManager.sendMessage("/Peer" + String(peerIndex + 1) + "EqEnable", eqParams.enabled ? 1 : 0);
-        oscManager.sendMessage("/Peer" + String(peerIndex + 1) + "EqLowShelfFreq", eqParams.lowShelfFreq);
-        oscManager.sendMessage("/Peer" + String(peerIndex + 1) + "EqLowShelfGain", eqParams.lowShelfGain);
-        oscManager.sendMessage("/Peer" + String(peerIndex + 1) + "EqPara1Freq", eqParams.para1Freq);
-        oscManager.sendMessage("/Peer" + String(peerIndex + 1) + "EqPara1Gain", eqParams.para1Gain);
-        oscManager.sendMessage("/Peer" + String(peerIndex + 1) + "EqPara1Q", eqParams.para1Q);
-        oscManager.sendMessage("/Peer" + String(peerIndex + 1) + "EqHighShelfFreq", eqParams.highShelfFreq);
-        oscManager.sendMessage("/Peer" + String(peerIndex + 1) + "EqHighShelfGain", eqParams.highShelfGain);
-        oscManager.sendMessage("/Peer" + String(peerIndex + 1) + "EqPara2Freq", eqParams.para2Freq);
-        oscManager.sendMessage("/Peer" + String(peerIndex + 1) + "EqPara2Gain", eqParams.para2Gain);
-        oscManager.sendMessage("/Peer" + String(peerIndex + 1) + "EqPara2Q", eqParams.para2Q);
+        oscManager.sendMessage("/Peer" + peerNum + "EqEnable", eqParams.enabled ? 1 : 0);
+        oscManager.sendMessage("/Peer" + peerNum + "EqLowShelfFreq", eqParams.lowShelfFreq);
+        oscManager.sendMessage("/Peer" + peerNum + "EqLowShelfGain", eqParams.lowShelfGain);
+        oscManager.sendMessage("/Peer" + peerNum + "EqPara1Freq", eqParams.para1Freq);
+        oscManager.sendMessage("/Peer" + peerNum + "EqPara1Gain", eqParams.para1Gain);
+        oscManager.sendMessage("/Peer" + peerNum + "EqPara1Q", eqParams.para1Q);
+        oscManager.sendMessage("/Peer" + peerNum + "EqHighShelfFreq", eqParams.highShelfFreq);
+        oscManager.sendMessage("/Peer" + peerNum + "EqHighShelfGain", eqParams.highShelfGain);
+        oscManager.sendMessage("/Peer" + peerNum + "EqPara2Freq", eqParams.para2Freq);
+        oscManager.sendMessage("/Peer" + peerNum + "EqPara2Gain", eqParams.para2Gain);
+        oscManager.sendMessage("/Peer" + peerNum + "EqPara2Q", eqParams.para2Q);
         
         // Peer FX - Reverb Send
         float reverbSend = processor.getRemotePeerChannelReverbSend(peerIndex, 0);
-        oscManager.sendMessage("/Peer" + String(peerIndex + 1) + "InputReverbSend", reverbSend);
+        oscManager.sendMessage("/Peer" + peerNum + "InputReverbSend", reverbSend);
         
         // Peer FX - Polarity Invert
         bool polarityInvert = processor.getRemotePeerPolarityInvert(peerIndex, 0);
-        oscManager.sendMessage("/Peer" + String(peerIndex + 1) + "PolarityInvert", polarityInvert ? 1 : 0);
+        oscManager.sendMessage("/Peer" + peerNum + "PolarityInvert", polarityInvert ? 1 : 0);
+    }
+    
+    // Clear empty peer slots (from numPeers to 15) to ensure pristine state
+    for (int i = numPeers; i < 16; ++i) {
+        clearPeerOSCState(i);
     }
 }
 
@@ -4332,12 +4379,17 @@ void SonobusAudioProcessorEditor::sendPeerOSCState(int peerIndex)
 
 void SonobusAudioProcessorEditor::clearPeerOSCState(int peerIndex)
 {
+    juce::Logger::writeToLog("clearPeerOSCState called for peerIndex: " + String(peerIndex));
+    
     if (!processor.getOSCEnabled() || peerIndex < 0 || peerIndex >= 16) {
+        juce::Logger::writeToLog("clearPeerOSCState early return - OSCEnabled: " + String(processor.getOSCEnabled() ? "true" : "false") + ", peerIndex: " + String(peerIndex));
         return;
     }
     
     OSCManager& oscManager = processor.getOSCManager();
     String peerNum = String(peerIndex + 1);
+    
+    juce::Logger::writeToLog("Clearing OSC state for Peer" + peerNum);
     
     // Clear username to empty string
     oscManager.sendMessage("/Peer" + peerNum + "RemotePeerUserName", "");
@@ -4345,7 +4397,7 @@ void SonobusAudioProcessorEditor::clearPeerOSCState(int peerIndex)
     // Clear all other peer controls to default/off states
     oscManager.sendMessage("/Peer" + peerNum + "Mute", 0);
     oscManager.sendMessage("/Peer" + peerNum + "Solo", 0);
-    oscManager.sendMessage("/Peer" + peerNum + "Level", 1.0f);
+    oscManager.sendMessage("/Peer" + peerNum + "Level", 0);
     oscManager.sendMessage("/Peer" + peerNum + "Pan", 0.0f);  // Center pan
     
     // Clear compressor
@@ -4725,17 +4777,25 @@ void SonobusAudioProcessorEditor::aooClientPeerLeft(SonobusAudioProcessor *comp,
     int peerIndex = -1;
     if (processor.getOSCEnabled()) {
         int numPeers = processor.getNumberRemotePeers();
+        juce::Logger::writeToLog("Looking for peer '" + user + "' among " + String(numPeers) + " peers for OSC clear");
         for (int i = 0; i < jmin(numPeers, 16); ++i) {
-            if (processor.getRemotePeerUserName(i) == user) {
+            String peerName = processor.getRemotePeerUserName(i);
+            juce::Logger::writeToLog("Checking peer " + String(i) + ": " + peerName);
+            if (peerName == user) {
                 peerIndex = i;
+                juce::Logger::writeToLog("Found peer '" + user + "' at index " + String(peerIndex));
                 break;
             }
+        }
+        if (peerIndex < 0) {
+            juce::Logger::writeToLog("WARNING: Could not find peer '" + user + "' in peer list - OSC state will not be cleared");
         }
     }
     
     {
         const ScopedLock sl (clientStateLock);        
         // Store the peer index in floatVal so we can clear OSC state in async handler
+        juce::Logger::writeToLog("Storing peerIndex " + String(peerIndex) + " for peer '" + user + "' in PeerLeaveEvent");
         clientEvents.add(ClientEvent(ClientEvent::PeerLeaveEvent, group, true, "", user, static_cast<float>(peerIndex)));
     }
     triggerAsyncUpdate();
@@ -5051,6 +5111,13 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
             mConnectionTimeLabel->setText(TRANS("Last Session: ") + SonoUtility::durationToString(processor.getElapsedConnectedTime(), true), dontSendNotification);
             mConnectButton->setTextJustification(Justification::centredTop);
             mConnectionTimeLabel->setEnabled(true);
+
+            // Clear OSC state for all peer slots when disconnecting
+            if (processor.getOSCEnabled()) {
+                for (int i = 0; i < 16; ++i) {
+                    clearPeerOSCState(i);
+                }
+            }
 
             if (processor.getWatchPublicGroups()) {
                 processor.leaveServerGroup(processor.getCurrentJoinedGroup());
@@ -9223,6 +9290,12 @@ bool SonobusAudioProcessorEditor::perform (const InvocationInfo& info) {
             DBG("got disconnect!");
             
             if (currConnected && currGroup.isNotEmpty()) {
+                // Clear OSC state for all peer slots when disconnecting
+                if (processor.getOSCEnabled()) {
+                    for (int i = 0; i < 16; ++i) {
+                        clearPeerOSCState(i);
+                    }
+                }
                 buttonClicked(mConnectButton.get());
             }
 
