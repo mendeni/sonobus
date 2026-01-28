@@ -59,7 +59,8 @@ void OSCManager::sendMessage(const juce::String& address, const juce::var& value
     {
         if (value.isDouble())
         {
-            sender.send(address, static_cast<float>(value));  // Convert double to float
+            // Apply OSC_SCALE_FACTOR to float/double values
+            sender.send(address, static_cast<float>(value) * OSC_SCALE_FACTOR);
         }
         else if (value.isInt())
         {

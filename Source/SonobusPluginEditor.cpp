@@ -1450,7 +1450,7 @@ void SonobusAudioProcessorEditor::registerAllOSCControls()
     // Register OutGainSlider - updates slider value with a float
     oscManager.registerControl("/OutGainSlider", [this](const juce::OSCMessage& message) {
         if (message.size() > 0 && message[0].isFloat32()) {
-            float value = message[0].getFloat32();
+            float value = message[0].getFloat32() * OSC_INVERSE_SCALE_FACTOR;
             juce::MessageManager::callAsync([this, value]() {
                 if (mOutGainSlider) {
                     mOutGainSlider->setValue(value, juce::NotificationType::sendNotificationAsync);
@@ -1531,7 +1531,7 @@ void SonobusAudioProcessorEditor::registerAllOSCControls()
     // Register DrySlider - updates slider value with a float
     oscManager.registerControl("/DrySlider", [this](const juce::OSCMessage& message) {
         if (message.size() > 0 && message[0].isFloat32()) {
-            float value = message[0].getFloat32();
+            float value = message[0].getFloat32() * OSC_INVERSE_SCALE_FACTOR;
             juce::MessageManager::callAsync([this, value]() {
                 if (mDrySlider) {
                     mDrySlider->setValue(value, juce::NotificationType::sendNotificationAsync);
@@ -3301,7 +3301,7 @@ void SonobusAudioProcessorEditor::registerAllOSCControls()
         String peerLevelAddress = "/Peer" + String(peerIndex + 1) + "Level";
         oscManager.registerControl(peerLevelAddress, [this, peerIndex](const juce::OSCMessage& message) {
             if (message.size() > 0 && message[0].isFloat32()) {
-                float level = message[0].getFloat32();
+                float level = message[0].getFloat32() * OSC_INVERSE_SCALE_FACTOR;
                 juce::MessageManager::callAsync([this, peerIndex, level]() {
                     if (peerIndex < processor.getNumberRemotePeers()) {
                         processor.setRemotePeerLevelGain(peerIndex, level);
@@ -3322,7 +3322,7 @@ void SonobusAudioProcessorEditor::registerAllOSCControls()
         String peerPanAddress = "/Peer" + String(peerIndex + 1) + "Pan";
         oscManager.registerControl(peerPanAddress, [this, peerIndex](const juce::OSCMessage& message) {
             if (message.size() > 0 && message[0].isFloat32()) {
-                float pan = message[0].getFloat32();
+                float pan = message[0].getFloat32() * OSC_INVERSE_SCALE_FACTOR;
                 juce::MessageManager::callAsync([this, peerIndex, pan]() {
                     if (peerIndex < processor.getNumberRemotePeers()) {
                         // Set pan for channel group 0, channel 0

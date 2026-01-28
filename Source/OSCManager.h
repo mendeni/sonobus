@@ -4,6 +4,14 @@
 #include <functional>
 #include <map>
 
+// Global constant for OSC message scaling factor
+// Used to scale outbound float values for TouchOSC compatibility
+constexpr float OSC_SCALE_FACTOR = 0.5f;
+
+// Inverse scale factor for incoming OSC messages
+// Used to compensate for the outbound scaling on specific controls
+constexpr float OSC_INVERSE_SCALE_FACTOR = 2.0f;
+
 class OSCManager : private juce::OSCReceiver,
                    private juce::OSCReceiver::ListenerWithOSCAddress<juce::OSCReceiver::MessageLoopCallback>
 {
