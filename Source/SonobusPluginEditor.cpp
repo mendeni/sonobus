@@ -4232,7 +4232,6 @@ void SonobusAudioProcessorEditor::sendAllOSCState()
     // Send peer controls for all 16 slots
     // Send active peer states for existing peers, and empty states for unused slots
     int numPeers = processor.getNumberRemotePeers();
-    float defaultLevel = getDefaultPeerLevel();
     
     for (int peerIndex = 0; peerIndex < 16; ++peerIndex) {
         String peerNum = String(peerIndex + 1);
@@ -4304,7 +4303,7 @@ void SonobusAudioProcessorEditor::sendAllOSCState()
             oscManager.sendMessage("/Peer" + peerNum + "RemotePeerUserName", "");
             oscManager.sendMessage("/Peer" + peerNum + "Mute", 0);
             oscManager.sendMessage("/Peer" + peerNum + "Solo", 0);
-            oscManager.sendMessage("/Peer" + peerNum + "Level", defaultLevel);
+            oscManager.sendMessage("/Peer" + peerNum + "Level", 0);
             oscManager.sendMessage("/Peer" + peerNum + "Pan", 0.0f);  // Center pan
             
             // Clear compressor
@@ -4415,16 +4414,6 @@ void SonobusAudioProcessorEditor::sendPeerOSCState(int peerIndex)
     // Send polarity invert
     bool polarityInvert = processor.getRemotePeerPolarityInvert(peerIndex, 0);
     oscManager.sendMessage("/Peer" + peerNum + "PolarityInvert", polarityInvert ? 1 : 0);
-}
-
-float SonobusAudioProcessorEditor::getDefaultPeerLevel() const
-{
-    // Get the default peer level from the options parameter
-    float defaultLevel = 1.0f;  // Fallback default
-    if (auto* param = processor.getValueTreeState().getParameter(SonobusAudioProcessor::paramDefaultPeerLevel)) {
-        defaultLevel = param->getValue();
-    }
-    return defaultLevel;
 }
 
 void SonobusAudioProcessorEditor::clearPeerOSCState(int peerIndex)
@@ -9333,6 +9322,12 @@ bool SonobusAudioProcessorEditor::perform (const InvocationInfo& info) {
             DBG("got disconnect!");
             
             if (currConnected && currGroup.isNotEmpty()) {
+                // Clear OSC state for all peer slots when disconnecting
+                if (processor.getOSCEnabled()) {
+                    for (int i = 0; i < 16; ++i) {
+                        clearPeerOSCState(i);
+                    }
+                }
                 buttonClicked(mConnectButton.get());
             }
 
