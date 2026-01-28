@@ -3208,8 +3208,8 @@ void SonobusAudioProcessorEditor::registerAllOSCControls()
         // Peer Mute - Controls receive active state
         String peerMuteAddress = "/Peer" + String(peerIndex + 1) + "Mute";
         oscManager.registerControl(peerMuteAddress, [this, peerIndex](const juce::OSCMessage& message) {
-            if (message.size() > 0 && message[0].isInt32()) {
-                bool muted = message[0].getInt32() != 0;
+            if (message.size() > 0 && message[0].isFloat32()) {
+                bool muted = message[0].getFloat32() != 0.0f;
                 juce::MessageManager::callAsync([this, peerIndex, muted]() {
                     if (peerIndex < processor.getNumberRemotePeers()) {
                         // Match UI behavior: when muting, use setRemotePeerRecvAllow to turn off receiving and allow
@@ -3225,7 +3225,7 @@ void SonobusAudioProcessorEditor::registerAllOSCControls()
                         }
                         // Send OSC feedback
                         if (processor.getOSCEnabled()) {
-                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "Mute", muted ? 1 : 0);
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "Mute", muted ? 1.0 : 0.0);
                         }
                     }
                 });
@@ -3235,8 +3235,8 @@ void SonobusAudioProcessorEditor::registerAllOSCControls()
         // Peer Solo
         String peerSoloAddress = "/Peer" + String(peerIndex + 1) + "Solo";
         oscManager.registerControl(peerSoloAddress, [this, peerIndex](const juce::OSCMessage& message) {
-            if (message.size() > 0 && message[0].isInt32()) {
-                bool soloed = message[0].getInt32() != 0;
+            if (message.size() > 0 && message[0].isFloat32()) {
+                bool soloed = message[0].getFloat32() != 0.0f;
                 juce::MessageManager::callAsync([this, peerIndex, soloed]() {
                     if (peerIndex < processor.getNumberRemotePeers()) {
                         processor.setRemotePeerSoloed(peerIndex, soloed);
@@ -3246,7 +3246,7 @@ void SonobusAudioProcessorEditor::registerAllOSCControls()
                         }
                         // Send OSC feedback
                         if (processor.getOSCEnabled()) {
-                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "Solo", soloed ? 1 : 0);
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "Solo", soloed ? 1.0 : 0.0);
                         }
                     }
                 });
@@ -4242,10 +4242,10 @@ void SonobusAudioProcessorEditor::sendAllOSCState()
         
         // Peer mute/solo
         bool muted = !processor.getRemotePeerRecvAllow(peerIndex);
-        oscManager.sendMessage("/Peer" + peerNum + "Mute", muted ? 1 : 0);
+        oscManager.sendMessage("/Peer" + peerNum + "Mute", muted ? 1.0 : 0.0);
         
         bool soloed = processor.getRemotePeerSoloed(peerIndex);
-        oscManager.sendMessage("/Peer" + peerNum + "Solo", soloed ? 1 : 0);
+        oscManager.sendMessage("/Peer" + peerNum + "Solo", soloed ? 1.0 : 0.0);
         
         // Peer level
         float level = processor.getRemotePeerLevelGain(peerIndex);
@@ -4320,10 +4320,10 @@ void SonobusAudioProcessorEditor::sendPeerOSCState(int peerIndex)
     
     // Send peer mute/solo
     bool muted = !processor.getRemotePeerRecvAllow(peerIndex);
-    oscManager.sendMessage("/Peer" + peerNum + "Mute", muted ? 1 : 0);
+    oscManager.sendMessage("/Peer" + peerNum + "Mute", muted ? 1.0 : 0.0);
     
     bool soloed = processor.getRemotePeerSoloed(peerIndex);
-    oscManager.sendMessage("/Peer" + peerNum + "Solo", soloed ? 1 : 0);
+    oscManager.sendMessage("/Peer" + peerNum + "Solo", soloed ? 1.0 : 0.0);
     
     // Send peer level
     float level = processor.getRemotePeerLevelGain(peerIndex);
@@ -4395,8 +4395,8 @@ void SonobusAudioProcessorEditor::clearPeerOSCState(int peerIndex)
     oscManager.sendMessage("/Peer" + peerNum + "RemotePeerUserName", "");
     
     // Clear all other peer controls to default/off states
-    oscManager.sendMessage("/Peer" + peerNum + "Mute", 0);
-    oscManager.sendMessage("/Peer" + peerNum + "Solo", 0);
+    oscManager.sendMessage("/Peer" + peerNum + "Mute", 0.0);
+    oscManager.sendMessage("/Peer" + peerNum + "Solo", 0.0);
     oscManager.sendMessage("/Peer" + peerNum + "Level", 0);
     oscManager.sendMessage("/Peer" + peerNum + "Pan", 0.0f);  // Center pan
     
