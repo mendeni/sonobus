@@ -38,12 +38,12 @@ jobs:
 
       - name: Stage TouchOSC
         run: |
-           cp -a util/SonoBusMendeni.tosc build/SonoBusMendeni_artefacts/Release
+           cp util/SonoBusMendeni.tosc build/SonoBusMendeni_artefacts/Release
 
       - name: Stage VST3 Install Script (macOS)
         if: runner.os == 'macOS'
         run: |
-           cp -a util/install-macos-vst3.sh build/SonoBusMendeni_artefacts/Release
+           cp util/install-macos-vst3.sh build/SonoBusMendeni_artefacts/Release
 
       - name: Upload Sonobus artifacts (Windows & Linux)
         if: runner.os != 'macOS'
