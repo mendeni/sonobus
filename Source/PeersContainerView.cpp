@@ -2034,7 +2034,7 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
                 
                 // Send OSC feedback for Peer Mute (only for first 16 peers)
                 if (processor.getOSCEnabled() && i < 16) {
-                    processor.getOSCManager().sendMessage("/Peer" + String(i + 1) + "Mute", pvf->recvMutedButton->getToggleState() ? 1 : 0);
+                    processor.getOSCManager().sendMessage("/Peer" + String(i + 1) + "Mute", pvf->recvMutedButton->getToggleState() ? 1.0 : 0.0);
                 }
             }
             return;
@@ -2055,7 +2055,7 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
                     // Send OSC feedback for each peer Solo state (only for first 16 peers)
                     if (processor.getOSCEnabled() && j < 16) {
                         bool soloState = buttonThatWasClicked->getToggleState() && (i == j);
-                        processor.getOSCManager().sendMessage("/Peer" + String(j + 1) + "Solo", soloState ? 1 : 0);
+                        processor.getOSCManager().sendMessage("/Peer" + String(j + 1) + "Solo", soloState ? 1.0 : 0.0);
                     }
                 }
                     
@@ -2068,7 +2068,7 @@ void PeersContainerView::buttonClicked (Button* buttonThatWasClicked)
                 
                 // Send OSC feedback for Peer Solo (only for first 16 peers)
                 if (processor.getOSCEnabled() && i < 16) {
-                    processor.getOSCManager().sendMessage("/Peer" + String(i + 1) + "Solo", buttonThatWasClicked->getToggleState() ? 1 : 0);
+                    processor.getOSCManager().sendMessage("/Peer" + String(i + 1) + "Solo", buttonThatWasClicked->getToggleState() ? 1.0 : 0.0);
                 }
                 
                 updatePeerViews();

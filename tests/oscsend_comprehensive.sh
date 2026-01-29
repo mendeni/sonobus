@@ -475,14 +475,14 @@ oscsend localhost 6000 /OptionsRecMixMinusButton i 0
 sleep 2
 
 echo "=== Peer 1 Controls ==="
-oscsend localhost 6000 /Peer1Mute i 1
+oscsend localhost 6000 /Peer1Mute f 1.0
 sleep 2
-oscsend localhost 6000 /Peer1Mute i 0
+oscsend localhost 6000 /Peer1Mute f 0.0
 sleep 2
 
-oscsend localhost 6000 /Peer1Solo i 1
+oscsend localhost 6000 /Peer1Solo f 1.0
 sleep 2
-oscsend localhost 6000 /Peer1Solo i 0
+oscsend localhost 6000 /Peer1Solo f 0.0
 sleep 2
 
 echo "=== Peer 1 Utility Controls ==="
@@ -580,14 +580,14 @@ oscsend localhost 6000 /Peer1EqEnable i 0
 sleep 2
 
 echo "=== Peer 2 Controls (if connected) ==="
-oscsend localhost 6000 /Peer2Mute i 1
+oscsend localhost 6000 /Peer2Mute f 1.0
 sleep 2
-oscsend localhost 6000 /Peer2Mute i 0
+oscsend localhost 6000 /Peer2Mute f 0.0
 sleep 2
 
-oscsend localhost 6000 /Peer2Solo i 1
+oscsend localhost 6000 /Peer2Solo f 1.0
 sleep 2
-oscsend localhost 6000 /Peer2Solo i 0
+oscsend localhost 6000 /Peer2Solo f 0.0
 sleep 2
 
 oscsend localhost 6000 /Peer2InputReverbSend f 0.5

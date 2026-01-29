@@ -572,7 +572,7 @@ SonoBus supports OSC control for up to 16 remote peers (connected users). Each p
 #### `/Peer[1-16]Mute`
 **Type**: Toggle Button  
 **Description**: Mutes/unmutes receiving audio from the specified peer  
-**Data Type**: Integer (0 = unmuted/receiving, 1 = muted/not receiving)  
+**Data Type**: Float (0.0 = unmuted/receiving, 1.0 = muted/not receiving)  
 **Examples**:
 - `/Peer1Mute` - Mutes/unmutes Peer 1
 - `/Peer2Mute` - Mutes/unmutes Peer 2
@@ -583,7 +583,7 @@ SonoBus supports OSC control for up to 16 remote peers (connected users). Each p
 #### `/Peer[1-16]Solo`
 **Type**: Toggle Button  
 **Description**: Solos/unsolos the specified peer  
-**Data Type**: Integer (0 = not soloed, 1 = soloed)  
+**Data Type**: Float (0.0 = not soloed, 1.0 = soloed)  
 **Examples**:
 - `/Peer1Solo` - Solos/unsolos Peer 1
 - `/Peer2Solo` - Solos/unsolos Peer 2
@@ -1083,13 +1083,13 @@ The parametric EQ provides four bands of equalization: low shelf, two parametric
 /OptionsFormatChoiceDefaultChoice 4
 
 # Mute Peer 1
-/Peer1Mute 1
+/Peer1Mute 1.0
 
 # Unmute Peer 1
-/Peer1Mute 0
+/Peer1Mute 0.0
 
 # Solo Peer 2
-/Peer2Solo 1
+/Peer2Solo 1.0
 
 # Enable compressor for Peer 1
 /Peer1CompressorEnable 1
@@ -1143,10 +1143,10 @@ client.send_message("/MetTempoSlider", 120.0)
 client.send_message("/RecordingButton", 1)
 
 # Mute Peer 1
-client.send_message("/Peer1Mute", 1)
+client.send_message("/Peer1Mute", 1.0)
 
 # Solo Peer 2
-client.send_message("/Peer2Solo", 1)
+client.send_message("/Peer2Solo", 1.0)
 
 # Enable compressor for Peer 1
 client.send_message("/Peer1CompressorEnable", 1)
@@ -1170,8 +1170,8 @@ Create controls with the following OSC addresses:
 - Fader with address `/OutGainSlider` sending float values
 - Button with address `/RecordingButton` sending 0/1
 - XY Pad with `/MetTempoSlider` on one axis
-- Toggle buttons for `/Peer1Mute`, `/Peer2Mute`, etc. sending 0/1
-- Toggle buttons for `/Peer1Solo`, `/Peer2Solo`, etc. sending 0/1
+- Toggle buttons for `/Peer1Mute`, `/Peer2Mute`, etc. sending 0.0/1.0
+- Toggle buttons for `/Peer1Solo`, `/Peer2Solo`, etc. sending 0.0/1.0
 - Faders for peer FX controls like `/Peer1CompressorThreshold`, `/Peer1EqLowShelfGain`, etc.
 
 ## Receiving OSC Messages from SonoBus
