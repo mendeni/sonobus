@@ -4229,6 +4229,15 @@ void SonobusAudioProcessorEditor::sendAllOSCState()
     }
     oscManager.sendMessage("/OptionsRecStealth", processor.getRecordStealth() ? 1 : 0);
     
+    // Send recording options controls
+    uint32 recOptions = processor.getDefaultRecordingOptions();
+    oscManager.sendMessage("/OptionsRecMixButton", (recOptions & SonobusAudioProcessor::RecordMix) ? 1 : 0);
+    oscManager.sendMessage("/OptionsRecMixMinusButton", (recOptions & SonobusAudioProcessor::RecordMixMinusSelf) ? 1 : 0);
+    oscManager.sendMessage("/OptionsRecSelfButton", (recOptions & SonobusAudioProcessor::RecordSelf) ? 1 : 0);
+    oscManager.sendMessage("/OptionsRecOthersButton", (recOptions & SonobusAudioProcessor::RecordIndividualUsers) ? 1 : 0);
+    oscManager.sendMessage("/OptionsRecSelfPostFxButton", !processor.getSelfRecordingPreFX() ? 1 : 0);
+    oscManager.sendMessage("/OptionsRecSelfSilenceMutedButton", processor.getSelfRecordingSilenceWhenMuted() ? 1 : 0);
+    
     // Send peer controls for all 16 slots
     // Send active peer states for existing peers
     int numPeers = processor.getNumberRemotePeers();
