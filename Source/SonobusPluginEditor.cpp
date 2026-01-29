@@ -7412,6 +7412,13 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
             if (ev.success) {
                 statstr = TRANS("Left Group: ") + ev.group;
                 mChatView->addNewChatMessage(SBChatEvent(SBChatEvent::SystemType, ev.group, "", "", "", statstr));
+                
+                // Clear OSC state for all peer slots when leaving group
+                if (processor.getOSCEnabled()) {
+                    for (int i = 0; i < 16; ++i) {
+                        clearPeerOSCState(i);
+                    }
+                }
             } else {
                 // this situation is frequent but inactionable by users
                 // statstr = TRANS("Failed to leave group: ") + ev.message;

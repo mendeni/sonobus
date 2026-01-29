@@ -4404,6 +4404,9 @@ int32_t SonobusAudioProcessor::handleClientEvents(const aoo_event ** events, int
 
                 DBG("Peer leave group " <<  e->group << " - user " << e->user);
 
+                // Notify listeners BEFORE removing peer so they can capture peer index for OSC cleanup
+                clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientPeerLeft, this, CharPointer_UTF8 (e->group), CharPointer_UTF8 (e->user));
+
                 EndpointState * endpoint = findOrAddRawEndpoint(e->address);
                 if (endpoint) {
                     
@@ -4411,7 +4414,6 @@ int32_t SonobusAudioProcessor::handleClientEvents(const aoo_event ** events, int
                 }
                 
                 //aoo_node_remove_peer(x->x_node, gensym(e->group), gensym(e->user));
-                clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientPeerLeft, this, CharPointer_UTF8 (e->group), CharPointer_UTF8 (e->user));
 
             } else {
                 DBG("bug bad result on leave event");
