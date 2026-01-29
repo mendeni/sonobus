@@ -53,6 +53,7 @@ jobs:
           path: |
             build/SonoBusMendeni_artefacts/Release/Standalone
             build/SonoBusMendeni_artefacts/Release/VST3
+            build/SonoBusMendeni_artefacts/Release/SonoBusMendeni.tosc
 
       - name: Upload Sonobus artifacts
         if: runner.os == 'macOS'
