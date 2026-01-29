@@ -36,6 +36,10 @@ jobs:
           cmake --build build --config Release --target SonoBusMendeni_Standalone
           cmake --build build --config Release --target SonoBusMendeni_VST3
 
+      - name: Stage TouchOSC
+        run: |
+           cp -a util/SonoBusMendeni.tosc build/SonoBusMendeni_artefacts/Release
+
       - name: Stage VST3 Install Script (macOS)
         if: runner.os == 'macOS'
         run: |
