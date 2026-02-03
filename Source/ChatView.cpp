@@ -527,8 +527,8 @@ void ChatView::refreshMessages()
         processNewChatMessages(processor.getAllChatEvents().size() - count, count);
         
         // Auto-focus on new messages for accessibility (screen reader support)
-        // Only if chat is visible and input doesn't already have focus
-        if (isVisible() && !mChatSendTextEditor->hasKeyboardFocus(true)) {
+        // Only if chat is visible and chat view doesn't already have focus
+        if (isVisible() && !hasKeyboardFocus(true)) {
             setFocusToChat();
         }
     }
