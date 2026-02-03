@@ -9136,7 +9136,7 @@ void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCo
                           TRANS("Popup"), 0);
             info.setActive(currConnected && !currGroup.isEmpty());
             if (useKeybindings) {
-                info.addDefaultKeypress ('j', ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
+                info.addDefaultKeypress ('j', ModifierKeys::commandModifier);
             }
             break;
         case SonobusCommands::RecvSyncToggle:
@@ -9145,7 +9145,7 @@ void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCo
                           TRANS("Popup"), 0);
             info.setActive(currConnected && !currGroup.isEmpty());
             if (useKeybindings) {
-                info.addDefaultKeypress ('j', ModifierKeys::commandModifier);
+                info.addDefaultKeypress ('j', ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
             }
             break;
 
