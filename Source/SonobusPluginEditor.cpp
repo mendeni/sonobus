@@ -9148,6 +9148,24 @@ void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCo
                 info.addDefaultKeypress ('j', ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
             }
             break;
+        case SonobusCommands::FocusChatInput:
+            info.setInfo (TRANS("Focus Chat Input"),
+                          TRANS("Focus the chat input field"),
+                          TRANS("Popup"), 0);
+            info.setActive(true);
+            if (useKeybindings) {
+                info.addDefaultKeypress ('j', ModifierKeys::commandModifier | ModifierKeys::altModifier);
+            }
+            break;
+        case SonobusCommands::ClearChatMessages:
+            info.setInfo (TRANS("Clear All Chat Messages"),
+                          TRANS("Clear all chat messages in the chat pane"),
+                          TRANS("Popup"), 0);
+            info.setActive(true);
+            if (useKeybindings) {
+                info.addDefaultKeypress ('k', ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
+            }
+            break;
 
     }
 }
@@ -9186,6 +9204,8 @@ void SonobusAudioProcessorEditor::getAllCommands (Array<CommandID>& cmds) {
     cmds.add(SonobusCommands::SuggestNewGroup);
     cmds.add(SonobusCommands::ResetAllJitterBuffers);
     cmds.add(SonobusCommands::RecvSyncToggle);
+    cmds.add(SonobusCommands::FocusChatInput);
+    cmds.add(SonobusCommands::ClearChatMessages);
 
 }
 
@@ -9358,6 +9378,22 @@ bool SonobusAudioProcessorEditor::perform (const InvocationInfo& info) {
         case SonobusCommands::RecvSyncToggle:
             if (mRecvSyncButton) {
                 buttonClicked(mRecvSyncButton.get());
+            }
+            break;
+        case SonobusCommands::FocusChatInput:
+            DBG("got focus chat input!");
+            if (mChatView) {
+                if (!mChatView->isVisible()) {
+                    showChatPanel(true);
+                    resized();
+                }
+                mChatView->setFocusToChat();
+            }
+            break;
+        case SonobusCommands::ClearChatMessages:
+            DBG("got clear chat messages!");
+            if (mChatView) {
+                mChatView->clearAll();
             }
             break;
 
