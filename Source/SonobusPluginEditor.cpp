@@ -9136,6 +9136,15 @@ void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCo
                           TRANS("Popup"), 0);
             info.setActive(currConnected && !currGroup.isEmpty());
             if (useKeybindings) {
+                info.addDefaultKeypress ('j', ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
+            }
+            break;
+        case SonobusCommands::RecvSyncToggle:
+            info.setInfo (TRANS("Synchronize Receive"),
+                          TRANS("Synchronize receive latency for all users"),
+                          TRANS("Popup"), 0);
+            info.setActive(currConnected && !currGroup.isEmpty());
+            if (useKeybindings) {
                 info.addDefaultKeypress ('j', ModifierKeys::commandModifier);
             }
             break;
@@ -9176,6 +9185,7 @@ void SonobusAudioProcessorEditor::getAllCommands (Array<CommandID>& cmds) {
     cmds.add(SonobusCommands::VDONinjaVideoLink);
     cmds.add(SonobusCommands::SuggestNewGroup);
     cmds.add(SonobusCommands::ResetAllJitterBuffers);
+    cmds.add(SonobusCommands::RecvSyncToggle);
 
 }
 
@@ -9344,6 +9354,11 @@ bool SonobusAudioProcessorEditor::perform (const InvocationInfo& info) {
             break;
         case SonobusCommands::ResetAllJitterBuffers:
             resetJitterBufferForAll();
+            break;
+        case SonobusCommands::RecvSyncToggle:
+            if (mRecvSyncButton) {
+                buttonClicked(mRecvSyncButton.get());
+            }
             break;
 
         default:
