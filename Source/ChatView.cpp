@@ -302,6 +302,11 @@ void ChatView::setFocusToChat()
     mChatSendTextEditor->grabKeyboardFocus();
 }
 
+void ChatView::setFocusToMessageDisplay()
+{
+    mChatTextEditor->grabKeyboardFocus();
+}
+
 
 void ChatView::updateTitles()
 {
@@ -527,9 +532,9 @@ void ChatView::refreshMessages()
         processNewChatMessages(processor.getAllChatEvents().size() - count, count);
         
         // Auto-focus on new messages for accessibility (screen reader support)
-        // Only if chat is visible and chat view doesn't already have focus
-        if (isVisible() && !hasKeyboardFocus(true)) {
-            setFocusToChat();
+        // Focus the message display window (not the input field)
+        if (!hasKeyboardFocus(true)) {
+            setFocusToMessageDisplay();
         }
     }
 }

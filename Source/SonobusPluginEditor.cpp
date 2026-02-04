@@ -7509,6 +7509,10 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
 
     if (haveNewChatEvents.compareAndSetBool(false, true))
     {
+        // Show chat panel if not already visible (for accessibility)
+        if (!mChatView->isVisible()) {
+            showChatPanel(true, false);
+        }
         mChatView->refreshMessages();
     }
 
