@@ -532,10 +532,10 @@ void ChatView::refreshMessages()
         processNewChatMessages(processor.getAllChatEvents().size() - count, count);
         
         // Auto-focus on new messages for accessibility (screen reader support)
-        // Focus the message display window (not the input field)
-        if (!hasKeyboardFocus(true)) {
-            setFocusToMessageDisplay();
-        }
+        // Always focus the message display window when new messages arrive,
+        // even if user is typing in the input box. This ensures screen readers
+        // can announce new messages immediately.
+        setFocusToMessageDisplay();
     }
 }
 
