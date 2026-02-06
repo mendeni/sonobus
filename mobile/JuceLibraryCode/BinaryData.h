@@ -248,12 +248,6 @@ namespace BinaryData
     extern const char*   receive_sync_svg;
     const int            receive_sync_svgSize = 4512;
 
-    extern const char*   rectapestealth_svg;
-    const int            rectapestealth_svgSize = 2514;
-
-    extern const char*   receive_sync_svg;
-    const int            receive_sync_svgSize = 4512;
-
     extern const char*   replay_icon_svg;
     const int            replay_icon_svgSize = 4292;
 
