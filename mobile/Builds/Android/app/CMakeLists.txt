@@ -256,6 +256,8 @@ add_library( ${BINARY_NAME}
     "../../../../Source/MVerb.h"
     "../../../../Source/OptionsView.cpp"
     "../../../../Source/OptionsView.h"
+    "../../../../Source/OSCManager.cpp"
+    "../../../../Source/OSCManager.h"
     "../../../../Source/ParametricEqView.h"
     "../../../../Source/PeersContainerView.cpp"
     "../../../../Source/PeersContainerView.h"
