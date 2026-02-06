@@ -2299,6 +2299,7 @@ add_library( ${BINARY_NAME}
     "../../../JuceLibraryCode/include_juce_gui_basics.cpp"
     "../../../JuceLibraryCode/include_juce_gui_extra.cpp"
     "../../../JuceLibraryCode/include_juce_opengl.cpp"
+    "../../../JuceLibraryCode/include_juce_osc.cpp"
     "../../../JuceLibraryCode/JuceHeader.h"
     "../../../JuceLibraryCode/JucePluginDefines.h"
 )
