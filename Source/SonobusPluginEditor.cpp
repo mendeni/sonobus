@@ -7374,7 +7374,8 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
 
                 showConnectPopup(false);
 
-                mChatView->addNewChatMessage(SBChatEvent(SBChatEvent::SystemType, ev.group, "", "", "", statstr));
+                // these interfere with screen readers
+                // mChatView->addNewChatMessage(SBChatEvent(SBChatEvent::SystemType, ev.group, "", "", "", statstr));
 
                 if (JUCEApplicationBase::isStandaloneApp() && saveSettingsIfNeeded) {
                     DBG("Saving settings");
@@ -7445,11 +7446,12 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
         else if (ev.type == ClientEvent::PeerJoinEvent) {
             DBG("Peer " << ev.user << "joined doing full update");
 
-            if (!currConnectionInfo.groupIsPublic) {
-                String mesg;
-                mesg << ev.user << TRANS(" - joined group");
-                mChatView->addNewChatMessage(SBChatEvent(SBChatEvent::SystemType, ev.group, ev.user, "", "", mesg));
-            }
+            // these interfere with screen readers
+            // if (!currConnectionInfo.groupIsPublic) {
+            //     String mesg;
+            //     mesg << ev.user << TRANS(" - joined group");
+            //     mChatView->addNewChatMessage(SBChatEvent(SBChatEvent::SystemType, ev.group, ev.user, "", "", mesg));
+            // }
 
             // delay update and send OSC state
             Timer::callAfterDelay(200, [this, username = ev.user] {
@@ -7469,11 +7471,12 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
             });
         }
         else if (ev.type == ClientEvent::PeerLeaveEvent) {
-            if (!currConnectionInfo.groupIsPublic) {
-                String mesg;
-                mesg << ev.user << TRANS(" - left group");
-                mChatView->addNewChatMessage(SBChatEvent(SBChatEvent::SystemType, ev.group, ev.user, "", "", mesg));
-            }
+            // these interfere with screen readers
+            // if (!currConnectionInfo.groupIsPublic) {
+            //     String mesg;
+            //     mesg << ev.user << TRANS(" - left group");
+            //     mChatView->addNewChatMessage(SBChatEvent(SBChatEvent::SystemType, ev.group, ev.user, "", "", mesg));
+            // }
 
             // Clear OSC state using the peer index that was captured when aooClientPeerLeft was called
             // (stored in floatVal field)
