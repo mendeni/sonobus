@@ -101,4 +101,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: SonoBusMendeni-Android
-          path: mobile/Builds/Android/app/build/outputs/apk/release_/release/app-release_-release.apk
+          path: mobile/Builds/Android/app/build/outputs/apk/**/*.apk
