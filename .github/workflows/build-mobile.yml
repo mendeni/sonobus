@@ -57,6 +57,24 @@ jobs:
       - name: Show Xcode version
         run: xcodebuild -version
 
+      - name: Regenerate Xcode project with Projucer
+        run: |
+          set -e
+          echo "Building Projucer..."
+          cd deps/juce/extras/Projucer/Builds/MacOSX
+          xcodebuild -project Projucer.xcodeproj \
+            -scheme Projucer \
+            -configuration Release \
+            build
+
+          echo "Running Projucer to regenerate mobile Xcode project..."
+          PROJUCER_APP="build/Release/Projucer.app/Contents/MacOS/Projucer"
+          cd "$GITHUB_WORKSPACE"
+          "$GITHUB_WORKSPACE/deps/juce/extras/Projucer/Builds/MacOSX/$PROJUCER_APP" \
+            --resave mobile/SonoBusMobile.jucer
+
+          echo "✅ Xcode project regenerated"
+
       - name: Build iOS app for iPhone and iPad
         working-directory: mobile/Builds/iOS
         run: |
