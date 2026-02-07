@@ -60,7 +60,10 @@ jobs:
       - name: Build iOS app for iPhone and iPad
         working-directory: mobile/Builds/iOS
         run: |
+          set -e  # Exit on any error
+
           # Build for iOS Device (iPhone and iPad)
+          echo "Building for iOS Device..."
           xcodebuild clean build \
             -project SonoBus.xcodeproj \
             -scheme "SonoBus - Standalone Plugin" \
@@ -70,16 +73,19 @@ jobs:
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
-            | xcpretty || true
+            | xcpretty
+          echo "✅ iOS Device build succeeded"
 
           # Build for iOS Simulator (iPhone and iPad)
+          echo "Building for iOS Simulator..."
           xcodebuild clean build \
             -project SonoBus.xcodeproj \
             -scheme "SonoBus - Standalone Plugin" \
             -configuration Release \
             -destination 'generic/platform=iOS Simulator' \
             -allowProvisioningUpdates \
-            | xcpretty || true
+            | xcpretty
+          echo "✅ iOS Simulator build succeeded"
 
       - name: Package iOS builds
         working-directory: mobile/Builds/iOS
