@@ -1,5 +1,5 @@
-# build for Android
-name: SonoBus — Build Android
+# build for Android and iOS
+name: SonoBus — Build Mobile
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
       - 1.7.*
 
 jobs:
-  build:
+  build-android:
     name: Build Android APK
     runs-on: ubuntu-latest
 
@@ -43,3 +43,62 @@ jobs:
         with:
           name: SonoBusMendeni-latest
           path: mobile/Builds/Android/app/build/outputs/apk/**/*.apk
+
+  build-ios:
+    name: Build iOS App
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Select Xcode version
+        run: sudo xcode-select -s /Applications/Xcode_15.2.app/Contents/Developer
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Build iOS app for iPhone and iPad
+        working-directory: mobile/Builds/iOS
+        run: |
+          # Build for iOS Device (iPhone and iPad)
+          xcodebuild clean build \
+            -project SonoBus.xcodeproj \
+            -scheme "SonoBus - Standalone Plugin" \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -allowProvisioningUpdates \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            | xcpretty || true
+
+          # Build for iOS Simulator (iPhone and iPad)
+          xcodebuild clean build \
+            -project SonoBus.xcodeproj \
+            -scheme "SonoBus - Standalone Plugin" \
+            -configuration Release \
+            -destination 'generic/platform=iOS Simulator' \
+            -allowProvisioningUpdates \
+            | xcpretty || true
+
+      - name: Package iOS builds
+        working-directory: mobile/Builds/iOS
+        run: |
+          # Create output directory
+          mkdir -p ios-builds
+
+          # Find and copy built apps
+          find ~/Library/Developer/Xcode/DerivedData -name "*.app" \
+            -path "*/Build/Products/Release-*" -exec cp -R {} ios-builds/ \; || true
+
+          # List what we found
+          ls -la ios-builds/
+
+      - name: Upload iOS builds
+        uses: actions/upload-artifact@v4
+        with:
+          name: SonoBusMendeni-iOS-latest
+          path: mobile/Builds/iOS/ios-builds/**/*
