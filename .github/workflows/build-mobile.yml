@@ -61,6 +61,7 @@ jobs:
         working-directory: mobile/Builds/iOS
         run: |
           set -e  # Exit on any error
+          set -o pipefail  # Ensure pipe failures are caught
 
           # Build for iOS Device (iPhone and iPad)
           echo "Building for iOS Device..."
@@ -83,11 +84,32 @@ jobs:
         working-directory: mobile/Builds/iOS
         run: |
           set -e  # Exit on any error
+          set -o pipefail  # Ensure pipe failures are caught
 
           # Create output directory
           mkdir -p ios-builds
 
           echo "=== Packaging iOS builds ==="
+
+          # Check if build actually produced binaries
+          echo "Checking for .app bundles..."
+          if [ -d "build/Release" ]; then
+            echo "Contents of build/Release:"
+            ls -lah build/Release/
+            if [ -d "build/Release/SonoBus.app" ]; then
+              echo ""
+              echo "Contents of SonoBus.app:"
+              ls -lah build/Release/SonoBus.app/
+              if [ -f "build/Release/SonoBus.app/SonoBus" ]; then
+                echo "✅ Binary found in .app bundle"
+                ls -lh build/Release/SonoBus.app/SonoBus
+              else
+                echo "❌ ERROR: No binary found in .app bundle!"
+                echo "This means the build failed to produce the executable."
+                exit 1
+              fi
+            fi
+          fi
 
           # Find and package .app bundles into .ipa files
           # An .ipa is a zip archive with a Payload directory containing the .app
@@ -95,7 +117,15 @@ jobs:
           for app_bundle in build/Release/*.app; do
             if [ -d "$app_bundle" ]; then
               app_name=$(basename "$app_bundle" .app)
+              echo ""
               echo "📦 Creating .ipa for $app_name..."
+
+              # Verify the binary exists before packaging
+              if [ ! -f "$app_bundle/$app_name" ]; then
+                echo "❌ ERROR: Binary $app_name not found in $app_bundle"
+                echo "Build did not complete successfully!"
+                exit 1
+              fi
 
               # Create temporary Payload directory
               mkdir -p "Payload"
@@ -119,6 +149,12 @@ jobs:
               if [ -d "$app_bundle" ]; then
                 app_name=$(basename "$app_bundle" .app)
                 echo "📦 Creating .ipa for $app_name (device)..."
+
+                # Verify the binary exists
+                if [ ! -f "$app_bundle/$app_name" ]; then
+                  echo "❌ ERROR: Binary $app_name not found in $app_bundle"
+                  exit 1
+                fi
 
                 mkdir -p "Payload"
                 cp -R "$app_bundle" "Payload/"
