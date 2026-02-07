@@ -3,8 +3,8 @@ name: SonoBus — Build Mobile
 
 on:
   push:
-    branches:
-      - 1.7.*
+    # branches:
+    #   - 1.7.*
 
 jobs:
   build-android:
