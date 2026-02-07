@@ -38,6 +38,9 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleRelease_Release --no-daemon --warning-mode all
 
+      - name: List the build artifacts
+        run: find . -type f -ls
+
       - name: Upload Android APK
         uses: actions/upload-artifact@v4
         with:
