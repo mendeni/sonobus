@@ -87,12 +87,32 @@ jobs:
           # Create output directory
           mkdir -p ios-builds
 
-          # Find and copy built apps
-          find ~/Library/Developer/Xcode/DerivedData -name "*.app" \
-            -path "*/Build/Products/Release-*" -exec cp -R {} ios-builds/ \; || true
+          # Copy built apps from the build directory
+          # Look for .app bundles in Release-iphoneos and Release-iphonesimulator
+          if [ -d "build/Release-iphoneos" ]; then
+            echo "Copying iOS device builds..."
+            find build/Release-iphoneos -name "*.app" -exec cp -R {} ios-builds/ \;
+          fi
+
+          if [ -d "build/Release-iphonesimulator" ]; then
+            echo "Copying iOS simulator builds..."
+            find build/Release-iphonesimulator -name "*.app" -exec cp -R {} ios-builds/ \;
+          fi
+
+          # Also check the generic Release directory
+          if [ -d "build/Release" ]; then
+            echo "Copying from generic Release directory..."
+            find build/Release -name "*.app" -exec cp -R {} ios-builds/ \;
+          fi
 
           # List what we found
+          echo "Contents of ios-builds directory:"
           ls -la ios-builds/
+
+          # Show what was built
+          echo "Build directory structure:"
+          find build -type d -name "*.app" 2>/dev/null || \
+            echo "No .app bundles found in build directory"
 
       - name: Upload iOS builds
         uses: actions/upload-artifact@v4
