@@ -63,7 +63,7 @@ jobs:
           echo "Building Projucer..."
           cd deps/juce/extras/Projucer/Builds/MacOSX
           xcodebuild -project Projucer.xcodeproj \
-            -scheme Projucer \
+            -target "Projucer - App" \
             -configuration Release \
             build
 
