@@ -670,7 +670,7 @@ SonoBus can send real-time audio level metering data for connected peers via OSC
 - `/Peer16RecvMeterLevel` - Average RMS level for Peer 16 (all channels)
 
 **Notes**:
-- For multi-channel peers (stereo, multi-channel), the RMS level is averaged across all channels
+- For multi-channel peers (stereo, surround, etc.), the RMS level is averaged across all channels
 - Values are scaled 0-100 for TouchOSC slider compatibility (multiply normalized level by 100)
 - RMS levels provide a smooth representation of audio energy, suitable for meter displays
 - This is a read-only/output-only feature - OSC messages sent to these addresses are ignored
