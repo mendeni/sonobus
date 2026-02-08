@@ -38,9 +38,6 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleRelease_Release --no-daemon --warning-mode all
 
-      - name: List the build artifacts
-        run: find . -type f -ls
-
       - name: Stage APK
         run: cp ./mobile/Builds/Android/app/build/outputs/apk/release_/release/app-release_-release-unsigned.apk ./mobile/Builds/Android/app/build/SonoBusMendeni-Android-latest.apk
 
