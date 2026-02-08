@@ -34,7 +34,8 @@
 
 enum {
     PeriodicUpdateTimerId = 0,
-    CheckForNewVersionTimerId
+    CheckForNewVersionTimerId,
+    PeerLevelMeteringTimerId
 };
 
 
@@ -1416,6 +1417,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     setWantsKeyboardFocus(true);
     
     startTimer(PeriodicUpdateTimerId, 1000);
+    startTimer(PeerLevelMeteringTimerId, 100); // 10 Hz update rate for peer levels
 
 #if (JUCE_WINDOWS || JUCE_MAC)
     if (JUCEApplicationBase::isStandaloneApp()) {
@@ -5085,6 +5087,33 @@ void SonobusAudioProcessorEditor::timerCallback(int timerid)
             }
         }
         stopTimer(CheckForNewVersionTimerId);
+    }
+    else if (timerid == PeerLevelMeteringTimerId) {
+        // Send peer level data via OSC if enabled
+        if (processor.getOSCEnabled() && processor.getOSCSendPeerLevels()) {
+            OSCManager& oscManager = processor.getOSCManager();
+            int numPeers = processor.getNumberRemotePeers();
+            
+            // Iterate through all connected peers (up to 16)
+            for (int peerIndex = 0; peerIndex < numPeers && peerIndex < 16; ++peerIndex) {
+                String peerNum = String(peerIndex + 1);
+                
+                // Get the meter source for this peer
+                if (auto* meterSource = processor.getRemotePeerRecvMeterSource(peerIndex)) {
+                    int numChannels = meterSource->getNumChannels();
+                    
+                    // Send level data for each channel
+                    for (int chan = 0; chan < numChannels; ++chan) {
+                        // Get RMS level (normalized 0.0-1.0)
+                        float rmsLevel = meterSource->getRMSLevel(chan);
+                        
+                        // Send OSC message: /Peer[N]/Level/[CHANNEL]
+                        String oscAddress = "/Peer" + peerNum + "RecvMeterLevel" + String(chan + 1);
+                        oscManager.sendMessage(oscAddress, rmsLevel);
+                    }
+                }
+            }
+        }
     }
 }
 
