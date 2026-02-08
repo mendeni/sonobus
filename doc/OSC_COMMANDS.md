@@ -10,6 +10,8 @@ SonoBus supports bidirectional OSC communication, allowing external controllers 
 
 OSC can be configured in the Options tab:
 - **Enable OSC**: Toggle OSC functionality on/off
+- **Send state to target on start**: When enabled, sends current values of all OSC-enabled controls when OSC is enabled
+- **Send peer levels via OSC**: When enabled, sends real-time audio level data for connected peers at ~10 Hz
 - **Target IP Address**: IP address to send OSC messages to (default: 127.0.0.1)
 - **Target Port**: Port to send OSC messages to (default: 9000)
 - **Receive Port**: Port to listen for incoming OSC messages (default: 9001)
@@ -644,6 +646,43 @@ SonoBus supports OSC control for up to 16 remote peers (connected users). Each p
 **Note**: This is a read-only control. SonoBus automatically sends the username when a peer joins the session and clears it to an empty string when the peer leaves. OSC messages sent to this address are ignored.
 
 **Note**: This control adjusts the receive level/gain for audio from the peer. Values above 1.0 provide gain boost.
+
+### Peer Level Metering (Read-Only)
+
+SonoBus can send real-time audio level metering data for connected peers via OSC. This feature must be enabled in the Options tab using the "Send peer levels via OSC" toggle button.
+
+**Configuration:**
+- Enable this feature in Options → OSC section → "Send peer levels via OSC"
+- Meter data is sent at approximately 10 Hz (every 100ms) to reduce network traffic
+- Only active when both OSC is enabled and the peer levels option is enabled
+- No messages are sent when disabled (default state)
+
+#### `/Peer[1-16]RecvMeterLevel[1-N]`
+**Type**: Read-Only Meter Data  
+**Description**: Real-time RMS (Root Mean Square) audio level for each channel of the specified peer  
+**Data Type**: Float  
+**Range**: 0.0 - 1.0+ (0.0 = silence, 1.0 = 0 dBFS, values >1.0 indicate clipping)  
+**Direction**: Send only (SonoBus → OSC controller)  
+**Update Rate**: ~10 Hz (100ms interval)  
+**Examples**:
+- `/Peer1RecvMeterLevel1` - RMS level for Peer 1, Channel 1
+- `/Peer1RecvMeterLevel2` - RMS level for Peer 1, Channel 2
+- `/Peer2RecvMeterLevel1` - RMS level for Peer 2, Channel 1
+
+**Notes**:
+- Each peer can have multiple channels (mono, stereo, or multi-channel)
+- Channel numbers start at 1 (not 0) for OSC addresses
+- Values are automatically scaled by OSC_SCALE_FACTOR (0.5) for TouchOSC compatibility
+- Messages are only sent for channels that exist for the peer
+- RMS levels provide a smooth representation of audio energy, suitable for meter displays
+- This is a read-only/output-only feature - OSC messages sent to these addresses are ignored
+
+**Usage Example:**
+To display peer audio levels on an OSC controller (like TouchOSC):
+1. Enable OSC in SonoBus Options tab
+2. Enable "Send peer levels via OSC" option
+3. Configure your OSC controller to receive on the specified target IP/port
+4. Map incoming `/Peer[N]RecvMeterLevel[C]` messages to level meter displays
 
 ### Peer Input Effects (FX) Controls
 
