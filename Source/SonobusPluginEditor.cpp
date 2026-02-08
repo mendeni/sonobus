@@ -5111,8 +5111,8 @@ void SonobusAudioProcessorEditor::timerCallback(int timerid)
                         averageRmsLevel /= numChannels;
                     }
                     
-                    // Multiply by 100 for TouchOSC slider compatibility (0.0-100.0 range)
-                    float oscValue = averageRmsLevel * 100.0f;
+                    // Multiply by 10 for TouchOSC slider compatibility (0.0-100.0 range)
+                    float oscValue = averageRmsLevel * 10.0f;
                     
                     // Send single OSC message per peer: /Peer[N]RecvMeterLevel
                     String oscAddress = "/Peer" + peerNum + "RecvMeterLevel";
