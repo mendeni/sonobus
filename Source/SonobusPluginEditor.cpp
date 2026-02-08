@@ -5102,15 +5102,21 @@ void SonobusAudioProcessorEditor::timerCallback(int timerid)
                 if (auto* meterSource = processor.getRemotePeerRecvMeterSource(peerIndex)) {
                     int numChannels = meterSource->getNumChannels();
                     
-                    // Send level data for each channel
-                    for (int chan = 0; chan < numChannels; ++chan) {
-                        // Get RMS level (normalized 0.0-1.0)
-                        float rmsLevel = meterSource->getRMSLevel(chan);
-                        
-                        // Send OSC message: /Peer[N]RecvMeterLevel[CHANNEL]
-                        String oscAddress = "/Peer" + peerNum + "RecvMeterLevel" + String(chan + 1);
-                        oscManager.sendMessage(oscAddress, rmsLevel);
+                    // Calculate average RMS level across all channels
+                    float averageRmsLevel = 0.0f;
+                    if (numChannels > 0) {
+                        for (int chan = 0; chan < numChannels; ++chan) {
+                            averageRmsLevel += meterSource->getRMSLevel(chan);
+                        }
+                        averageRmsLevel /= numChannels;
                     }
+                    
+                    // Multiply by 100 for TouchOSC slider compatibility (0.0-100.0 range)
+                    float oscValue = averageRmsLevel * 100.0f;
+                    
+                    // Send single OSC message per peer: /Peer[N]RecvMeterLevel
+                    String oscAddress = "/Peer" + peerNum + "RecvMeterLevel";
+                    oscManager.sendMessage(oscAddress, oscValue);
                 }
             }
         }
