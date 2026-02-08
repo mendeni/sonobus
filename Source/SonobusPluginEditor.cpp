@@ -4393,7 +4393,7 @@ void SonobusAudioProcessorEditor::clearPeerOSCState(int peerIndex)
     // juce::Logger::writeToLog("clearPeerOSCState called for peerIndex: " + String(peerIndex));
     
     if (!processor.getOSCEnabled() || peerIndex < 0 || peerIndex >= 16) {
-        juce::Logger::writeToLog("clearPeerOSCState early return - OSCEnabled: " + String(processor.getOSCEnabled() ? "true" : "false") + ", peerIndex: " + String(peerIndex));
+        // juce::Logger::writeToLog("clearPeerOSCState early return - OSCEnabled: " + String(processor.getOSCEnabled() ? "true" : "false") + ", peerIndex: " + String(peerIndex));
         return;
     }
     
@@ -4408,8 +4408,9 @@ void SonobusAudioProcessorEditor::clearPeerOSCState(int peerIndex)
     // Clear all other peer controls to default/off states
     oscManager.sendMessage("/Peer" + peerNum + "Mute", 0.0);
     oscManager.sendMessage("/Peer" + peerNum + "Solo", 0.0);
-    oscManager.sendMessage("/Peer" + peerNum + "Level", 0);
+    oscManager.sendMessage("/Peer" + peerNum + "Level", 0); // Level Slider
     oscManager.sendMessage("/Peer" + peerNum + "Pan", 0.0f);  // Center pan
+    oscManager.sendMessage("/Peer" + peerNum + "RecvMeterLevel", 0.0f); // Level Meter
     
     // Clear compressor
     oscManager.sendMessage("/Peer" + peerNum + "CompressorEnable", 0);
@@ -4788,25 +4789,25 @@ void SonobusAudioProcessorEditor::aooClientPeerLeft(SonobusAudioProcessor *comp,
     int peerIndex = -1;
     if (processor.getOSCEnabled()) {
         int numPeers = processor.getNumberRemotePeers();
-        juce::Logger::writeToLog("Looking for peer '" + user + "' among " + String(numPeers) + " peers for OSC clear");
+        // juce::Logger::writeToLog("Looking for peer '" + user + "' among " + String(numPeers) + " peers for OSC clear");
         for (int i = 0; i < jmin(numPeers, 16); ++i) {
             String peerName = processor.getRemotePeerUserName(i);
-            juce::Logger::writeToLog("Checking peer " + String(i) + ": " + peerName);
+            // juce::Logger::writeToLog("Checking peer " + String(i) + ": " + peerName);
             if (peerName == user) {
                 peerIndex = i;
-                juce::Logger::writeToLog("Found peer '" + user + "' at index " + String(peerIndex));
+                // juce::Logger::writeToLog("Found peer '" + user + "' at index " + String(peerIndex));
                 break;
             }
         }
         if (peerIndex < 0) {
-            juce::Logger::writeToLog("WARNING: Could not find peer '" + user + "' in peer list - OSC state will not be cleared");
+            // juce::Logger::writeToLog("WARNING: Could not find peer '" + user + "' in peer list - OSC state will not be cleared");
         }
     }
     
     {
         const ScopedLock sl (clientStateLock);        
         // Store the peer index in floatVal so we can clear OSC state in async handler
-        juce::Logger::writeToLog("Storing peerIndex " + String(peerIndex) + " for peer '" + user + "' in PeerLeaveEvent");
+        // juce::Logger::writeToLog("Storing peerIndex " + String(peerIndex) + " for peer '" + user + "' in PeerLeaveEvent");
         clientEvents.add(ClientEvent(ClientEvent::PeerLeaveEvent, group, true, "", user, static_cast<float>(peerIndex)));
     }
     triggerAsyncUpdate();
