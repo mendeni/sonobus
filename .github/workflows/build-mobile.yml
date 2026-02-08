@@ -41,11 +41,14 @@ jobs:
       - name: List the build artifacts
         run: find . -type f -ls
 
+      - name: Stage APK
+        run: cp ./mobile/Builds/Android/app/build/outputs/apk/release_/release/app-release_-release-unsigned.apk ./mobile/Builds/Android/app/build/SonoBusMendeni-Android-latest.apk
+
       - name: Upload Android APK
         uses: actions/upload-artifact@v4
         with:
           name: SonoBusMendeni-Android-latest
-          path: mobile/Builds/Android/app/build/outputs/apk/**/*.apk
+          path: ./mobile/Builds/Android/app/build/SonoBusMendeni-Android-latest.apk
 
   build-ios:
     name: Build iOS App
