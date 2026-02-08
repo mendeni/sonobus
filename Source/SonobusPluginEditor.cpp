@@ -5107,7 +5107,7 @@ void SonobusAudioProcessorEditor::timerCallback(int timerid)
                         // Get RMS level (normalized 0.0-1.0)
                         float rmsLevel = meterSource->getRMSLevel(chan);
                         
-                        // Send OSC message: /Peer[N]/Level/[CHANNEL]
+                        // Send OSC message: /Peer[N]RecvMeterLevel[CHANNEL]
                         String oscAddress = "/Peer" + peerNum + "RecvMeterLevel" + String(chan + 1);
                         oscManager.sendMessage(oscAddress, rmsLevel);
                     }
