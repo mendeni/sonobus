@@ -1442,24 +1442,25 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
 
 
 // Helper methods for peer level slider skew conversion
+// Peer level sliders use range 0.0-2.0 with skew factor 0.5
+// This makes unity gain (1.0) appear at ~75% of the slider's visual position
+// instead of 50%, providing better visual feedback for the most commonly used range.
 double SonobusAudioProcessorEditor::peerLevelValueToOSCPosition(double value)
 {
-    // Create a temporary slider with the same configuration as peer level sliders
-    // Range: 0.0-2.0, Skew: 0.5
-    Slider tempSlider(Slider::LinearHorizontal, Slider::TextBoxRight);
-    tempSlider.setRange(0.0, 2.0, 0.0);
-    tempSlider.setSkewFactor(0.5);
-    return tempSlider.valueToProportionOfLength(value);
+    // For skew factor 0.5 with range [0.0, 2.0]:
+    // position = sqrt(value / 2.0)
+    const double range = 2.0;
+    const double skewFactor = 0.5;
+    return std::pow(value / range, skewFactor);
 }
 
 double SonobusAudioProcessorEditor::peerLevelOSCPositionToValue(double position)
 {
-    // Create a temporary slider with the same configuration as peer level sliders
-    // Range: 0.0-2.0, Skew: 0.5
-    Slider tempSlider(Slider::LinearHorizontal, Slider::TextBoxRight);
-    tempSlider.setRange(0.0, 2.0, 0.0);
-    tempSlider.setSkewFactor(0.5);
-    return tempSlider.proportionOfLengthToValue(position);
+    // For skew factor 0.5 with range [0.0, 2.0]:
+    // value = position^2 * 2.0
+    const double range = 2.0;
+    const double skewFactor = 0.5;
+    return range * std::pow(position, 1.0 / skewFactor);
 }
 
 
