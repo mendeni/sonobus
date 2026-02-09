@@ -9215,7 +9215,7 @@ void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCo
                           TRANS("Popup"), 0);
             info.setActive(true);
             if (useKeybindings) {
-                info.addDefaultKeypress ('y', ModifierKeys::commandModifier | ModifierKeys::altModifier);
+                info.addDefaultKeypress ('y', ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
             }
             break;
 
@@ -9258,6 +9258,7 @@ void SonobusAudioProcessorEditor::getAllCommands (Array<CommandID>& cmds) {
     cmds.add(SonobusCommands::RecvSyncToggle);
     cmds.add(SonobusCommands::FocusChatInput);
     cmds.add(SonobusCommands::ClearChatMessages);
+    cmds.add(SonobusCommands::HideChatView);
 
 }
 
