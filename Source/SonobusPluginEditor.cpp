@@ -1417,7 +1417,7 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     setWantsKeyboardFocus(true);
     
     startTimer(PeriodicUpdateTimerId, 1000);
-    startTimer(PeerLevelMeteringTimerId, 100); // 10 Hz update rate for peer levels
+    startTimer(PeerLevelMeteringTimerId, 150); // lower is faster
 
 #if (JUCE_WINDOWS || JUCE_MAC)
     if (JUCEApplicationBase::isStandaloneApp()) {
@@ -5112,8 +5112,8 @@ void SonobusAudioProcessorEditor::timerCallback(int timerid)
                         averageRmsLevel /= numChannels;
                     }
                     
-                    // Multiply by 10 for TouchOSC slider compatibility (0.0-100.0 range)
-                    float oscValue = averageRmsLevel * 10.0f;
+                    // Multiply by 10 and divide by 1.20 for TouchOSC slider compatibility
+                    float oscValue = (averageRmsLevel * 10.0f)/1.20; //
                     
                     // Send single OSC message per peer: /Peer[N]RecvMeterLevel
                     String oscAddress = "/Peer" + peerNum + "RecvMeterLevel";
