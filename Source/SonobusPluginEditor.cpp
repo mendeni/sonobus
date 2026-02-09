@@ -3303,18 +3303,38 @@ void SonobusAudioProcessorEditor::registerAllOSCControls()
         String peerLevelAddress = "/Peer" + String(peerIndex + 1) + "Level";
         oscManager.registerControl(peerLevelAddress, [this, peerIndex](const juce::OSCMessage& message) {
             if (message.size() > 0 && message[0].isFloat32()) {
-                float level = message[0].getFloat32() * OSC_INVERSE_SCALE_FACTOR;
-                juce::MessageManager::callAsync([this, peerIndex, level]() {
+                float oscPosition = message[0].getFloat32() * OSC_INVERSE_SCALE_FACTOR;
+                
+                juce::MessageManager::callAsync([this, peerIndex, oscPosition]() {
                     if (peerIndex < processor.getNumberRemotePeers()) {
-                        processor.setRemotePeerLevelGain(peerIndex, level);
+                        // Try to get the peer's level slider to convert position back to value
+                        bool converted = false;
+                        if (auto* peersContainer = getPeersContainerView()) {
+                            if (peerIndex < peersContainer->getPeerViewCount()) {
+                                // Access the channelGroups for this peer
+                                // Note: mPeerViews is protected, so we need to create a helper or access it differently
+                                // For now, we'll create a temporary slider to do the conversion
+                                Slider tempSlider(Slider::LinearHorizontal, Slider::TextBoxRight);
+                                tempSlider.setRange(0.0, 2.0, 0.0);
+                                tempSlider.setSkewFactor(0.5);
+                                
+                                // Convert OSC position (0.0-1.0) to slider value accounting for skew
+                                double value = tempSlider.proportionOfLengthToValue(oscPosition);
+                                processor.setRemotePeerLevelGain(peerIndex, value);
+                                converted = true;
+                            }
+                        }
+                        
+                        // Fallback: direct value if slider not accessible
+                        if (!converted) {
+                            processor.setRemotePeerLevelGain(peerIndex, oscPosition);
+                        }
+                        
                         // Update peer views
                         if (auto* peersContainer = getPeersContainerView()) {
                             peersContainer->updatePeerViews(peerIndex);
                         }
-                        // Send OSC feedback
-                        if (processor.getOSCEnabled()) {
-                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "Level", level);
-                        }
+                        // Note: OSC feedback is sent from ChannelGroupsView::sliderValueChanged
                     }
                 });
             }
@@ -4260,7 +4280,12 @@ void SonobusAudioProcessorEditor::sendAllOSCState()
         
         // Peer level
         float level = processor.getRemotePeerLevelGain(peerIndex);
-        oscManager.sendMessage("/Peer" + peerNum + "Level", level);
+        // Convert level value to skewed position for OSC
+        Slider tempSlider(Slider::LinearHorizontal, Slider::TextBoxRight);
+        tempSlider.setRange(0.0, 2.0, 0.0);
+        tempSlider.setSkewFactor(0.5);
+        double skewedPosition = tempSlider.valueToProportionOfLength(level);
+        oscManager.sendMessage("/Peer" + peerNum + "Level", static_cast<float>(skewedPosition));
         
         // Peer pan
         float pan = processor.getRemotePeerChannelPan(peerIndex, 0, 0);
@@ -4338,7 +4363,12 @@ void SonobusAudioProcessorEditor::sendPeerOSCState(int peerIndex)
     
     // Send peer level
     float level = processor.getRemotePeerLevelGain(peerIndex);
-    oscManager.sendMessage("/Peer" + peerNum + "Level", level);
+    // Convert level value to skewed position for OSC
+    Slider tempSlider(Slider::LinearHorizontal, Slider::TextBoxRight);
+    tempSlider.setRange(0.0, 2.0, 0.0);
+    tempSlider.setSkewFactor(0.5);
+    double skewedPosition = tempSlider.valueToProportionOfLength(level);
+    oscManager.sendMessage("/Peer" + peerNum + "Level", static_cast<float>(skewedPosition));
     
     // Send peer pan (channel group 0, channel 0)
     float pan = processor.getRemotePeerChannelPan(peerIndex, 0, 0);
