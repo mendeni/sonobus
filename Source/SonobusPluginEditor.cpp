@@ -3337,7 +3337,15 @@ void SonobusAudioProcessorEditor::registerAllOSCControls()
                         if (auto* peersContainer = getPeersContainerView()) {
                             peersContainer->updatePeerViews(peerIndex);
                         }
-                        // Note: OSC feedback is sent from ChannelGroupsView::sliderValueChanged
+                        
+                        // Send OSC feedback with actual value from processor
+                        // This is necessary because the slider updates with dontSendNotification
+                        if (processor.getOSCEnabled()) {
+                            float actualLevel = processor.getRemotePeerLevelGain(peerIndex);
+                            double actualPosition = peerLevelValueToOSCPosition(actualLevel);
+                            processor.getOSCManager().sendMessage("/Peer" + String(peerIndex + 1) + "Level", 
+                                static_cast<float>(actualPosition));
+                        }
                     }
                 });
             }
