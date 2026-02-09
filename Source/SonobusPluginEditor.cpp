@@ -1449,18 +1449,14 @@ double SonobusAudioProcessorEditor::peerLevelValueToOSCPosition(double value)
 {
     // For skew factor 0.5 with range [0.0, 2.0]:
     // position = sqrt(value / 2.0)
-    const double range = 2.0;
-    const double skewFactor = 0.5;
-    return std::pow(value / range, skewFactor);
+    return std::sqrt(value / 2.0);
 }
 
 double SonobusAudioProcessorEditor::peerLevelOSCPositionToValue(double position)
 {
     // For skew factor 0.5 with range [0.0, 2.0]:
     // value = position^2 * 2.0
-    const double range = 2.0;
-    const double skewFactor = 0.5;
-    return range * std::pow(position, 1.0 / skewFactor);
+    return position * position * 2.0;
 }
 
 
