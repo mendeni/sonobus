@@ -9197,7 +9197,7 @@ void SonobusAudioProcessorEditor::getCommandInfo (CommandID cmdID, ApplicationCo
                           TRANS("Popup"), 0);
             info.setActive(true);
             if (useKeybindings) {
-                info.addDefaultKeypress ('j', ModifierKeys::commandModifier | ModifierKeys::altModifier);
+                info.addDefaultKeypress ('y', ModifierKeys::commandModifier | ModifierKeys::altModifier);
             }
             break;
         case SonobusCommands::ClearChatMessages:
