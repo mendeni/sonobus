@@ -1441,6 +1441,28 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
 }
 
 
+// Helper methods for peer level slider skew conversion
+double SonobusAudioProcessorEditor::peerLevelValueToOSCPosition(double value)
+{
+    // Create a temporary slider with the same configuration as peer level sliders
+    // Range: 0.0-2.0, Skew: 0.5
+    Slider tempSlider(Slider::LinearHorizontal, Slider::TextBoxRight);
+    tempSlider.setRange(0.0, 2.0, 0.0);
+    tempSlider.setSkewFactor(0.5);
+    return tempSlider.valueToProportionOfLength(value);
+}
+
+double SonobusAudioProcessorEditor::peerLevelOSCPositionToValue(double position)
+{
+    // Create a temporary slider with the same configuration as peer level sliders
+    // Range: 0.0-2.0, Skew: 0.5
+    Slider tempSlider(Slider::LinearHorizontal, Slider::TextBoxRight);
+    tempSlider.setRange(0.0, 2.0, 0.0);
+    tempSlider.setSkewFactor(0.5);
+    return tempSlider.proportionOfLengthToValue(position);
+}
+
+
 void SonobusAudioProcessorEditor::registerAllOSCControls()
 {
     if (mOSCControlsRegistered) {
@@ -3307,28 +3329,9 @@ void SonobusAudioProcessorEditor::registerAllOSCControls()
                 
                 juce::MessageManager::callAsync([this, peerIndex, oscPosition]() {
                     if (peerIndex < processor.getNumberRemotePeers()) {
-                        // Try to get the peer's level slider to convert position back to value
-                        bool converted = false;
-                        if (auto* peersContainer = getPeersContainerView()) {
-                            if (peerIndex < peersContainer->getPeerViewCount()) {
-                                // Access the channelGroups for this peer
-                                // Note: mPeerViews is protected, so we need to create a helper or access it differently
-                                // For now, we'll create a temporary slider to do the conversion
-                                Slider tempSlider(Slider::LinearHorizontal, Slider::TextBoxRight);
-                                tempSlider.setRange(0.0, 2.0, 0.0);
-                                tempSlider.setSkewFactor(0.5);
-                                
-                                // Convert OSC position (0.0-1.0) to slider value accounting for skew
-                                double value = tempSlider.proportionOfLengthToValue(oscPosition);
-                                processor.setRemotePeerLevelGain(peerIndex, value);
-                                converted = true;
-                            }
-                        }
-                        
-                        // Fallback: direct value if slider not accessible
-                        if (!converted) {
-                            processor.setRemotePeerLevelGain(peerIndex, oscPosition);
-                        }
+                        // Convert OSC position (0.0-1.0) to slider value accounting for skew
+                        double value = peerLevelOSCPositionToValue(oscPosition);
+                        processor.setRemotePeerLevelGain(peerIndex, value);
                         
                         // Update peer views
                         if (auto* peersContainer = getPeersContainerView()) {
@@ -4281,10 +4284,7 @@ void SonobusAudioProcessorEditor::sendAllOSCState()
         // Peer level
         float level = processor.getRemotePeerLevelGain(peerIndex);
         // Convert level value to skewed position for OSC
-        Slider tempSlider(Slider::LinearHorizontal, Slider::TextBoxRight);
-        tempSlider.setRange(0.0, 2.0, 0.0);
-        tempSlider.setSkewFactor(0.5);
-        double skewedPosition = tempSlider.valueToProportionOfLength(level);
+        double skewedPosition = peerLevelValueToOSCPosition(level);
         oscManager.sendMessage("/Peer" + peerNum + "Level", static_cast<float>(skewedPosition));
         
         // Peer pan
@@ -4364,10 +4364,7 @@ void SonobusAudioProcessorEditor::sendPeerOSCState(int peerIndex)
     // Send peer level
     float level = processor.getRemotePeerLevelGain(peerIndex);
     // Convert level value to skewed position for OSC
-    Slider tempSlider(Slider::LinearHorizontal, Slider::TextBoxRight);
-    tempSlider.setRange(0.0, 2.0, 0.0);
-    tempSlider.setSkewFactor(0.5);
-    double skewedPosition = tempSlider.valueToProportionOfLength(level);
+    double skewedPosition = peerLevelValueToOSCPosition(level);
     oscManager.sendMessage("/Peer" + peerNum + "Level", static_cast<float>(skewedPosition));
     
     // Send peer pan (channel group 0, channel 0)
