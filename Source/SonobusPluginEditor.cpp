@@ -1449,6 +1449,8 @@ double SonobusAudioProcessorEditor::peerLevelValueToOSCPosition(double value)
 {
     // For skew factor 0.5 with range [0.0, 2.0]:
     // position = sqrt(value / 2.0)
+    // Clamp value to valid range [0.0, 2.0] to ensure valid result
+    value = juce::jlimit(0.0, 2.0, value);
     return std::sqrt(value / 2.0);
 }
 
@@ -1456,6 +1458,8 @@ double SonobusAudioProcessorEditor::peerLevelOSCPositionToValue(double position)
 {
     // For skew factor 0.5 with range [0.0, 2.0]:
     // value = position^2 * 2.0
+    // Clamp position to valid range [0.0, 1.0] to ensure valid result
+    position = juce::jlimit(0.0, 1.0, position);
     return position * position * 2.0;
 }
 
