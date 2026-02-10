@@ -1443,26 +1443,26 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
 
 // Helper methods for peer level slider skew conversion
 // Peer level sliders use range 0.0-2.0 with skew factor 0.5
-// For OSC controllers, we need to compensate so unity gain (1.0) appears at ~75%
+// For OSC controllers, we compensate so unity gain (1.0) appears at ~75%
 // instead of the skewed UI position, providing intuitive OSC slider behavior.
 double SonobusAudioProcessorEditor::peerLevelValueToOSCPosition(double value)
 {
     // To get unity gain (1.0) at 75% on OSC slider:
-    // position = value * 0.75 (normalized to range)
-    // With OSC_SCALE_FACTOR (0.5), this produces 0.75 on TouchOSC
+    // position = value * 1.5
+    // With OSC_SCALE_FACTOR (0.5), this produces 0.75 on TouchOSC (75%)
     // Clamp value to valid range [0.0, 2.0] to ensure valid result
     value = juce::jlimit(0.0, 2.0, value);
-    return value * 0.75;
+    return value * 1.5;
 }
 
 double SonobusAudioProcessorEditor::peerLevelOSCPositionToValue(double position)
 {
     // Inverse of the outbound conversion:
-    // value = position / 0.75
+    // value = position / 1.5
     // Note: position here is AFTER OSC_INVERSE_SCALE_FACTOR has been applied
-    // Max position = 1.5 (when value is 2.0: 2.0 * 0.75 = 1.5)
-    position = juce::jlimit(0.0, 1.5, position);
-    return position / 0.75;
+    // Max position = 3.0 (when value is 2.0: 2.0 * 1.5 = 3.0)
+    position = juce::jlimit(0.0, 3.0, position);
+    return position / 1.5;
 }
 
 
