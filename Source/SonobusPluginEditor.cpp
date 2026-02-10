@@ -1443,24 +1443,26 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
 
 // Helper methods for peer level slider skew conversion
 // Peer level sliders use range 0.0-2.0 with skew factor 0.5
-// This makes unity gain (1.0) appear at ~75% of the slider's visual position
-// instead of 50%, providing better visual feedback for the most commonly used range.
+// For OSC, we need to use the INVERSE skew (2.0) so that unity gain (1.0) 
+// appears at ~75% of the OSC slider position instead of ~25%, providing 
+// better visual feedback matching the UI slider appearance.
 double SonobusAudioProcessorEditor::peerLevelValueToOSCPosition(double value)
 {
-    // For skew factor 0.5 with range [0.0, 2.0]:
-    // position = sqrt(value / 2.0)
+    // Use inverse skew factor 2.0 with range [0.0, 2.0]:
+    // position = (value / 2.0)^2
     // Clamp value to valid range [0.0, 2.0] to ensure valid result
     value = juce::jlimit(0.0, 2.0, value);
-    return std::sqrt(value / 2.0);
+    double proportion = value / 2.0;
+    return proportion * proportion;
 }
 
 double SonobusAudioProcessorEditor::peerLevelOSCPositionToValue(double position)
 {
-    // For skew factor 0.5 with range [0.0, 2.0]:
-    // value = position^2 * 2.0
+    // Use inverse skew factor 2.0 with range [0.0, 2.0]:
+    // value = sqrt(position) * 2.0
     // Clamp position to valid range [0.0, 1.0] to ensure valid result
     position = juce::jlimit(0.0, 1.0, position);
-    return position * position * 2.0;
+    return std::sqrt(position) * 2.0;
 }
 
 
