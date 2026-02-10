@@ -1441,8 +1441,8 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
 }
 
 
-// Helper methods for peer level slider skew conversion
-// Peer level sliders use range 0.0-2.0 with skew factor 0.5
+// Helper methods for level slider OSC skew conversion
+// Level sliders (peer level, OutGain, etc.) use range 0.0-2.0 with skew factor 0.5
 // For OSC controllers, we compensate so unity gain (1.0) appears at ~75%
 // instead of the skewed UI position, providing intuitive OSC slider behavior.
 double SonobusAudioProcessorEditor::peerLevelValueToOSCPosition(double value)
@@ -1477,7 +1477,9 @@ void SonobusAudioProcessorEditor::registerAllOSCControls()
     // Register OutGainSlider - updates slider value with a float
     oscManager.registerControl("/OutGainSlider", [this](const juce::OSCMessage& message) {
         if (message.size() > 0 && message[0].isFloat32()) {
-            float value = message[0].getFloat32() * OSC_INVERSE_SCALE_FACTOR;
+            float oscPosition = message[0].getFloat32() * OSC_INVERSE_SCALE_FACTOR;
+            // Convert OSC position to slider value accounting for skew
+            double value = peerLevelOSCPositionToValue(oscPosition);
             juce::MessageManager::callAsync([this, value]() {
                 if (mOutGainSlider) {
                     mOutGainSlider->setValue(value, juce::NotificationType::sendNotificationAsync);
@@ -4142,7 +4144,9 @@ void SonobusAudioProcessorEditor::sendAllOSCState()
     
     // Send main controls
     if (mOutGainSlider) {
-        oscManager.sendMessage("/OutGainSlider", static_cast<float>(mOutGainSlider->getValue()));
+        double value = mOutGainSlider->getValue();
+        double position = peerLevelValueToOSCPosition(value);
+        oscManager.sendMessage("/OutGainSlider", static_cast<float>(position));
     }
     if (mDrySlider) {
         oscManager.sendMessage("/DrySlider", static_cast<float>(mDrySlider->getValue()));
@@ -7058,7 +7062,8 @@ void SonobusAudioProcessorEditor::parameterChanged (const String& pname, float n
     else if (pname == SonobusAudioProcessor::paramWet) {
         // Send OSC message for OutGainSlider (wet) value change
         if (processor.getOSCEnabled()) {
-            processor.getOSCManager().sendMessage("/OutGainSlider", newValue);
+            double position = peerLevelValueToOSCPosition(newValue);
+            processor.getOSCManager().sendMessage("/OutGainSlider", static_cast<float>(position));
         }
     }
     else if (pname == SonobusAudioProcessor::paramMaxRecvPaddingMs) {
