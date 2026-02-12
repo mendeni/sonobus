@@ -4541,7 +4541,7 @@ void SonobusAudioProcessorEditor::sendSoundboardOSCState()
     for (int soundboardIndex = 0; soundboardIndex < 16; ++soundboardIndex) {
         String soundboardNum = String(soundboardIndex + 1);
         
-        if (soundboardIndex < numSoundboards) {
+        if (soundboardIndex < static_cast<int>(numSoundboards)) {
             // Send soundboard name
             auto& soundboard = soundboardProcessor->getSoundboard(soundboardIndex);
             String soundboardName = soundboard.getName();
@@ -4553,7 +4553,7 @@ void SonobusAudioProcessorEditor::sendSoundboardOSCState()
                 String trackNum = String(trackIndex + 1);
                 String trackAddress = "/Soundboard" + soundboardNum + "Track" + trackNum;
                 
-                if (trackIndex < samples.size()) {
+                if (trackIndex < static_cast<int>(samples.size())) {
                     String trackName = samples[trackIndex].getName();
                     oscManager.sendMessage(trackAddress, trackName);
                 } else {
