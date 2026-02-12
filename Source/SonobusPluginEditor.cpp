@@ -4528,13 +4528,14 @@ void SonobusAudioProcessorEditor::sendSoundboardOSCState()
     
     OSCManager& oscManager = processor.getOSCManager();
     
-    if (!processor.getSoundboardProcessor()) {
-        // If no soundboard processor, clear all soundboard slots
+    auto* soundboardView = getSoundboardView();
+    if (!soundboardView || !soundboardView->getSoundboardProcessor()) {
+        // If no soundboard view or processor, clear all soundboard slots
         clearSoundboardOSCState();
         return;
     }
     
-    auto* soundboardProcessor = processor.getSoundboardProcessor();
+    auto* soundboardProcessor = soundboardView->getSoundboardProcessor();
     size_t numSoundboards = soundboardProcessor->getNumberOfSoundboards();
     
     // Send state for all soundboards (up to 16)
