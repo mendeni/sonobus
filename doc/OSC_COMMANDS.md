@@ -1254,7 +1254,7 @@ SonoBus supports OSC control for up to 16 Soundboards, each with up to 16 tracks
 These messages are automatically sent by SonoBus to inform OSC controllers about soundboard names and track names:
 
 #### `/Soundboard[1-16]Name`
-**Type**: Read-Only Text Field  
+**Type**: Status Message  
 **Description**: Provides the name of the specified soundboard  
 **Data Type**: String  
 **Direction**: Send only (SonoBus → OSC controller)  
@@ -1271,7 +1271,7 @@ These messages are automatically sent by SonoBus to inform OSC controllers about
 Empty soundboard slots (those that don't exist) will have an empty string as their name.
 
 #### `/Soundboard[1-16]Track[1-16]`
-**Type**: Text Field (Read-Only for status, Write for control)  
+**Type**: Bidirectional Control/Status Message  
 **Description**: For outbound messages, provides the name of the specified track. For inbound messages, triggers the track.  
 **Data Type**: 
 - **Outbound (status)**: String (track name)

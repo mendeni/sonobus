@@ -656,7 +656,7 @@ bool SoundboardView::triggerSampleBySoundboardAndTrackIndex(int soundboardIndex,
     
     auto& soundboard = getSoundboardProcessor()->getSoundboard(soundboardIndex);
     auto& samples = soundboard.getSamples();
-    if (trackIndex >= samples.size()) {
+    if (trackIndex >= static_cast<int>(samples.size())) {
         return false;
     }
     
