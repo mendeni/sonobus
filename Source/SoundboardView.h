@@ -86,6 +86,12 @@ public:
      */
     bool triggerSampleBySoundboardAndTrackIndex(int soundboardIndex, int trackIndex);
 
+    /**
+     * Get the soundboard processor for accessing soundboard data.
+     * @return Pointer to the soundboard processor
+     */
+    SoundboardProcessor* getSoundboardProcessor() { return processor.get(); }
+
 private:
     
 #if JUCE_IOS || JUCE_ANDROID
@@ -110,8 +116,6 @@ private:
      * Controller for soundboard view.
      */
     std::unique_ptr<SoundboardProcessor> processor;
-
-    SoundboardProcessor* getSoundboardProcessor() { return processor.get(); };
 
     /**
      * The outer soundboard panel box.
