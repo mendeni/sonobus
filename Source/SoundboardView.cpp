@@ -8,8 +8,7 @@
 #include "SoundboardView.h"
 #include "SoundboardEditView.h"
 #include "SampleEditView.h"
-
-class SonobusAudioProcessorEditor;
+#include "SonobusPluginEditor.h"
 
 SoundboardView::SoundboardView(SonobusAudioProcessor& audioproc, SoundboardChannelProcessor* channelProcessor, File supportDir)
         : audioProcessor(audioproc), processor(std::make_unique<SoundboardProcessor>(channelProcessor, supportDir))
