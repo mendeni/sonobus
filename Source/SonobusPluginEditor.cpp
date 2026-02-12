@@ -3973,6 +3973,26 @@ void SonobusAudioProcessorEditor::registerAllOSCControls()
         });
     }
 
+    // Register Soundboard OSC controls for triggering tracks
+    // Support up to 16 soundboards and up to 16 tracks per soundboard
+    for (int soundboardIndex = 0; soundboardIndex < 16; ++soundboardIndex) {
+        for (int trackIndex = 0; trackIndex < 16; ++trackIndex) {
+            String address = "/Soundboard" + String(soundboardIndex + 1) + "Track" + String(trackIndex + 1);
+            oscManager.registerControl(address, [this, soundboardIndex, trackIndex](const juce::OSCMessage& message) {
+                if (message.size() > 0 && message[0].isInt32()) {
+                    int value = message[0].getInt32();
+                    if (value == 1) {
+                        juce::MessageManager::callAsync([this, soundboardIndex, trackIndex]() {
+                            if (auto* soundboardView = getSoundboardView()) {
+                                soundboardView->triggerSampleBySoundboardAndTrackIndex(soundboardIndex, trackIndex);
+                            }
+                        });
+                    }
+                }
+            });
+        }
+    }
+
     
     mOSCControlsRegistered = true;
 }
@@ -4128,6 +4148,13 @@ void SonobusAudioProcessorEditor::unregisterAllOSCControls()
         oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "EqPara2Freq");
         oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "EqPara2Gain");
         oscManager.unregisterControl("/Peer" + String(peerIndex + 1) + "EqPara2Q");
+    }
+    
+    // Unregister Soundboard OSC controls (up to 16 soundboards, 16 tracks each)
+    for (int soundboardIndex = 0; soundboardIndex < 16; ++soundboardIndex) {
+        for (int trackIndex = 0; trackIndex < 16; ++trackIndex) {
+            oscManager.unregisterControl("/Soundboard" + String(soundboardIndex + 1) + "Track" + String(trackIndex + 1));
+        }
     }
     
     
@@ -4354,6 +4381,9 @@ void SonobusAudioProcessorEditor::sendAllOSCState()
     for (int i = numPeers; i < 16; ++i) {
         clearPeerOSCState(i);
     }
+    
+    // Send soundboard state (names and tracks)
+    sendSoundboardOSCState();
 }
 
 void SonobusAudioProcessorEditor::sendPeerOSCState(int peerIndex)
@@ -4488,6 +4518,78 @@ void SonobusAudioProcessorEditor::clearPeerOSCState(int peerIndex)
     
     // Clear polarity invert
     oscManager.sendMessage("/Peer" + peerNum + "PolarityInvert", 0);
+}
+
+void SonobusAudioProcessorEditor::sendSoundboardOSCState()
+{
+    if (!processor.getOSCEnabled()) {
+        return;
+    }
+    
+    OSCManager& oscManager = processor.getOSCManager();
+    
+    if (!processor.getSoundboardProcessor()) {
+        // If no soundboard processor, clear all soundboard slots
+        clearSoundboardOSCState();
+        return;
+    }
+    
+    auto* soundboardProcessor = processor.getSoundboardProcessor();
+    size_t numSoundboards = soundboardProcessor->getNumberOfSoundboards();
+    
+    // Send state for all soundboards (up to 16)
+    for (int soundboardIndex = 0; soundboardIndex < 16; ++soundboardIndex) {
+        String soundboardNum = String(soundboardIndex + 1);
+        
+        if (soundboardIndex < numSoundboards) {
+            // Send soundboard name
+            auto& soundboard = soundboardProcessor->getSoundboard(soundboardIndex);
+            String soundboardName = soundboard.getName();
+            oscManager.sendMessage("/Soundboard" + soundboardNum + "Name", soundboardName);
+            
+            // Send track names (up to 16 tracks per soundboard)
+            auto& samples = soundboard.getSamples();
+            for (int trackIndex = 0; trackIndex < 16; ++trackIndex) {
+                String trackNum = String(trackIndex + 1);
+                String trackAddress = "/Soundboard" + soundboardNum + "Track" + trackNum;
+                
+                if (trackIndex < samples.size()) {
+                    String trackName = samples[trackIndex].getName();
+                    oscManager.sendMessage(trackAddress, trackName);
+                } else {
+                    // Clear unused track slots
+                    oscManager.sendMessage(trackAddress, "");
+                }
+            }
+        } else {
+            // Clear unused soundboard slots
+            oscManager.sendMessage("/Soundboard" + soundboardNum + "Name", "");
+            for (int trackIndex = 0; trackIndex < 16; ++trackIndex) {
+                String trackNum = String(trackIndex + 1);
+                oscManager.sendMessage("/Soundboard" + soundboardNum + "Track" + trackNum, "");
+            }
+        }
+    }
+}
+
+void SonobusAudioProcessorEditor::clearSoundboardOSCState()
+{
+    if (!processor.getOSCEnabled()) {
+        return;
+    }
+    
+    OSCManager& oscManager = processor.getOSCManager();
+    
+    // Clear all soundboard names and tracks (16 soundboards, 16 tracks each)
+    for (int soundboardIndex = 0; soundboardIndex < 16; ++soundboardIndex) {
+        String soundboardNum = String(soundboardIndex + 1);
+        oscManager.sendMessage("/Soundboard" + soundboardNum + "Name", "");
+        
+        for (int trackIndex = 0; trackIndex < 16; ++trackIndex) {
+            String trackNum = String(trackIndex + 1);
+            oscManager.sendMessage("/Soundboard" + soundboardNum + "Track" + trackNum, "");
+        }
+    }
 }
 
 SonobusAudioProcessorEditor::~SonobusAudioProcessorEditor()

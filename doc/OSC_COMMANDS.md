@@ -1238,6 +1238,109 @@ print("Listening for OSC messages...")
 server.serve_forever()
 ```
 
+## Soundboard Controls
+
+SonoBus supports OSC control for up to 16 Soundboards, each with up to 16 tracks. The soundboard OSC implementation provides both outbound messages (for status/info) and inbound messages (for triggering tracks).
+
+### Overview
+
+- **Soundboards supported**: Up to 16 (numbered 1-16)
+- **Tracks per soundboard**: Up to 16 (numbered 1-16)
+- **Outbound messages**: Soundboard names and track names are sent automatically when soundboards change
+- **Inbound messages**: Tracks can be triggered via OSC messages
+
+### Soundboard Status Messages (Outbound)
+
+These messages are automatically sent by SonoBus to inform OSC controllers about soundboard names and track names:
+
+#### `/Soundboard[1-16]Name`
+**Type**: Read-Only Text Field  
+**Description**: Provides the name of the specified soundboard  
+**Data Type**: String  
+**Direction**: Send only (SonoBus → OSC controller)  
+**Examples**:
+- `/Soundboard1Name` - Name of Soundboard 1 (e.g., "StarTrek")
+- `/Soundboard2Name` - Name of Soundboard 2
+- `/Soundboard16Name` - Name of Soundboard 16
+
+**Note**: This is a read-only control. SonoBus automatically sends the soundboard name when:
+- OSC is enabled and "Send state to target on start" is active
+- A soundboard is created, renamed, or deleted
+- The soundboard list changes
+
+Empty soundboard slots (those that don't exist) will have an empty string as their name.
+
+#### `/Soundboard[1-16]Track[1-16]`
+**Type**: Text Field (Read-Only for status, Write for control)  
+**Description**: For outbound messages, provides the name of the specified track. For inbound messages, triggers the track.  
+**Data Type**: 
+- **Outbound (status)**: String (track name)
+- **Inbound (control)**: Integer (1 to trigger)
+
+**Direction**: Bidirectional (both send and receive)
+
+**Outbound Examples (Track Names)**:
+```
+/Soundboard1Name s "StarTrek"
+/Soundboard1Track1 s "Balok HaHa"
+/Soundboard1Track2 s "Spock Pain"
+/Soundboard1Track3 s "Beam Me Up"
+```
+
+**Inbound Examples (Track Triggers)**:
+```
+/Soundboard1Track1 i 1    # Triggers track 1 on soundboard 1
+/Soundboard2Track5 i 1    # Triggers track 5 on soundboard 2
+/Soundboard16Track16 i 1  # Triggers track 16 on soundboard 16
+```
+
+**Behavior Notes**:
+- **As Status (Outbound)**: SonoBus sends track names as strings when soundboards or tracks change
+- **As Control (Inbound)**: Sending an integer value of `1` triggers/plays the specified track
+- Empty track slots (those that don't exist) will have an empty string as their name
+- Triggering respects the track's button behavior (TOGGLE, HOLD, or ONE_SHOT):
+  - **TOGGLE**: If the track is playing, it stops; if stopped, it plays
+  - **HOLD/ONE_SHOT**: Always starts playback
+- Invalid soundboard or track indices are ignored (no error)
+
+### Usage Example: TouchOSC or Similar Controllers
+
+To control soundboards via OSC:
+
+1. **Enable OSC** in SonoBus Options tab
+2. **Configure target IP/port** to point to your OSC controller
+3. **Configure receive port** to listen for control messages
+4. **Map incoming track name messages** to display labels showing available tracks
+5. **Map outgoing trigger messages** to buttons that send `/Soundboard[N]Track[M] i 1`
+
+**Example Workflow**:
+```
+# SonoBus sends (when OSC is enabled):
+/Soundboard1Name s "Sound Effects"
+/Soundboard1Track1 s "Applause"
+/Soundboard1Track2 s "Drum Roll"
+/Soundboard1Track3 s "Rimshot"
+
+# Your controller displays these track names on buttons
+
+# When user presses button for Track 1, your controller sends:
+/Soundboard1Track1 i 1
+
+# SonoBus plays the "Applause" sample
+```
+
+### Integration Notes
+
+- Soundboard and track indices are 1-based (1-16), not 0-based
+- The same OSC address is used for both status (string) and control (integer)
+- Track names update in real-time when:
+  - Tracks are added or removed
+  - Track names are changed in the UI
+  - Soundboards are switched or modified
+- Soundboard names update in real-time when:
+  - Soundboards are created, renamed, or deleted
+  - The application starts with "Send state to target on start" enabled
+
 ## Notes
 
 - All OSC communication is done over UDP

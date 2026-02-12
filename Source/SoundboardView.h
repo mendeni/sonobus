@@ -77,6 +77,15 @@ public:
 
     void updateMiscState();
 
+    /**
+     * Triggers a sample on a specific soundboard by index.
+     * Used for OSC control.
+     * @param soundboardIndex 0-based index of the soundboard
+     * @param trackIndex 0-based index of the track/sample within the soundboard
+     * @return true if the sample was triggered, false if indices are out of bounds
+     */
+    bool triggerSampleBySoundboardAndTrackIndex(int soundboardIndex, int trackIndex);
+
 private:
     
 #if JUCE_IOS || JUCE_ANDROID
