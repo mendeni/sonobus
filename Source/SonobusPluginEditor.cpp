@@ -4595,6 +4595,13 @@ void SonobusAudioProcessorEditor::clearSoundboardOSCState()
 
 SonobusAudioProcessorEditor::~SonobusAudioProcessorEditor()
 {
+    // Clear Soundboard OSC state before unregistering controls
+    // This ensures OSC controllers receive empty strings for all soundboard slots
+    // when the application closes, similar to how peer slots are cleared on disconnect
+    if (processor.getOSCEnabled()) {
+        clearSoundboardOSCState();
+    }
+    
     // Unregister OSC controls to prevent use-after-free
     unregisterAllOSCControls();
     
