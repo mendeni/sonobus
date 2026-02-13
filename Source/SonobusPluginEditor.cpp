@@ -2417,6 +2417,37 @@ void SonobusAudioProcessorEditor::registerAllOSCControls()
         }
     });
     
+    // Register SoundboardVolumeSlider
+    oscManager.registerControl("/SoundboardVolumeSlider", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            // Clamp value to valid range 0-2
+            value = juce::jlimit(0.0f, 2.0f, value);
+            juce::MessageManager::callAsync([this, value]() {
+                if (auto* soundboardView = getSoundboardView()) {
+                    if (auto* volumeSlider = soundboardView->getVolumeSlider()) {
+                        volumeSlider->setValue(value, juce::NotificationType::sendNotification);
+                    }
+                }
+            });
+        }
+    });
+    
+    // Register SoundboardStopAllPlayback (momentary button)
+    oscManager.registerControl("/SoundboardStopAllPlayback", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            // Trigger on values >= 0.5
+            if (value >= 0.5f) {
+                juce::MessageManager::callAsync([this]() {
+                    if (auto* soundboardView = getSoundboardView()) {
+                        soundboardView->stopAllSamples();
+                    }
+                });
+            }
+        }
+    });
+    
     // Register FileMonitorSlider
     oscManager.registerControl("/FileMonitorSlider", [this](const juce::OSCMessage& message) {
         if (message.size() > 0 && message[0].isFloat32()) {
@@ -4057,6 +4088,8 @@ void SonobusAudioProcessorEditor::unregisterAllOSCControls()
     oscManager.unregisterControl("/PlaybackSlider");
     oscManager.unregisterControl("/SoundboardLevelSlider");
     oscManager.unregisterControl("/SoundboardMonitorSlider");
+    oscManager.unregisterControl("/SoundboardVolumeSlider");
+    oscManager.unregisterControl("/SoundboardStopAllPlayback");
     oscManager.unregisterControl("/FileMonitorSlider");
     oscManager.unregisterControl("/MetPanSlider");
     oscManager.unregisterControl("/MetMonitorSlider");
@@ -4242,6 +4275,13 @@ void SonobusAudioProcessorEditor::sendAllOSCState()
         oscManager.sendMessage("/SoundboardLevelSlider", processor.getSoundboardProcessor()->getGain());
         oscManager.sendMessage("/SoundboardMonitorSlider", processor.getSoundboardProcessor()->getMonitorGain());
     }
+    // Send SoundboardVolumeSlider state
+    if (auto* soundboardView = getSoundboardView()) {
+        if (auto* volumeSlider = soundboardView->getVolumeSlider()) {
+            oscManager.sendMessage("/SoundboardVolumeSlider", static_cast<float>(volumeSlider->getValue()));
+        }
+    }
+    // Note: SoundboardStopAllPlayback is a momentary button with no state to send
     
     // Send metronome additional controls
     oscManager.sendMessage("/MetPanSlider", processor.getMetronomePan());

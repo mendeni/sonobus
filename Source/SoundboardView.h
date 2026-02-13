@@ -91,6 +91,12 @@ public:
      * @return Pointer to the soundboard processor
      */
     SoundboardProcessor* getSoundboardProcessor() { return processor.get(); }
+    
+    /**
+     * Get the volume slider for OSC control.
+     * @return Pointer to the volume slider
+     */
+    Slider* getVolumeSlider() { return mVolumeSlider.get(); }
 
 private:
     

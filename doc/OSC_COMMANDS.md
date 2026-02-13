@@ -237,6 +237,29 @@ Choice buttons accept and send integer values representing the selected option I
 **Range**: Audio level  
 **Action**: Sets soundboard monitor volume
 
+#### `/SoundboardVolumeSlider`
+**Type**: Slider  
+**Description**: Controls the soundboard volume (main volume slider in the soundboard panel)  
+**Data Type**: Float  
+**Range**: 0.0 - 2.0 (where 1.0 is unity gain)  
+**Direction**: Bidirectional (both send and receive)  
+**Examples**:
+- `/SoundboardVolumeSlider f 1.0` - Set to unity gain
+- `/SoundboardVolumeSlider f 0.5` - Set to half volume
+- `/SoundboardVolumeSlider f 2.0` - Set to double volume (max)
+
+**Note**: This control adjusts the volume slider visible in the soundboard panel UI. Changes via OSC will update the UI slider, and UI changes will send OSC messages.
+
+#### `/SoundboardStopAllPlayback`
+**Type**: Momentary Push Button  
+**Description**: Stops all currently playing soundboard samples  
+**Data Type**: Float (1.0 to trigger, or any value >= 0.5)  
+**Direction**: Receive only (OSC controller → SonoBus)  
+**Examples**:
+- `/SoundboardStopAllPlayback f 1.0` - Stops all playback
+
+**Note**: This is a momentary button with no state. Send a value >= 0.5 to trigger the action. No OSC messages are sent from SonoBus for this control.
+
 ### Metronome Advanced Controls
 
 #### `/MetSendButton`
