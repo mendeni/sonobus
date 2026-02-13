@@ -3979,9 +3979,9 @@ void SonobusAudioProcessorEditor::registerAllOSCControls()
         for (int trackIndex = 0; trackIndex < 16; ++trackIndex) {
             String address = "/Soundboard" + String(soundboardIndex + 1) + "Track" + String(trackIndex + 1);
             oscManager.registerControl(address, [this, soundboardIndex, trackIndex](const juce::OSCMessage& message) {
-                if (message.size() > 0 && message[0].isInt32()) {
-                    int value = message[0].getInt32();
-                    if (value == 1) {
+                if (message.size() > 0 && message[0].isFloat32()) {
+                    float value = message[0].getFloat32();
+                    if (value >= 0.5f) {
                         juce::MessageManager::callAsync([this, soundboardIndex, trackIndex]() {
                             if (auto* soundboardView = getSoundboardView()) {
                                 soundboardView->triggerSampleBySoundboardAndTrackIndex(soundboardIndex, trackIndex);

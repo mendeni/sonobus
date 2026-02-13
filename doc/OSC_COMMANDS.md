@@ -1275,7 +1275,7 @@ Empty soundboard slots (those that don't exist) will have an empty string as the
 **Description**: For outbound messages, provides the name of the specified track. For inbound messages, triggers the track.  
 **Data Type**: 
 - **Outbound (status)**: String (track name)
-- **Inbound (control)**: Integer (1 to trigger)
+- **Inbound (control)**: Float (1.0 to trigger)
 
 **Direction**: Bidirectional (both send and receive)
 
@@ -1289,14 +1289,14 @@ Empty soundboard slots (those that don't exist) will have an empty string as the
 
 **Inbound Examples (Track Triggers)**:
 ```
-/Soundboard1Track1 i 1    # Triggers track 1 on soundboard 1
-/Soundboard2Track5 i 1    # Triggers track 5 on soundboard 2
-/Soundboard16Track16 i 1  # Triggers track 16 on soundboard 16
+/Soundboard1Track1 f 1.0    # Triggers track 1 on soundboard 1
+/Soundboard2Track5 f 1.0    # Triggers track 5 on soundboard 2
+/Soundboard16Track16 f 1.0  # Triggers track 16 on soundboard 16
 ```
 
 **Behavior Notes**:
 - **As Status (Outbound)**: SonoBus sends track names as strings when soundboards or tracks change
-- **As Control (Inbound)**: Sending an integer value of `1` triggers/plays the specified track
+- **As Control (Inbound)**: Sending a float value of `1.0` (or any value >= 0.5) triggers/plays the specified track
 - Empty track slots (those that don't exist) will have an empty string as their name
 - Triggering respects the track's button behavior (TOGGLE, HOLD, or ONE_SHOT):
   - **TOGGLE**: If the track is playing, it stops; if stopped, it plays
@@ -1311,7 +1311,7 @@ To control soundboards via OSC:
 2. **Configure target IP/port** to point to your OSC controller
 3. **Configure receive port** to listen for control messages
 4. **Map incoming track name messages** to display labels showing available tracks
-5. **Map outgoing trigger messages** to buttons that send `/Soundboard[N]Track[M] i 1`
+5. **Map outgoing trigger messages** to buttons that send `/Soundboard[N]Track[M] f 1.0`
 
 **Example Workflow**:
 ```
@@ -1324,7 +1324,7 @@ To control soundboards via OSC:
 # Your controller displays these track names on buttons
 
 # When user presses button for Track 1, your controller sends:
-/Soundboard1Track1 i 1
+/Soundboard1Track1 f 1.0
 
 # SonoBus plays the "Applause" sample
 ```
@@ -1332,7 +1332,7 @@ To control soundboards via OSC:
 ### Integration Notes
 
 - Soundboard and track indices are 1-based (1-16), not 0-based
-- The same OSC address is used for both status (string) and control (integer)
+- The same OSC address is used for both status (string) and control (float)
 - Track names update in real-time when:
   - Tracks are added or removed
   - Track names are changed in the UI
