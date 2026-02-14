@@ -661,7 +661,7 @@ SonoBus supports OSC control for up to 16 remote peers (connected users). Each p
 **Notes**: 
 - The slider uses a skew factor for better control precision at lower levels
 - OSC value ~0.707 corresponds to unity gain (0dB)
-- Automatically resets to 0.0 when peer disconnects
+- Automatically resets to 0.0 when peer disconnects (via `clearPeerOSCState()`)
 - Full application range (-INF to +6dB) is addressable via OSC 0.0-1.0
 - Adjusts the output level/gain for the peer's audio (equivalent to moving the level slider in the peer's UI panel)
 

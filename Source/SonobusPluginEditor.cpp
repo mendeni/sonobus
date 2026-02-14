@@ -1448,14 +1448,16 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
 double SonobusAudioProcessorEditor::peerLevelValueToOSCPosition(double value)
 {
     // Peer level sliders also use range [0.0, 2.0] with skew factor 0.5
-    // Use the same conversion as gain sliders
+    // Keep these wrapper functions for clarity and potential future customization
+    // They currently delegate to the same gain conversion used by OutGainSlider
     return gainValueToOSCPosition(value);
 }
 
 double SonobusAudioProcessorEditor::peerLevelOSCPositionToValue(double position)
 {
     // Peer level sliders also use range [0.0, 2.0] with skew factor 0.5
-    // Use the same conversion as gain sliders
+    // Keep these wrapper functions for clarity and potential future customization
+    // They currently delegate to the same gain conversion used by OutGainSlider
     return oscPositionToGainValue(position);
 }
 
