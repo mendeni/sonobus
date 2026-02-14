@@ -1492,8 +1492,8 @@ double SonobusAudioProcessorEditor::oscPositionToGainValue(double position)
     // 
     // Formula: value = (position / 2.0)^2 * 2.0
     position = juce::jlimit(0.0, 2.0, position);
-    double normalized = position / 2.0;  // Normalize to 0.0-1.0
-    return normalized * normalized * 2.0;  // Apply inverse skew and scale back
+    double proportion = position / 2.0;  // Convert to proportion [0.0, 1.0]
+    return proportion * proportion * 2.0;  // Apply inverse skew (square) and scale back to [0.0, 2.0]
 }
 
 
