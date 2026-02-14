@@ -189,6 +189,10 @@ void SoundboardView::createControlPanel()
     //mVolumeSlider->addListener(this);
     mVolumeSlider->onValueChange = [this]() {
         audioProcessor.getSoundboardProcessor()->setGain(mVolumeSlider->getValue());
+        // Send OSC message for SoundboardVolumeSlider value change
+        if (audioProcessor.getOSCEnabled()) {
+            audioProcessor.getOSCManager().sendMessage("/SoundboardVolumeSlider", static_cast<float>(mVolumeSlider->getValue()));
+        }
     };
     mVolumeSlider->setColour(Slider::textBoxBackgroundColourId, Colours::transparentBlack);
     mVolumeSlider->setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
