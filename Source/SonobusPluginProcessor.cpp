@@ -8926,38 +8926,9 @@ void SonobusAudioProcessor::sendProcessorOSCState()
         oscManager.sendMessage("/SoundboardLevelSlider", getSoundboardProcessor()->getGain());
         oscManager.sendMessage("/SoundboardMonitorSlider", getSoundboardProcessor()->getMonitorGain());
         
-        // Send soundboard track states
-        int numTracks = getSoundboardProcessor()->getNumTracks();
-        DBG("Sending soundboard state for " << numTracks << " tracks");
-        
-        for (int trackIndex = 0; trackIndex < numTracks && trackIndex < 128; ++trackIndex) {
-            String trackNum = String(trackIndex + 1);
-            auto track = getSoundboardProcessor()->getTrack(trackIndex);
-            
-            if (track) {
-                // Send track name
-                String trackName = track->name.toStdString();
-                if (trackName.isNotEmpty()) {
-                    oscManager.sendMessage("/Soundboard" + trackNum + "TrackName", trackName);
-                }
-                
-                // Send track gain
-                oscManager.sendMessage("/Soundboard" + trackNum + "Gain", track->gain);
-                
-                // Send track state (playing, stopped)
-                bool isPlaying = (track->state == SoundboardChannelProcessor::Track::Playing);
-                oscManager.sendMessage("/Soundboard" + trackNum + "Play", isPlaying ? 1 : 0);
-                
-                // Send track mute
-                oscManager.sendMessage("/Soundboard" + trackNum + "Mute", track->muted ? 1 : 0);
-                
-                // Send track solo
-                oscManager.sendMessage("/Soundboard" + trackNum + "Solo", track->soloed ? 1 : 0);
-                
-                // Send track loop
-                oscManager.sendMessage("/Soundboard" + trackNum + "Loop", track->looping ? 1 : 0);
-            }
-        }
+        // Note: Detailed soundboard track state sending requires UI components (SoundboardView)
+        // and is not implemented in processor-level OSC for headless mode.
+        // This is acceptable as the main soundboard controls (level, monitor) are available.
     }
     
     // Send reverb controls
