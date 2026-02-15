@@ -9108,6 +9108,11 @@ void SonobusAudioProcessor::setStateInformationWithOptions (const void* data, in
             
             // Reinitialize OSC with loaded settings if enabled
             if (mOSCEnabled) {
+                // Disconnect first in case OSC was already initialized
+                DBG("Disconnecting existing OSC connections");
+                oscManager.disconnectSender();
+                oscManager.disconnectReceiver();
+                
                 DBG("Initializing OSC sender and receiver");
                 oscManager.initializeSender(mOSCTargetIPAddress, mOSCTargetPort);
                 oscManager.initializeReceiver(mOSCReceivePort);
