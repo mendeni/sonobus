@@ -787,6 +787,7 @@ public:
     bool getOSCEnabled() const { return mOSCEnabled; }
     void setOSCEnabled(bool enabled);
     void registerProcessorOSCControls();
+    void sendProcessorOSCState();
     
     bool getOSCSendStateOnStart() const { return mOSCSendStateOnStart; }
     void setOSCSendStateOnStart(bool enabled) { mOSCSendStateOnStart = enabled; }

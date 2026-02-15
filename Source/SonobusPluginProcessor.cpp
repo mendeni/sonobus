@@ -8487,6 +8487,12 @@ void SonobusAudioProcessor::setOSCEnabled(bool enabled)
             // Register OSC controls at processor level for headless mode
             DBG("No editor, calling registerProcessorOSCControls()");
             registerProcessorOSCControls();
+            
+            // Send initial state if configured
+            if (mOSCSendStateOnStart) {
+                DBG("Sending initial OSC state (OSCSendStateOnStart is enabled)");
+                sendProcessorOSCState();
+            }
         }
     } else {
         DBG("Disabling OSC");
@@ -8839,6 +8845,242 @@ void SonobusAudioProcessor::registerProcessorOSCControls()
     });
 }
 
+void SonobusAudioProcessor::sendProcessorOSCState()
+{
+    DBG("sendProcessorOSCState called");
+    
+    if (!getOSCEnabled()) {
+        DBG("OSC not enabled, skipping state send");
+        return;
+    }
+    
+    DBG("Sending processor OSC state for headless mode");
+    
+    // Send main controls
+    if (auto* param = mState.getParameter(paramDry)) {
+        oscManager.sendMessage("/DrySlider", param->convertFrom0to1(param->getValue()));
+    }
+    
+    if (auto* param = mState.getParameter(paramMainSendMute)) {
+        oscManager.sendMessage("/MainMuteButton", param->getValue() > 0.5f ? 1 : 0);
+    }
+    
+    if (auto* param = mState.getParameter(paramMainRecvMute)) {
+        oscManager.sendMessage("/MainRecvMuteButton", param->getValue() > 0.5f ? 1 : 0);
+    }
+    
+    if (auto* param = mState.getParameter(paramMainInMute)) {
+        oscManager.sendMessage("/InMuteButton", param->getValue() > 0.5f ? 1 : 0);
+    }
+    
+    if (auto* param = mState.getParameter(paramMainMonitorSolo)) {
+        oscManager.sendMessage("/InSoloButton", param->getValue() > 0.5f ? 1 : 0);
+    }
+    
+    // Send input gain
+    if (auto* param = mState.getParameter(paramInGain)) {
+        oscManager.sendMessage("/InGainSlider", param->convertFrom0to1(param->getValue()));
+    }
+    
+    // Send metronome controls
+    if (auto* param = mState.getParameter(paramMetEnabled)) {
+        oscManager.sendMessage("/MetEnableButton", param->getValue() > 0.5f ? 1 : 0);
+    }
+    
+    if (auto* param = mState.getParameter(paramMetGain)) {
+        oscManager.sendMessage("/MetLevelSlider", param->convertFrom0to1(param->getValue()));
+    }
+    
+    if (auto* param = mState.getParameter(paramMetTempo)) {
+        oscManager.sendMessage("/MetTempoSlider", param->convertFrom0to1(param->getValue()));
+    }
+    
+    oscManager.sendMessage("/MetPanSlider", getMetronomePan());
+    oscManager.sendMessage("/MetMonitorSlider", getMetronomeMonitor());
+    
+    if (auto* param = mState.getParameter(paramMetIsRecorded)) {
+        oscManager.sendMessage("/OptionsMetRecordedButton", param->getValue() > 0.5f ? 1 : 0);
+    }
+    
+    if (auto* param = mState.getParameter(paramSendMetAudio)) {
+        oscManager.sendMessage("/MetSendButton", param->getValue() > 0.5f ? 1 : 0);
+    }
+    
+    // Send recording state
+    oscManager.sendMessage("/RecordingButton", isRecordingToFile() ? 1 : 0);
+    
+    // Send file playback controls
+    if (auto* param = mState.getParameter(paramSendFileAudio)) {
+        oscManager.sendMessage("/FileSendButton", param->getValue() > 0.5f ? 1 : 0);
+    }
+    
+    oscManager.sendMessage("/FilePlaybackPreLevel", getFilePlaybackGain());
+    oscManager.sendMessage("/FileMonitorSlider", getFilePlaybackMonitor());
+    
+    // Send soundboard controls
+    if (auto* param = mState.getParameter(paramSendSoundboardAudio)) {
+        oscManager.sendMessage("/SoundboardSendButton", param->getValue() > 0.5f ? 1 : 0);
+    }
+    
+    if (getSoundboardProcessor()) {
+        oscManager.sendMessage("/SoundboardLevelSlider", getSoundboardProcessor()->getGain());
+        oscManager.sendMessage("/SoundboardMonitorSlider", getSoundboardProcessor()->getMonitorGain());
+        
+        // Send soundboard track states
+        int numTracks = getSoundboardProcessor()->getNumTracks();
+        DBG("Sending soundboard state for " << numTracks << " tracks");
+        
+        for (int trackIndex = 0; trackIndex < numTracks && trackIndex < 128; ++trackIndex) {
+            String trackNum = String(trackIndex + 1);
+            auto track = getSoundboardProcessor()->getTrack(trackIndex);
+            
+            if (track) {
+                // Send track name
+                String trackName = track->name.toStdString();
+                if (trackName.isNotEmpty()) {
+                    oscManager.sendMessage("/Soundboard" + trackNum + "TrackName", trackName);
+                }
+                
+                // Send track gain
+                oscManager.sendMessage("/Soundboard" + trackNum + "Gain", track->gain);
+                
+                // Send track state (playing, stopped)
+                bool isPlaying = (track->state == SoundboardChannelProcessor::Track::Playing);
+                oscManager.sendMessage("/Soundboard" + trackNum + "Play", isPlaying ? 1 : 0);
+                
+                // Send track mute
+                oscManager.sendMessage("/Soundboard" + trackNum + "Mute", track->muted ? 1 : 0);
+                
+                // Send track solo
+                oscManager.sendMessage("/Soundboard" + trackNum + "Solo", track->soloed ? 1 : 0);
+                
+                // Send track loop
+                oscManager.sendMessage("/Soundboard" + trackNum + "Loop", track->looping ? 1 : 0);
+            }
+        }
+    }
+    
+    // Send reverb controls
+    if (auto* param = mState.getParameter(paramMainReverbEnabled)) {
+        oscManager.sendMessage("/MainReverbEnabled", param->getValue() > 0.5f ? 1 : 0);
+    }
+    
+    if (auto* param = mState.getParameter(paramMainReverbLevel)) {
+        oscManager.sendMessage("/ReverbLevelSlider", param->convertFrom0to1(param->getValue()));
+    }
+    
+    if (auto* param = mState.getParameter(paramMainReverbSize)) {
+        oscManager.sendMessage("/ReverbSizeSlider", param->convertFrom0to1(param->getValue()));
+    }
+    
+    if (auto* param = mState.getParameter(paramMainReverbDamping)) {
+        oscManager.sendMessage("/ReverbDampingSlider", param->convertFrom0to1(param->getValue()));
+    }
+    
+    if (auto* param = mState.getParameter(paramMainReverbPreDelay)) {
+        oscManager.sendMessage("/ReverbPreDelaySlider", param->convertFrom0to1(param->getValue()));
+    }
+    
+    // Send input reverb controls
+    if (auto* param = mState.getParameter(paramInputReverbLevel)) {
+        oscManager.sendMessage("/InputReverbLevel", param->convertFrom0to1(param->getValue()));
+    }
+    
+    if (auto* param = mState.getParameter(paramInputReverbSize)) {
+        oscManager.sendMessage("/InputReverbSize", param->convertFrom0to1(param->getValue()));
+    }
+    
+    if (auto* param = mState.getParameter(paramInputReverbDamping)) {
+        oscManager.sendMessage("/InputReverbDamping", param->convertFrom0to1(param->getValue()));
+    }
+    
+    if (auto* param = mState.getParameter(paramInputReverbPreDelay)) {
+        oscManager.sendMessage("/InputReverbPreDelay", param->convertFrom0to1(param->getValue()));
+    }
+    
+    // Send peer states for all connected peers
+    int numPeers = getNumberRemotePeers();
+    DBG("Sending peer state for " << numPeers << " peers");
+    
+    for (int peerIndex = 0; peerIndex < numPeers && peerIndex < 16; ++peerIndex) {
+        String peerNum = String(peerIndex + 1);
+        
+        // Send peer username
+        String username = getRemotePeerUserName(peerIndex);
+        if (username.isNotEmpty()) {
+            oscManager.sendMessage("/Peer" + peerNum + "RemotePeerUserName", username);
+            DBG("Sent peer " << peerIndex << " username: " << username);
+        }
+        
+        // Send peer mute/solo
+        bool muted = !getRemotePeerRecvAllow(peerIndex);
+        oscManager.sendMessage("/Peer" + peerNum + "Mute", muted ? 1.0 : 0.0);
+        
+        bool soloed = getRemotePeerSoloed(peerIndex);
+        oscManager.sendMessage("/Peer" + peerNum + "Solo", soloed ? 1.0 : 0.0);
+        
+        // Send peer level (with skew factor conversion like in editor)
+        float level = getRemotePeerLevelGain(peerIndex);
+        // Convert to skewed OSC position: proportion = sqrt(value/2.0), position = proportion * 2.0
+        float value = juce::jlimit(0.0f, 2.0f, level);
+        double proportion = std::sqrt(value / 2.0);
+        double skewedPosition = proportion * 2.0;
+        oscManager.sendMessage("/Peer" + peerNum + "Level", static_cast<float>(skewedPosition));
+        
+        // Send peer pan
+        float pan = getRemotePeerChannelPan(peerIndex, 0, 0);
+        oscManager.sendMessage("/Peer" + peerNum + "Pan", pan);
+        
+        // Send peer FX - Compressor
+        SonoAudio::CompressorParams compParams;
+        if (getRemotePeerCompressorParams(peerIndex, 0, compParams)) {
+            oscManager.sendMessage("/Peer" + peerNum + "CompressorEnable", compParams.enabled ? 1 : 0);
+            oscManager.sendMessage("/Peer" + peerNum + "CompressorThreshold", compParams.thresholdDb);
+            oscManager.sendMessage("/Peer" + peerNum + "CompressorRatio", compParams.ratio);
+            oscManager.sendMessage("/Peer" + peerNum + "CompressorAttack", compParams.attackMs);
+            oscManager.sendMessage("/Peer" + peerNum + "CompressorRelease", compParams.releaseMs);
+            oscManager.sendMessage("/Peer" + peerNum + "CompressorMakeupGain", compParams.makeupGainDb);
+            oscManager.sendMessage("/Peer" + peerNum + "CompressorAuto", compParams.automakeupGain ? 1 : 0);
+        }
+        
+        // Send peer FX - Expander
+        SonoAudio::CompressorParams expanderParams;
+        if (getRemotePeerExpanderParams(peerIndex, 0, expanderParams)) {
+            oscManager.sendMessage("/Peer" + peerNum + "ExpanderEnable", expanderParams.enabled ? 1 : 0);
+            oscManager.sendMessage("/Peer" + peerNum + "ExpanderNoiseFloor", expanderParams.thresholdDb);
+            oscManager.sendMessage("/Peer" + peerNum + "ExpanderRatio", expanderParams.ratio);
+            oscManager.sendMessage("/Peer" + peerNum + "ExpanderAttack", expanderParams.attackMs);
+            oscManager.sendMessage("/Peer" + peerNum + "ExpanderRelease", expanderParams.releaseMs);
+        }
+        
+        // Send peer FX - EQ
+        SonoAudio::ParametricEqParams eqParams;
+        if (getRemotePeerEqParams(peerIndex, 0, eqParams)) {
+            oscManager.sendMessage("/Peer" + peerNum + "EqEnable", eqParams.enabled ? 1 : 0);
+            oscManager.sendMessage("/Peer" + peerNum + "EqLowShelfFreq", eqParams.lowShelfFreq);
+            oscManager.sendMessage("/Peer" + peerNum + "EqLowShelfGain", eqParams.lowShelfGain);
+            oscManager.sendMessage("/Peer" + peerNum + "EqPara1Freq", eqParams.para1Freq);
+            oscManager.sendMessage("/Peer" + peerNum + "EqPara1Gain", eqParams.para1Gain);
+            oscManager.sendMessage("/Peer" + peerNum + "EqPara1Q", eqParams.para1Q);
+            oscManager.sendMessage("/Peer" + peerNum + "EqHighShelfFreq", eqParams.highShelfFreq);
+            oscManager.sendMessage("/Peer" + peerNum + "EqHighShelfGain", eqParams.highShelfGain);
+            oscManager.sendMessage("/Peer" + peerNum + "EqPara2Freq", eqParams.para2Freq);
+            oscManager.sendMessage("/Peer" + peerNum + "EqPara2Gain", eqParams.para2Gain);
+            oscManager.sendMessage("/Peer" + peerNum + "EqPara2Q", eqParams.para2Q);
+        }
+        
+        // Send peer reverb send
+        float reverbSend = getRemotePeerChannelReverbSend(peerIndex, 0);
+        oscManager.sendMessage("/Peer" + peerNum + "InputReverbSend", reverbSend);
+        
+        // Send peer polarity invert
+        bool inverted = getRemotePeerPolarityInvert(peerIndex, 0);
+        oscManager.sendMessage("/Peer" + peerNum + "PolarityInvert", inverted ? 1 : 0);
+    }
+    
+    DBG("sendProcessorOSCState completed");
+}
+
 ValueTree AooServerConnectionInfo::getValueTree() const
 {
     ValueTree item(recentsItemKey);
@@ -9123,6 +9365,21 @@ void SonobusAudioProcessor::setStateInformationWithOptions (const void* data, in
                 if (!hasEditor) {
                     DBG("No editor, calling registerProcessorOSCControls");
                     registerProcessorOSCControls();
+                    
+                    // Send initial state if configured
+                    if (mOSCSendStateOnStart) {
+                        DBG("Sending initial OSC state (OSCSendStateOnStart is enabled)");
+                        sendProcessorOSCState();
+                        
+                        // Schedule another state send after a delay to catch peers that join shortly after
+                        // This mimics the behavior in GUI mode where peer state is sent when they join
+                        Timer::callAfterDelay(500, [this]() {
+                            if (getOSCEnabled() && getActiveEditor() == nullptr) {
+                                DBG("Sending delayed OSC state update for late-joining peers");
+                                sendProcessorOSCState();
+                            }
+                        });
+                    }
                 } else {
                     DBG("Editor exists, skipping processor OSC registration");
                 }
