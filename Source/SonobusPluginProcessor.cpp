@@ -8476,12 +8476,15 @@ void SonobusAudioProcessor::setOSCEnabled(bool enabled)
         oscManager.initializeReceiver(mOSCReceivePort);
         oscManager.initializeSender(mOSCTargetIPAddress, mOSCTargetPort);
         
-        // Register OSC controls in the editor
+        // Register OSC controls in the editor if available (GUI mode)
         if (auto* editor = dynamic_cast<SonobusAudioProcessorEditor*>(getActiveEditor())) {
             editor->registerAllOSCControls();
+        } else {
+            // Register OSC controls at processor level for headless mode
+            registerProcessorOSCControls();
         }
     } else {
-        // Unregister OSC controls in the editor
+        // Unregister OSC controls in the editor if available
         if (auto* editor = dynamic_cast<SonobusAudioProcessorEditor*>(getActiveEditor())) {
             editor->unregisterAllOSCControls();
         }
@@ -8514,6 +8517,313 @@ void SonobusAudioProcessor::setOSCReceivePort(int port)
     if (mOSCEnabled) {
         oscManager.initializeReceiver(mOSCReceivePort);
     }
+}
+
+void SonobusAudioProcessor::registerProcessorOSCControls()
+{
+    if (!getOSCEnabled()) {
+        return;
+    }
+    
+    // Register main control buttons
+    oscManager.registerControl("/MainMuteButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool muteState = false;
+            if (message[0].isInt32()) {
+                muteState = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                muteState = (message[0].getFloat32() != 0.0f);
+            }
+            if (auto* param = mState.getParameter(paramMainSendMute)) {
+                param->setValueNotifyingHost(muteState ? 1.0f : 0.0f);
+            }
+        }
+    });
+    
+    oscManager.registerControl("/MainRecvMuteButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool muteState = false;
+            if (message[0].isInt32()) {
+                muteState = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                muteState = (message[0].getFloat32() != 0.0f);
+            }
+            if (auto* param = mState.getParameter(paramMainRecvMute)) {
+                param->setValueNotifyingHost(muteState ? 1.0f : 0.0f);
+            }
+        }
+    });
+    
+    oscManager.registerControl("/MainMonitorSolo", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool soloState = false;
+            if (message[0].isInt32()) {
+                soloState = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                soloState = (message[0].getFloat32() != 0.0f);
+            }
+            if (auto* param = mState.getParameter(paramMainMonitorSolo)) {
+                param->setValueNotifyingHost(soloState ? 1.0f : 0.0f);
+            }
+        }
+    });
+    
+    oscManager.registerControl("/MainInMute", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool muteState = false;
+            if (message[0].isInt32()) {
+                muteState = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                muteState = (message[0].getFloat32() != 0.0f);
+            }
+            if (auto* param = mState.getParameter(paramMainInMute)) {
+                param->setValueNotifyingHost(muteState ? 1.0f : 0.0f);
+            }
+        }
+    });
+    
+    // Register gain sliders
+    oscManager.registerControl("/DrySlider", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32() * OSC_INVERSE_SCALE_FACTOR;
+            if (auto* param = mState.getParameter(paramDry)) {
+                float normalizedValue = param->convertTo0to1(value);
+                param->setValueNotifyingHost(normalizedValue);
+            }
+        }
+    });
+    
+    oscManager.registerControl("/InGainSlider", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32() * OSC_INVERSE_SCALE_FACTOR;
+            if (auto* param = mState.getParameter(paramInGain)) {
+                float normalizedValue = param->convertTo0to1(value);
+                param->setValueNotifyingHost(normalizedValue);
+            }
+        }
+    });
+    
+    // Register metronome controls
+    oscManager.registerControl("/MetEnableButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool enableState = false;
+            if (message[0].isInt32()) {
+                enableState = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                enableState = (message[0].getFloat32() != 0.0f);
+            }
+            if (auto* param = mState.getParameter(paramMetEnabled)) {
+                param->setValueNotifyingHost(enableState ? 1.0f : 0.0f);
+            }
+        }
+    });
+    
+    oscManager.registerControl("/MetLevelSlider", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            if (auto* param = mState.getParameter(paramMetGain)) {
+                float normalizedValue = param->convertTo0to1(value);
+                param->setValueNotifyingHost(normalizedValue);
+            }
+        }
+    });
+    
+    oscManager.registerControl("/MetTempoSlider", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            if (auto* param = mState.getParameter(paramMetTempo)) {
+                float normalizedValue = param->convertTo0to1(value);
+                param->setValueNotifyingHost(normalizedValue);
+            }
+        }
+    });
+    
+    oscManager.registerControl("/MetPanSlider", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            setMetronomePan(value);
+        }
+    });
+    
+    oscManager.registerControl("/MetMonitorSlider", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            setMetronomeMonitor(value);
+        }
+    });
+    
+    // Register input group controls (support up to 16 input groups)
+    for (int groupIndex = 0; groupIndex < 16; ++groupIndex) {
+        // Input Group Pre Level
+        String preLevelAddress = "/InputGroup" + String(groupIndex + 1) + "PreLevel";
+        oscManager.registerControl(preLevelAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float value = message[0].getFloat32();
+                if (groupIndex < getInputGroupCount()) {
+                    setInputGroupGain(groupIndex, value);
+                }
+            }
+        });
+        
+        // Input Group Pan (single channel)
+        String panAddress = "/InputGroup" + String(groupIndex + 1) + "Pan";
+        oscManager.registerControl(panAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float value = message[0].getFloat32();
+                if (groupIndex < getInputGroupCount()) {
+                    setInputChannelPan(groupIndex, 0, value);
+                }
+            }
+        });
+        
+        // Input Group Pan Left (dual channel)
+        String panLeftAddress = "/InputGroup" + String(groupIndex + 1) + "PanLeft";
+        oscManager.registerControl(panLeftAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float value = message[0].getFloat32();
+                if (groupIndex < getInputGroupCount()) {
+                    setInputChannelPan(groupIndex, 0, value);
+                }
+            }
+        });
+        
+        // Input Group Pan Right (dual channel)
+        String panRightAddress = "/InputGroup" + String(groupIndex + 1) + "PanRight";
+        oscManager.registerControl(panRightAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float value = message[0].getFloat32();
+                if (groupIndex < getInputGroupCount()) {
+                    setInputChannelPan(groupIndex, 1, value);
+                }
+            }
+        });
+        
+        // Input Group Monitor
+        String monitorAddress = "/InputGroup" + String(groupIndex + 1) + "Monitor";
+        oscManager.registerControl(monitorAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float value = message[0].getFloat32();
+                if (groupIndex < getInputGroupCount()) {
+                    setInputMonitor(groupIndex, value);
+                }
+            }
+        });
+        
+        // Input Group Mute
+        String muteAddress = "/InputGroup" + String(groupIndex + 1) + "Mute";
+        oscManager.registerControl(muteAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0) {
+                bool muteState = false;
+                if (message[0].isInt32()) {
+                    muteState = (message[0].getInt32() != 0);
+                } else if (message[0].isFloat32()) {
+                    muteState = (message[0].getFloat32() != 0.0f);
+                }
+                if (groupIndex < getInputGroupCount()) {
+                    setInputGroupMuted(groupIndex, muteState);
+                }
+            }
+        });
+        
+        // Input Group Solo
+        String soloAddress = "/InputGroup" + String(groupIndex + 1) + "Solo";
+        oscManager.registerControl(soloAddress, [this, groupIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0) {
+                bool soloState = false;
+                if (message[0].isInt32()) {
+                    soloState = (message[0].getInt32() != 0);
+                } else if (message[0].isFloat32()) {
+                    soloState = (message[0].getFloat32() != 0.0f);
+                }
+                if (groupIndex < getInputGroupCount()) {
+                    setInputGroupSoloed(groupIndex, soloState);
+                }
+            }
+        });
+    }
+    
+    // Register File Playback Pre Level
+    oscManager.registerControl("/FilePlaybackPreLevel", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0 && message[0].isFloat32()) {
+            float value = message[0].getFloat32();
+            setFilePlaybackGain(value);
+        }
+    });
+    
+    // Register peer controls (support up to 16 peers)
+    for (int peerIndex = 0; peerIndex < 16; ++peerIndex) {
+        // Peer Level - uses gain conversion with skew factor
+        String levelAddress = "/Peer" + String(peerIndex + 1) + "Level";
+        oscManager.registerControl(levelAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float oscPosition = message[0].getFloat32() * OSC_INVERSE_SCALE_FACTOR;
+                if (peerIndex < getNumberRemotePeers()) {
+                    // Convert OSC position (0.0-2.0) to slider value (0.0-2.0) with skew factor 0.5
+                    // Formula: value = (position / 2.0)^2 * 2.0
+                    oscPosition = juce::jlimit(0.0f, 2.0f, oscPosition);
+                    float proportion = oscPosition / 2.0f;
+                    float value = proportion * proportion * 2.0f;
+                    setRemotePeerLevelGain(peerIndex, value);
+                }
+            }
+        });
+        
+        // Peer Pan - controls channel group 0, channel 0
+        String panAddress = "/Peer" + String(peerIndex + 1) + "Pan";
+        oscManager.registerControl(panAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                float pan = message[0].getFloat32() * OSC_INVERSE_SCALE_FACTOR;
+                if (peerIndex < getNumberRemotePeers()) {
+                    setRemotePeerChannelPan(peerIndex, 0, 0, pan);
+                }
+            }
+        });
+        
+        // Peer Mute - controls receive active state
+        String muteAddress = "/Peer" + String(peerIndex + 1) + "Mute";
+        oscManager.registerControl(muteAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                bool muted = message[0].getFloat32() != 0.0f;
+                if (peerIndex < getNumberRemotePeers()) {
+                    if (muted) {
+                        setRemotePeerRecvAllow(peerIndex, false);
+                    } else {
+                        setRemotePeerRecvActive(peerIndex, true);
+                    }
+                }
+            }
+        });
+        
+        // Peer Solo
+        String soloAddress = "/Peer" + String(peerIndex + 1) + "Solo";
+        oscManager.registerControl(soloAddress, [this, peerIndex](const juce::OSCMessage& message) {
+            if (message.size() > 0 && message[0].isFloat32()) {
+                bool soloed = message[0].getFloat32() != 0.0f;
+                if (peerIndex < getNumberRemotePeers()) {
+                    setRemotePeerSoloed(peerIndex, soloed);
+                }
+            }
+        });
+    }
+    
+    // Register recording controls
+    oscManager.registerControl("/RecordingButton", [this](const juce::OSCMessage& message) {
+        if (message.size() > 0) {
+            bool recordState = false;
+            if (message[0].isInt32()) {
+                recordState = (message[0].getInt32() != 0);
+            } else if (message[0].isFloat32()) {
+                recordState = (message[0].getFloat32() != 0.0f);
+            }
+            
+            if (recordState && !isRecordingToFile()) {
+                // Start recording - would need a default file path
+                // For headless mode, recording path should be pre-configured
+            } else if (!recordState && isRecordingToFile()) {
+                stopRecordingToFile();
+            }
+        }
+    });
 }
 
 ValueTree AooServerConnectionInfo::getValueTree() const
