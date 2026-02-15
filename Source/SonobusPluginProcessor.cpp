@@ -9096,6 +9096,11 @@ void SonobusAudioProcessor::setStateInformationWithOptions (const void* data, in
             if (mOSCEnabled) {
                 oscManager.initializeSender(mOSCTargetIPAddress, mOSCTargetPort);
                 oscManager.initializeReceiver(mOSCReceivePort);
+                
+                // Register OSC controls if no editor is active (headless mode)
+                if (getActiveEditor() == nullptr) {
+                    registerProcessorOSCControls();
+                }
             }
 
 
