@@ -8469,21 +8469,27 @@ OSCManager& SonobusAudioProcessor::getOSCManager()
 
 void SonobusAudioProcessor::setOSCEnabled(bool enabled)
 {
+    DBG("setOSCEnabled called with: " << enabled);
     mOSCEnabled = enabled;
     
     if (enabled) {
         // Initialize OSC when enabled
+        DBG("Initializing OSC receiver on port " << mOSCReceivePort);
         oscManager.initializeReceiver(mOSCReceivePort);
+        DBG("Initializing OSC sender to " << mOSCTargetIPAddress << ":" << mOSCTargetPort);
         oscManager.initializeSender(mOSCTargetIPAddress, mOSCTargetPort);
         
         // Register OSC controls in the editor if available (GUI mode)
         if (auto* editor = dynamic_cast<SonobusAudioProcessorEditor*>(getActiveEditor())) {
+            DBG("Editor exists, calling editor->registerAllOSCControls()");
             editor->registerAllOSCControls();
         } else {
             // Register OSC controls at processor level for headless mode
+            DBG("No editor, calling registerProcessorOSCControls()");
             registerProcessorOSCControls();
         }
     } else {
+        DBG("Disabling OSC");
         // Unregister OSC controls in the editor if available
         if (auto* editor = dynamic_cast<SonobusAudioProcessorEditor*>(getActiveEditor())) {
             editor->unregisterAllOSCControls();
@@ -8521,9 +8527,14 @@ void SonobusAudioProcessor::setOSCReceivePort(int port)
 
 void SonobusAudioProcessor::registerProcessorOSCControls()
 {
+    DBG("registerProcessorOSCControls called");
+    
     if (!getOSCEnabled()) {
+        DBG("OSC not enabled, skipping control registration");
         return;
     }
+    
+    DBG("Registering processor OSC controls for headless mode");
     
     // Register main control buttons
     oscManager.registerControl("/MainMuteButton", [this](const juce::OSCMessage& message) {
@@ -9093,14 +9104,22 @@ void SonobusAudioProcessor::setStateInformationWithOptions (const void* data, in
             mOSCTargetPort = extraTree.getProperty(oscTargetPortKey, mOSCTargetPort);
             mOSCReceivePort = extraTree.getProperty(oscReceivePortKey, mOSCReceivePort);
             
+            DBG("Loaded OSC settings: enabled=" << mOSCEnabled << ", receivePort=" << mOSCReceivePort);
+            
             // Reinitialize OSC with loaded settings if enabled
             if (mOSCEnabled) {
+                DBG("Initializing OSC sender and receiver");
                 oscManager.initializeSender(mOSCTargetIPAddress, mOSCTargetPort);
                 oscManager.initializeReceiver(mOSCReceivePort);
                 
                 // Register OSC controls if no editor is active (headless mode)
-                if (getActiveEditor() == nullptr) {
+                bool hasEditor = (getActiveEditor() != nullptr);
+                DBG("Has editor: " << hasEditor);
+                if (!hasEditor) {
+                    DBG("No editor, calling registerProcessorOSCControls");
                     registerProcessorOSCControls();
+                } else {
+                    DBG("Editor exists, skipping processor OSC registration");
                 }
             }
 

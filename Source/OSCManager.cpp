@@ -118,7 +118,7 @@ void OSCManager::registerControl(const juce::String& address, ControlCallback ca
     controlRegistry[address] = callback;
     // Also register as a listener for this OSC address pattern
     addListener(this, address);
-    // juce::Logger::writeToLog("Registered control for OSC address: " + address);
+    juce::Logger::writeToLog("Registered control for OSC address: " + address);
 }
 
 // Unregister Control
@@ -138,12 +138,13 @@ void OSCManager::unregisterControl(const juce::String& address)
 void OSCManager::oscMessageReceived(const juce::OSCMessage& message)
 {
     juce::String address = message.getAddressPattern().toString();
-    // juce::Logger::writeToLog("Incoming OSC message: " + address);
+    juce::Logger::writeToLog("Incoming OSC message: " + address);
     
     // Check if a callback is registered for this address
     auto it = controlRegistry.find(address);
     if (it != controlRegistry.end())
     {
+        juce::Logger::writeToLog("Found registered callback for: " + address);
         // If this address uses inverted semantics, translate the incoming 0/1 back to the app's original values:
         // incoming 0 -> treated as 1 internally, incoming 1 -> treated as 0 internally.
         if (addressNeedsInvert(address) && message.size() > 0)
