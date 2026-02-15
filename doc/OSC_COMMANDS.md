@@ -6,9 +6,11 @@ This document describes all available OSC (Open Sound Control) commands for cont
 
 SonoBus supports bidirectional OSC communication, allowing external controllers to both send commands to control the application and receive status updates when controls change.
 
+**Headless Mode Support**: OSC commands work in both GUI and headless mode (using the `-q` flag). When running in headless mode, OSC controls are automatically registered at the processor level, enabling full remote control without a graphical interface.
+
 ## Configuration
 
-OSC can be configured in the Options tab:
+OSC can be configured in the Options tab (GUI mode) or via setup files (headless mode):
 - **Enable OSC**: Toggle OSC functionality on/off
 - **Send state to target on start**: When enabled, sends current values of all OSC-enabled controls when OSC is enabled
 - **Send peer levels via OSC**: When enabled, sends real-time audio level data for connected peers at ~10 Hz

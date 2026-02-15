@@ -8758,7 +8758,8 @@ void SonobusAudioProcessor::registerProcessorOSCControls()
             if (message.size() > 0 && message[0].isFloat32()) {
                 float oscPosition = message[0].getFloat32() * OSC_INVERSE_SCALE_FACTOR;
                 if (peerIndex < getNumberRemotePeers()) {
-                    // Convert OSC position (0.0-2.0) to slider value (0.0-2.0) with skew factor 0.5
+                    // Convert OSC position (0.0-2.0) to slider value (0.0-2.0)
+                    // The UI slider has skew factor 0.5, so this is the inverse transformation (skew 2.0)
                     // Formula: value = (position / 2.0)^2 * 2.0
                     oscPosition = juce::jlimit(0.0f, 2.0f, oscPosition);
                     float proportion = oscPosition / 2.0f;
@@ -8806,7 +8807,9 @@ void SonobusAudioProcessor::registerProcessorOSCControls()
         });
     }
     
-    // Register recording controls
+    // NOTE: Recording control is not fully implemented for headless mode
+    // Starting recordings requires a file path which should be configured
+    // in the setup file. For now, only stopping is supported via OSC.
     oscManager.registerControl("/RecordingButton", [this](const juce::OSCMessage& message) {
         if (message.size() > 0) {
             bool recordState = false;
@@ -8816,10 +8819,8 @@ void SonobusAudioProcessor::registerProcessorOSCControls()
                 recordState = (message[0].getFloat32() != 0.0f);
             }
             
-            if (recordState && !isRecordingToFile()) {
-                // Start recording - would need a default file path
-                // For headless mode, recording path should be pre-configured
-            } else if (!recordState && isRecordingToFile()) {
+            // Only stop recording is supported in headless mode for now
+            if (!recordState && isRecordingToFile()) {
                 stopRecordingToFile();
             }
         }
