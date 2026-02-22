@@ -1,22 +1,25 @@
 #!/bin/bash
 
+BASEAPPNAME=SonoBusMendeni
 
 
 # codesign them with developer ID cert
 
-POPTS="--strict  --force --options=runtime --sign C7AF15C3BCF2AD2E5C102B9DB6502CFAE2C8CF3B --timestamp"
-AOPTS="--strict  --force --options=runtime --sign C7AF15C3BCF2AD2E5C102B9DB6502CFAE2C8CF3B --timestamp"
+DEVIDSHA="53B30F159F221174875C0241213FE6B7B3CFE483"
 
-codesign ${AOPTS} --entitlements SonoBus.entitlements SonoBus/SonoBus.app
-codesign ${POPTS} --entitlements SonoBus.entitlements  SonoBus/SonoBus.component
-codesign ${POPTS} --entitlements SonoBus.entitlements SonoBus/SonoBus.vst3
-codesign ${POPTS} --entitlements SonoBus.entitlements SonoBus/SonoBusInstrument.vst3
-codesign ${POPTS} --entitlements SonoBus.entitlements  SonoBus/SonoBus.vst
+POPTS="--strict  --force --options=runtime --sign ${DEVIDSHA} --timestamp"
+AOPTS="--strict  --force --options=runtime --sign ${DEVIDSHA} --timestamp"
+
+codesign ${AOPTS} --entitlements SonoBus.entitlements ${BASEAPPNAME}/${BASEAPPNAME}.app
+codesign ${POPTS} --entitlements SonoBus.entitlements  ${BASEAPPNAME}/${BASEAPPNAME}.component
+codesign ${POPTS} --entitlements SonoBus.entitlements ${BASEAPPNAME}/${BASEAPPNAME}.vst3
+codesign ${POPTS} --entitlements SonoBus.entitlements ${BASEAPPNAME}/${BASEAPPNAME}Instrument.vst3
+codesign ${POPTS} --entitlements SonoBus.entitlements  ${BASEAPPNAME}/${BASEAPPNAME}.vst
 
 # AAX is special
 if [ -n "${AAXSIGNCMD}" ]; then
  echo "Signing AAX plugin"
- ${AAXSIGNCMD}  --in SonoBus/SonoBus.aaxplugin --out SonoBus/SonoBus.aaxplugin
+ ${AAXSIGNCMD}  --in ${BASEAPPNAME}/${BASEAPPNAME}.aaxplugin --out ${BASEAPPNAME}/${BASEAPPNAME}.aaxplugin
 fi
 
 
@@ -25,6 +28,8 @@ if [ "x$1" = "xonly" ] ; then
   exit 0
 fi
 
+# don't notarize here ever
+exit 0
 
 mkdir -p tmp
 

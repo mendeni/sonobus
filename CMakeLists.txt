@@ -176,7 +176,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         
         
         # other settings...
-        PLUGIN_MANUFACTURER_CODE Sono
+        PLUGIN_MANUFACTURER_CODE SonM
         PLUGIN_CODE ${plugincode}
         FORMATS ${formats}
         DESCRIPTION "SonoBus - Network Audio"
