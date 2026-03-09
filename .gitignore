@@ -6,3 +6,6 @@ release/1.*
 mobile/Builds
 .DS_store
 *.swp
+pkgroot-app
+pkgroot-vst3
+license.txt

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<installer-gui-script minSpecVersion="1">
+
+<title>SonoBusMendeni Installer</title>
+
+<welcome file="welcome.html"/>
+<license file="license.txt"/>
+
+<choices-outline>
+    <line choice="app"/>
+    <line choice="vst3"/>
+</choices-outline>
+
+<choice id="app" title="Standalone Application" visible="true">
+    <pkg-ref id="com.mendeni.sonobus.app"/>
+</choice>
+
+<choice id="vst3" title="VST3 Plugin" visible="true">
+    <pkg-ref id="com.mendeni.sonobus.vst3"/>
+</choice>
+
+<pkg-ref id="com.mendeni.sonobus.app">
+    sonobus-app.pkg
+</pkg-ref>
+
+<pkg-ref id="com.mendeni.sonobus.vst3">
+    sonobus-vst3.pkg
+</pkg-ref>
+
+</installer-gui-script>
