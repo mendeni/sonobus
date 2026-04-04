@@ -1,7 +1,7 @@
 #!/bin/sh
 set -ex
 
-APPID_BASE="net.mendeni.sonobus"
+APPID_BASE="com.mendeni.sonobus"
 INSTALLER_PKG="SonoBusMendeniInstaller.pkg"
 
 BUILD_DIR="build"
@@ -34,14 +34,14 @@ echo "Building component packages..."
 
 pkgbuild \
   --root "$APP_ROOT" \
-  --identifier "$APPID_BASE.app" \
+  --identifier "$APPID_BASE.pkg.app" \
   --version "$VERSION" \
   --install-location / \
   "$BUILD_DIR/sonobus-app.pkg"
 
 pkgbuild \
   --root "$VST3_ROOT" \
-  --identifier "$APPID_BASE.vst3" \
+  --identifier "$APPID_BASE.pkg.vst3" \
   --version "$VERSION" \
   --install-location / \
   "$BUILD_DIR/sonobus-vst3.pkg"
