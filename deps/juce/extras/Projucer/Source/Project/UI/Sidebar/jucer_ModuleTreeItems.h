@@ -1,24 +1,33 @@
 /*
   ==============================================================================
 
-   This file is part of the JUCE library.
-   Copyright (c) 2022 - Raw Material Software Limited
+   This file is part of the JUCE framework.
+   Copyright (c) Raw Material Software Limited
 
-   JUCE is an open source library subject to commercial or open-source
+   JUCE is an open source framework subject to commercial or open source
    licensing.
 
-   By using JUCE, you agree to the terms of both the JUCE 7 End-User License
-   Agreement and JUCE Privacy Policy.
+   By downloading, installing, or using the JUCE framework, or combining the
+   JUCE framework with any other source code, object code, content or any other
+   copyrightable work, you agree to the terms of the JUCE End User Licence
+   Agreement, and all incorporated terms including the JUCE Privacy Policy and
+   the JUCE Website Terms of Service, as applicable, which will bind you. If you
+   do not agree to the terms of these agreements, we will not license the JUCE
+   framework to you, and you must discontinue the installation or download
+   process and cease use of the JUCE framework.
 
-   End User License Agreement: www.juce.com/juce-7-licence
-   Privacy Policy: www.juce.com/juce-privacy-policy
+   JUCE End User Licence Agreement: https://juce.com/legal/juce-8-licence/
+   JUCE Privacy Policy: https://juce.com/juce-privacy-policy
+   JUCE Website Terms of Service: https://juce.com/juce-website-terms-of-service/
 
-   Or: You may also use this code under the terms of the GPL v3 (see
-   www.gnu.org/licenses).
+   Or:
 
-   JUCE IS PROVIDED "AS IS" WITHOUT ANY WARRANTY, AND ALL WARRANTIES, WHETHER
-   EXPRESSED OR IMPLIED, INCLUDING MERCHANTABILITY AND FITNESS FOR PURPOSE, ARE
-   DISCLAIMED.
+   You may also use this code under the terms of the AGPLv3:
+   https://www.gnu.org/licenses/agpl-3.0.en.html
+
+   THE JUCE FRAMEWORK IS PROVIDED "AS IS" WITHOUT ANY WARRANTY, AND ALL
+   WARRANTIES, WHETHER EXPRESSED OR IMPLIED, INCLUDING WARRANTY OF
+   MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, ARE DISCLAIMED.
 
   ==============================================================================
 */
@@ -70,7 +79,7 @@ public:
             {
                 if (moduleInfo.getLicense() == "ISC")
                     iconColour = Colours::lightblue;
-                else if (moduleInfo.getLicense() == "GPL/Commercial")
+                else if (moduleInfo.getLicense() == "AGPLv3/Commercial")
                     iconColour = Colours::orange;
             }
         }
@@ -516,96 +525,50 @@ public:
 
     void showPopupMenu (Point<int> p) override
     {
-        auto& enabledModules = project.getEnabledModules();
-        PopupMenu allModules;
+        PopupMenu moduleMenus;
 
-        // JUCE path
-        PopupMenu jucePathModules;
-
-        for (const auto [index, mod] : enumerate (ProjucerApplication::getApp().getJUCEPathModulesList().getAllModules(),
-                                                  100))
+        const auto addModulesSubMenu = [&] (const auto& description, const auto& modules, auto rescan)
         {
-            jucePathModules.addItem (index, mod.first, ! enabledModules.isModuleEnabled (mod.first));
-        }
+            PopupMenu menu;
 
-        jucePathModules.addSeparator();
-        jucePathModules.addItem (-1, "Re-scan path");
+            for (const auto& mod : modules)
+            {
+                menu.addItem (PopupMenu::Item { mod.first }
+                                  .setID (-1)
+                                  .setEnabled (! project.getEnabledModules().isModuleEnabled (mod.first))
+                                  .setAction ([this, name = mod.first] { project.getEnabledModules().addModuleInteractive (name); }));
+            }
 
-        allModules.addSubMenu ("Global JUCE modules path", jucePathModules);
+            menu.addSeparator();
+            menu.addItem (PopupMenu::Item { "Re-scan path" }.setID (-1).setAction (rescan));
+            moduleMenus.addSubMenu (description, menu);
+        };
 
-        // User path
-        PopupMenu userPathModules;
+        addModulesSubMenu ("Global JUCE modules path",
+                           ProjucerApplication::getApp().getJUCEPathModulesList().getAllModules(),
+                           [] { ProjucerApplication::getApp().rescanJUCEPathModules(); });
 
-        for (const auto [index, mod] : enumerate (ProjucerApplication::getApp().getUserPathsModulesList().getAllModules(),
-                                                  200))
-        {
-            userPathModules.addItem (index, mod.first, ! enabledModules.isModuleEnabled (mod.first));
-        }
+        addModulesSubMenu ("Global user modules path",
+                           ProjucerApplication::getApp().getUserPathsModulesList().getAllModules(),
+                           [] { ProjucerApplication::getApp().rescanUserPathModules(); });
 
-        userPathModules.addSeparator();
-        userPathModules.addItem (-2, "Re-scan path");
-
-        allModules.addSubMenu ("Global user modules path", userPathModules);
-
-        // Exporter path
-        PopupMenu exporterPathModules;
-
-        for (const auto [index, mod] : enumerate (project.getExporterPathsModulesList().getAllModules(),
-                                                  300))
-        {
-            exporterPathModules.addItem (index, mod.first, ! enabledModules.isModuleEnabled (mod.first));
-        }
-
-        exporterPathModules.addSeparator();
-        exporterPathModules.addItem (-3, "Re-scan path");
-
-        allModules.addSubMenu ("Exporter paths", exporterPathModules);
+        addModulesSubMenu ("Exporter paths",
+                           project.getExporterPathsModulesList().getAllModules(),
+                           [this] { project.rescanExporterPathModules(); });
 
         PopupMenu menu;
-        menu.addSubMenu ("Add a module", allModules);
-
+        menu.addSubMenu ("Add a module", moduleMenus);
         menu.addSeparator();
-        menu.addItem (1001, "Add a module from a specified folder...");
+        menu.addItem (PopupMenu::Item { "Add a module from a specified folder..." }
+                          .setID (-1)
+                          .setAction ([this] { project.getEnabledModules().addModuleFromUserSelectedFile(); }));
 
         launchPopupMenu (menu, p);
     }
 
     void handlePopupMenuResult (int resultCode) override
     {
-        if (resultCode == 1001)
-        {
-            project.getEnabledModules().addModuleFromUserSelectedFile();
-        }
-        else if (resultCode < 0)
-        {
-            if      (resultCode == -1)  ProjucerApplication::getApp().rescanJUCEPathModules();
-            else if (resultCode == -2)  ProjucerApplication::getApp().rescanUserPathModules();
-            else if (resultCode == -3)  project.rescanExporterPathModules();
-        }
-        else if (resultCode > 0)
-        {
-            std::vector<AvailableModulesList::ModuleIDAndFolder> list;
-            int offset = -1;
-
-            if (resultCode < 200)
-            {
-                list = ProjucerApplication::getApp().getJUCEPathModulesList().getAllModules();
-                offset = 100;
-            }
-            else if (resultCode < 300)
-            {
-                list = ProjucerApplication::getApp().getUserPathsModulesList().getAllModules();
-                offset = 200;
-            }
-            else if (resultCode < 400)
-            {
-                list = project.getExporterPathsModulesList().getAllModules();
-                offset = 300;
-            }
-
-            if (offset != -1)
-                project.getEnabledModules().addModuleInteractive (list[(size_t) (resultCode - offset)].first);
-        }
+        jassertquiet (resultCode == -1 || resultCode == 0);
     }
 
     //==============================================================================

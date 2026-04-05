@@ -39,7 +39,6 @@ public:
 
     bool haveNewSinceLastView() const;
     void setFocusToChat();
-    void setFocusToMessageDisplay();
 
     void setUseFixedWidthFont(bool flag);
 

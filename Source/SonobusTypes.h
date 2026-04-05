@@ -40,11 +40,7 @@ public:
         GroupLatencyMatch,
         VDONinjaVideoLink,
         SuggestNewGroup,
-        ResetAllJitterBuffers,
-        RecvSyncToggle,
-        FocusChatInput,
-        ClearChatMessages,
-        HideChatView
+        ResetAllJitterBuffers
     };
     
 };

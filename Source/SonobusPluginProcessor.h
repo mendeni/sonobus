@@ -22,8 +22,6 @@
 
 #include "SoundboardChannelProcessor.h"
 
-#include "OSCManager.h"
-
 typedef MVerb<float> MVerbFloat;
 
 namespace SonoAudio {
@@ -236,8 +234,6 @@ public:
     bool loadDefaultPluginSettings();
     
     AudioProcessorValueTreeState& getValueTreeState();
-    
-    OSCManager& getOSCManager();
 
     static String paramInGain;
     static String paramInMonitorMonoPan;
@@ -277,7 +273,6 @@ public:
     static String paramInputReverbSize;
     static String paramInputReverbDamping;
     static String paramInputReverbPreDelay;
-    static String paramMaxRecvPaddingMs;
 
     struct EndpointState;
     struct RemoteSink;
@@ -414,8 +409,6 @@ public:
 
     void setRemotePeerBufferTime(int index, float bufferMs);
     float getRemotePeerBufferTime(int index) const;
-
-    float getMaxRecvPaddingMs() const { return mMaxRecvPaddingMs.get(); }
 
     void setRemotePeerAutoresizeBufferMode(int index, AutoNetBufferMode flag);
     AutoNetBufferMode getRemotePeerAutoresizeBufferMode(int index, bool & initCompleted) const;
@@ -777,30 +770,8 @@ public:
     bool getRecordFinishOpens() const { return mRecordFinishOpens; }
     void setRecordFinishOpens(bool flag) { mRecordFinishOpens = flag; }
 
-    bool getRecordStealth() const { return mRecordStealth; }
-    void setRecordStealth(bool flag) { mRecordStealth = flag; }
-
     bool getReconnectAfterServerLoss() const { return mReconnectAfterServerLoss.get(); }
     void setReconnectAfterServerLoss(bool flag) { mReconnectAfterServerLoss = flag; }
-
-    // OSC Configuration
-    bool getOSCEnabled() const { return mOSCEnabled; }
-    void setOSCEnabled(bool enabled);
-    
-    bool getOSCSendStateOnStart() const { return mOSCSendStateOnStart; }
-    void setOSCSendStateOnStart(bool enabled) { mOSCSendStateOnStart = enabled; }
-    
-    bool getOSCSendPeerLevels() const { return mOSCSendPeerLevels; }
-    void setOSCSendPeerLevels(bool enabled) { mOSCSendPeerLevels = enabled; }
-    
-    String getOSCTargetIPAddress() const { return mOSCTargetIPAddress; }
-    void setOSCTargetIPAddress(const String& ipAddress);
-    
-    int getOSCTargetPort() const { return mOSCTargetPort; }
-    void setOSCTargetPort(int port);
-    
-    int getOSCReceivePort() const { return mOSCReceivePort; }
-    void setOSCReceivePort(int port);
 
 
     PeerDisplayMode getPeerDisplayMode() const { return mPeerDisplayMode; }
@@ -860,8 +831,6 @@ public:
 private:
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SonobusAudioProcessor)
-
-    OSCManager oscManager;
     
     struct PeerStateCache
     {
@@ -1025,7 +994,6 @@ private:
     Atomic<bool>   mSyncMetToHost  { false };
     Atomic<bool>   mSyncMetStartToPlayback  { false };
     Atomic<bool>   mReconnectAfterServerLoss  { true };
-    Atomic<float>   mMaxRecvPaddingMs  { 0.0f };
 
     Atomic<float>   mInputReverbLevel  { 1.0f };
     Atomic<float>   mInputReverbSize  { 0.15f };
@@ -1248,16 +1216,7 @@ private:
     bool mRecordInputPreFX = true;
     bool mRecordInputSilenceWhenMuted = true;
     bool mRecordFinishOpens = true;
-    bool mRecordStealth = false;
     URL mDefaultRecordDir;
-    
-    // OSC Configuration
-    bool mOSCEnabled = false;  // OSC disabled by default
-    bool mOSCSendStateOnStart = true;  // Send state on start by default
-    bool mOSCSendPeerLevels = false;  // Send peer levels via OSC, disabled by default
-    String mOSCTargetIPAddress = "127.0.0.1";
-    int mOSCTargetPort = 6001;
-    int mOSCReceivePort = 6000;
     String mLastError;
     int mSelfRecordChannels = 2;
     int mActiveInputChannels = 2;

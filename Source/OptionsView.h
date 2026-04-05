@@ -12,8 +12,6 @@
 #include "SonoDrawableButton.h"
 #include "GenericItemChooser.h"
 
-// Forward declaration
-class SonobusAudioProcessorEditor;
 
 class OptionsView :
 public Component,
@@ -70,38 +68,6 @@ public:
 
     void showWarnings();
 
-    Slider* getOptionsMaxRecvPaddingSlider() { return mOptionsMaxRecvPaddingSlider.get(); }
-    ToggleButton* getOptionsRecStealth() { return mOptionsRecStealth.get(); }
-    
-    // Additional getters for OSC support
-    ToggleButton* getOptionsDynamicResamplingButton() { return mOptionsDynamicResamplingButton.get(); }
-    ToggleButton* getOptionsAutoReconnectButton() { return mOptionsAutoReconnectButton.get(); }
-    ToggleButton* getOptionsInputLimiterButton() { return mOptionsInputLimiterButton.get(); }
-    Slider* getOptionsDefaultLevelSlider() { return mOptionsDefaultLevelSlider.get(); }
-    Slider* getOptionsAutoDropThreshSlider() { return mOptionsAutoDropThreshSlider.get(); }
-    SonoChoiceButton* getOptionsAutosizeDefaultChoice() { return mOptionsAutosizeDefaultChoice.get(); }
-    SonoChoiceButton* getOptionsFormatChoiceDefaultChoice() { return mOptionsFormatChoiceDefaultChoice.get(); }
-    ToggleButton* getOptionsMetRecordedButton() { return mOptionsMetRecordedButton.get(); }
-    ToggleButton* getOptionsRecFinishOpenButton() { return mOptionsRecFinishOpenButton.get(); }
-    ToggleButton* getOptionsRecMixButton() { return mOptionsRecMixButton.get(); }
-    ToggleButton* getOptionsRecMixMinusButton() { return mOptionsRecMixMinusButton.get(); }
-    ToggleButton* getOptionsRecSelfButton() { return mOptionsRecSelfButton.get(); }
-    ToggleButton* getOptionsRecOthersButton() { return mOptionsRecOthersButton.get(); }
-    ToggleButton* getOptionsRecSelfPostFxButton() { return mOptionsRecSelfPostFxButton.get(); }
-    ToggleButton* getOptionsRecSelfSilenceMutedButton() { return mOptionsRecSelfSilenceMutedButton.get(); }
-    ToggleButton* getOptionsChangeAllFormatButton() { return mOptionsChangeAllFormatButton.get(); }
-    ToggleButton* getOptionsSliderSnapToMouseButton() { return mOptionsSliderSnapToMouseButton.get(); }
-    ToggleButton* getOptionsDisableShortcutButton() { return mOptionsDisableShortcutButton.get(); }
-    SonoChoiceButton* getRecFormatChoice() { return mRecFormatChoice.get(); }
-    SonoChoiceButton* getRecBitsChoice() { return mRecBitsChoice.get(); }
-    Slider* getBufferTimeSlider() { return mBufferTimeSlider.get(); }
-    ToggleButton* getOptionsUseSpecificUdpPortButton() { return mOptionsUseSpecificUdpPortButton.get(); }
-    ToggleButton* getOptionsOverrideSamplerateButton() { return mOptionsOverrideSamplerateButton.get(); }
-    ToggleButton* getOptionsShouldCheckForUpdateButton() { return mOptionsShouldCheckForUpdateButton.get(); }
-    TextEditor* getOptionsUdpPortEditor() { return mOptionsUdpPortEditor.get(); }
-    TextEditor* getOSCTargetIPAddressEditor() { return mOSCTargetIPAddressEditor.get(); }
-    TextEditor* getOSCTargetPortEditor() { return mOSCTargetPortEditor.get(); }
-    TextEditor* getOSCReceivePortEditor() { return mOSCReceivePortEditor.get(); }
 
     std::function<AudioDeviceManager*()> getAudioDeviceManager; // = []() { return 0; };
     std::function<Value*()> getShouldOverrideSampleRateValue; // = []() { return 0; };
@@ -180,23 +146,9 @@ protected:
     std::unique_ptr<Label> mOptionsAutoDropThreshLabel;
     std::unique_ptr<Slider> mOptionsAutoDropThreshSlider;
 
-    std::unique_ptr<Label> mOptionsMaxRecvPaddingLabel;
-    std::unique_ptr<Slider> mOptionsMaxRecvPaddingSlider;
-
     std::unique_ptr<SonoChoiceButton> mOptionsLanguageChoice;
     std::unique_ptr<Label> mOptionsLanguageLabel;
     std::unique_ptr<ToggleButton> mOptionsUnivFontButton;
-
-    // OSC Configuration UI elements
-    std::unique_ptr<ToggleButton> mOSCEnabledButton;
-    std::unique_ptr<ToggleButton> mOSCSendStateOnStartButton;
-    std::unique_ptr<ToggleButton> mOSCSendPeerLevelsButton;
-    std::unique_ptr<Label> mOSCTargetIPAddressLabel;
-    std::unique_ptr<TextEditor> mOSCTargetIPAddressEditor;
-    std::unique_ptr<Label> mOSCTargetPortLabel;
-    std::unique_ptr<TextEditor> mOSCTargetPortEditor;
-    std::unique_ptr<Label> mOSCReceivePortLabel;
-    std::unique_ptr<TextEditor> mOSCReceivePortEditor;
 
 
     std::unique_ptr<Label> mOptionsRecFilesStaticLabel;
@@ -212,7 +164,6 @@ protected:
     std::unique_ptr<Label> mRecLocationStaticLabel;
     std::unique_ptr<TextButton> mRecLocationButton;
     std::unique_ptr<ToggleButton> mOptionsRecFinishOpenButton;
-    std::unique_ptr<ToggleButton> mOptionsRecStealth;
 
 
     FlexBox mainBox;
@@ -234,14 +185,7 @@ protected:
     FlexBox optionsLanguageBox;
     FlexBox optionsAllowBluetoothBox;
     FlexBox optionsAutoDropThreshBox;
-    FlexBox optionsMaxRecvPaddingBox;
     FlexBox optionsPluginDefaultBox;
-    FlexBox optionsOSCEnabledBox;
-    FlexBox optionsOSCSendStateOnStartBox;
-    FlexBox optionsOSCSendPeerLevelsBox;
-    FlexBox optionsOSCTargetIPBox;
-    FlexBox optionsOSCTargetPortBox;
-    FlexBox optionsOSCReceivePortBox;
 
     FlexBox recOptionsBox;
     FlexBox optionsRecordFormatBox;
@@ -254,7 +198,6 @@ protected:
     FlexBox optionsRecordSelfPostFxBox;
     FlexBox optionsRecordSilentSelfMuteBox;
     FlexBox optionsRecordFinishBox;
-    FlexBox optionsRecordStealthBox;
 
 
     std::unique_ptr<TabbedComponent> mSettingsTab;
@@ -276,7 +219,6 @@ protected:
     std::unique_ptr<AudioProcessorValueTreeState::ButtonAttachment> mAutoReconnectAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mBufferTimeAttachment;
     std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mDefaultLevelAttachment;
-    std::unique_ptr<AudioProcessorValueTreeState::SliderAttachment> mMaxRecvPaddingAttachment;
 
 
     // keep this down here, so it gets destroyed early

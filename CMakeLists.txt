@@ -19,10 +19,10 @@ endif()
 option(UniversalBinary "Build universal binary for mac" ON)
 
 if (APPLE)
-    set (CMAKE_OSX_DEPLOYMENT_TARGET "10.10" CACHE INTERNAL "")
+    set (CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE INTERNAL "")
     if (UniversalBinary)
         set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE INTERNAL "")
-        #set(CMAKE_OSX_ARCHITECTURES "x86_64" CACHE INTERNAL "")
+        #set(CMAKE_OSX_ARCHITECTURES arm64 x86_64)        
     endif()
 endif()
 
@@ -36,7 +36,7 @@ endif()
 # `project()` command. `project()` sets up some helpful variables that describe source/binary
 # directories, and the current project version. This is a standard CMake command.
 
-project(SonoBus VERSION 1.7.6)
+project(SonoBus VERSION 1.7.2)
 
 set(BUILDVERSION 80)
 
@@ -155,8 +155,8 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         NEEDS_MIDI_INPUT TRUE
         NEEDS_MIDI_OUTPUT TRUE
         EDITOR_WANTS_KEYBOARD_FOCUS TRUE
-        COMPANY_NAME "Mendeni"
-        BUNDLE_ID "com.Mendeni.SonoBus"
+        COMPANY_NAME "Sonosaurus"
+        BUNDLE_ID "com.Sonosaurus.SonoBus"
         MICROPHONE_PERMISSION_ENABLED TRUE
         
         ICON_BIG "images/sonobus_icon_mac_1024.png"
@@ -188,9 +188,6 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
     set (HEADER_INCLUDES
         deps/aoo/lib
         deps/aoo/deps
-        deps/asio
-        deps/asio/common
-        deps/asio/host
     )
 
     set (LIB_PATHS  "")
@@ -208,7 +205,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
 
     # platform specific stuff
     if (APPLE)
-        list (APPEND HEADER_INCLUDES deps/mac/include)
+        list (APPEND HEADER_INCLUDES deps/mac/include)       
         list (APPEND LIB_PATHS ${CMAKE_CURRENT_SOURCE_DIR}/deps/mac/lib)
         list (APPEND PlatSourceFiles  Source/CrossPlatformUtilsMac.mm)
     elseif (WIN32)
@@ -234,12 +231,11 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
             _WIN32_WINNT=0x0601)
     else()
         # Linux
-	message(${CMAKE_CURRENT_SOURCE_DIR})
-        list (APPEND HEADER_INCLUDES deps/linux/include)
-        list (APPEND LIB_PATHS ${CMAKE_CURRENT_SOURCE_DIR}/deps/linux/lib)
         list (APPEND PlatSourceFiles  Source/CrossPlatformUtilsLinux.cpp)
 	list ( APPEND PLAT_COMPILE_DEFS
-		JUCE_USE_MP3AUDIOFORMAT=1 )
+		JUCE_USE_MP3AUDIOFORMAT=1
+        JUCE_JACK=1
+        JUCE_ALSA=1 )
     endif()
 
 
@@ -280,8 +276,6 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         Source/MonitorDelayView.h
         Source/OptionsView.cpp
         Source/OptionsView.h
-        Source/OSCManager.cpp
-        Source/OSCManager.h
         Source/ParametricEqView.h
         Source/PeersContainerView.cpp
         Source/PeersContainerView.h
@@ -456,8 +450,6 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         JUCE_ASIO=1
         JUCE_WASAPI=1
         JUCE_DIRECTSOUND=0
-        JUCE_JACK=1
-        JUCE_ALSA=1
         JUCE_USE_ANDROID_OBOE=1
         JUCE_USE_OBOE_STABILIZED_CALLBACK=1
         JUCE_LOAD_CURL_SYMBOLS_LAZILY=1
@@ -548,9 +540,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         images/record_active.svg
         images/record_active_alt.svg
         images/rectape.svg
-        images/rectapestealth.svg
         images/reset_buffer_icon.svg
-        images/receive_sync.svg
         images/send.svg
         images/send_group.svg
         images/send_group_small.svg
@@ -581,7 +571,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
          -fPIC
        )
 
-       find_library(OPUS_LIB opus deps/linux/lib deps/mac/lib deps/windows/Release)
+       find_library(OPUS_LIB opus)
        if (NOT OPUS_LIB)
 	 message(FATAL_ERROR "opus library not found, please install libopus develop package")
        endif()
@@ -616,7 +606,6 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
             juce::juce_dsp
 	    juce::juce_cryptography
             juce::juce_audio_plugin_client
-            juce::juce_osc
             
             ff_meters
             
@@ -632,11 +621,11 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
 endfunction()
 
 # most of the targets
-sono_add_custom_plugin_target(SonoBusMendeni SonoBusMendeni "${FormatsToBuild}" FALSE  "NBus")
+sono_add_custom_plugin_target(SonoBus SonoBus "${FormatsToBuild}" FALSE  "NBus")
 
 # Mobile targets
 #sono_add_custom_plugin_target(SonoBusMobile "AUv3 Standalone" FALSE "NBus")
 
 # add VSTi target
-sono_add_custom_plugin_target(SonoBusMendeniInst "SonoBusMendeniInstrument" "VST3" TRUE  "IBus")
+sono_add_custom_plugin_target(SonoBusInst "SonoBusInstrument" "VST3" TRUE  "IBus")
 

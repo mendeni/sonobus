@@ -168,7 +168,6 @@ public:
 
     ChannelGroupsView * getInputChannelGroupsView() { return mInputChannelsContainer.get(); }
     PeersContainerView * getPeersContainerView() { return mPeerContainer.get(); }
-    SoundboardView * getSoundboardView() { return mSoundboardView.get(); }
 
     // if returns true signifies go ahead and quit now, otherwise we'll handle it
     bool requestedQuit();
@@ -178,24 +177,6 @@ public:
     bool saveSettingsToFile(const File & file);
 
     bool setupLocalisation(const String & overrideLang = {});
-
-    // OSC control registration methods
-    void registerAllOSCControls();
-    void unregisterAllOSCControls();
-    void sendAllOSCState();
-    void sendPeerOSCState(int peerIndex);
-    void clearPeerOSCState(int peerIndex);
-    void sendSoundboardOSCState();
-    void clearSoundboardOSCState();
-    
-    // Helper methods for peer level slider skew conversion
-    static double peerLevelValueToOSCPosition(double value);
-    static double peerLevelOSCPositionToValue(double position);
-    
-    // Helper methods for gain slider skew conversion (OutGainSlider, SoundboardVolumeSlider)
-    // These sliders have range [0.0, 2.0] with skew factor 0.5
-    static double gainValueToOSCPosition(double value);
-    static double oscPositionToGainValue(double position);
 
 private:
 
@@ -261,7 +242,6 @@ private:
     void copyGroupLink();
 
     void resetJitterBufferForAll();
-    void recordRoundtripLatencyForAll(const String & fullpath, const String & filename);
 
     void requestRecordDir(std::function<void (URL)> callback);
     
@@ -383,7 +363,6 @@ private:
     std::unique_ptr<WaveformTransportComponent> mWaveformThumbnail;
 
     std::unique_ptr<Drawable> mPeerRecImage;
-    std::unique_ptr<Drawable> mPeerRecStealthImage;
 
 
     // effects
@@ -394,7 +373,6 @@ private:
     std::unique_ptr<MonitorDelayView> mMonitorDelayView;
 
     std::unique_ptr<SonoDrawableButton> mBufferMinButton;
-    std::unique_ptr<SonoDrawableButton> mRecvSyncButton;
 
 
     
@@ -749,7 +727,6 @@ private:
 
     File mSettingsFolder;
     
-    bool mOSCControlsRegistered = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SonobusAudioProcessorEditor)
 };

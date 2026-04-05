@@ -79,7 +79,6 @@ String SonobusAudioProcessor::paramInputReverbLevel  ("inreverblevel");
 String SonobusAudioProcessor::paramInputReverbSize  ("inreverbsize");
 String SonobusAudioProcessor::paramInputReverbDamping  ("inreverbdamp");
 String SonobusAudioProcessor::paramInputReverbPreDelay  ("inreverbpredelay");
-String SonobusAudioProcessor::paramMaxRecvPaddingMs  ("maxrecvpadms");
 
 static String recentsCollectionKey("RecentConnections");
 static String recentsItemKey("ServerConnectionInfo");
@@ -94,16 +93,9 @@ static String defRecordBitsKey("DefaultRecordingBitsPerSample");
 static String recordSelfPreFxKey("RecordSelfPreFx");
 static String recordSelfSilenceMutedKey("RecordSelfSilenceWhenMuted");
 static String recordFinishOpenKey("RecordFinishOpen");
-static String recordStealthKey("RecordStealth");
 static String defRecordDirKey("DefaultRecordDir");
 static String defRecordDirURLKey("DefaultRecordDirURL");
 static String lastBrowseDirKey("LastBrowseDir");
-static String oscEnabledKey("OSCEnabled");
-static String oscSendStateOnStartKey("OSCSendStateOnStart");
-static String oscSendPeerLevelsKey("OSCSendPeerLevels");
-static String oscTargetIPAddressKey("OSCTargetIPAddress");
-static String oscTargetPortKey("OSCTargetPort");
-static String oscReceivePortKey("OSCReceivePort");
 static String sliderSnapKey("SliderSnapToMouse");
 static String disableShortcutsKey("DisableKeyShortcuts");
 static String peerDisplayModeKey("PeerDisplayMode");
@@ -548,7 +540,7 @@ enum {
 #if JUCE_IOS
 #define ALTBUS_ACTIVE true
 #else
-#define ALTBUS_ACTIVE false
+#define ALTBUS_ACTIVE true
 #endif
 
 
@@ -570,7 +562,7 @@ SonobusAudioProcessor::BusesProperties SonobusAudioProcessor::getDefaultLayout()
     else if (plugtype == AudioProcessor::wrapperType_VST) {
         // no multi-bus outputs for now for VST2, so it works in OBS
     }
-    else {
+    else if (plugtype != AudioProcessor::wrapperType_Standalone){
         // throw in some input sidechains
         props = props.withInput  ("Aux 1 In",  AudioChannelSet::stereo(), ALTBUS_ACTIVE)
         .withInput  ("Aux 2 In",  AudioChannelSet::stereo(), ALTBUS_ACTIVE)
@@ -586,7 +578,7 @@ SonobusAudioProcessor::BusesProperties SonobusAudioProcessor::getDefaultLayout()
     if (plugtype == AudioProcessor::wrapperType_VST) {
         // no multi-bus outputs for now for VST2, so it works in OBS
     }
-    else {
+    else if (plugtype != AudioProcessor::wrapperType_Standalone){
         props = props.withOutput ("Aux 1 Out", AudioChannelSet::stereo(), ALTBUS_ACTIVE)
         .withOutput ("Aux 2 Out", AudioChannelSet::stereo(), ALTBUS_ACTIVE)
         .withOutput ("Aux 3 Out", AudioChannelSet::stereo(), ALTBUS_ACTIVE)
@@ -695,9 +687,6 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     std::make_unique<AudioParameterFloat>(ParameterID(paramInputReverbPreDelay, 1),     TRANS ("Input Reverb Pre-Delay Time"),    NormalisableRange<float>(0.0, 100.0, 1.0, 1.0), mInputReverbPreDelay.get(), "", AudioProcessorParameter::genericParameter,
                                           [](float v, int maxlen) -> String { return String(v, 0) + " ms"; },
                                           [](const String& s) -> float { return s.getFloatValue(); }),
-    std::make_unique<AudioParameterFloat>(ParameterID(paramMaxRecvPaddingMs, 1),     TRANS ("Sync Receive Padding"),    NormalisableRange<float>(0.0, 500.0, 1.0, 1.0), mMaxRecvPaddingMs.get(), "", AudioProcessorParameter::genericParameter,
-                                          [](float v, int maxlen) -> String { return String(v, 0) + " ms"; }, 
-                                          [](const String& s) -> float { return s.getFloatValue(); }),
     std::make_unique<AudioParameterBool>(ParameterID(paramSyncMetToFilePlayback, 1), TRANS ("Sync Met to File Playback"), false),
 
 })
@@ -739,7 +728,6 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     mState.addParameterListener (paramInputReverbLevel, this);
     mState.addParameterListener (paramInputReverbDamping, this);
     mState.addParameterListener (paramInputReverbPreDelay, this);
-    mState.addParameterListener (paramMaxRecvPaddingMs, this);
 
     for (int i=0; i < MAX_PEERS; ++i) {
         for (int j=0; j < MAX_PEERS; ++j) {
@@ -847,21 +835,6 @@ mState (*this, &mUndoManager, "SonoBusAoO",
     mFormatManager.registerBasicFormats();    
     
     initializeAoo();
-
-    // Initialize OSC only if enabled
-    if (mOSCEnabled) {
-        // Initialize the OSC receiver with configurable port
-        if (!oscManager.initializeReceiver(mOSCReceivePort))
-        {
-            juce::Logger::writeToLog("Failed to initialize OSC Receiver on port " + juce::String(mOSCReceivePort));
-        }
-
-        // Initialize the OSC sender with configurable target
-        if (!oscManager.initializeSender(mOSCTargetIPAddress, mOSCTargetPort))
-        {
-            juce::Logger::writeToLog("Failed to initialize OSC Sender to " + mOSCTargetIPAddress + ":" + juce::String(mOSCTargetPort));
-        }
-    }
 
     mFreshInit = false; // need to ensure this before loaddefaultpluginstate
 
@@ -3206,11 +3179,7 @@ void SonobusAudioProcessor::sendRemotePeerInfoUpdate(int index, RemotePeer * top
     // not great, better than nothing - TODO make this accurate
     info->setProperty("inlat", 1e3 * currSamplesPerBlock / getSampleRate());
     info->setProperty("outlat", 1e3 * currSamplesPerBlock / getSampleRate());
-
-    // make the recording icon appear on remote hosts unless we're stealth
-    if (!mRecordStealth){
-      info->setProperty("rec", isRecordingToFile());
-    }
+    info->setProperty("rec", isRecordingToFile());
 
     // nettype TODO
 
@@ -4405,9 +4374,6 @@ int32_t SonobusAudioProcessor::handleClientEvents(const aoo_event ** events, int
 
                 DBG("Peer leave group " <<  e->group << " - user " << e->user);
 
-                // Notify listeners BEFORE removing peer so they can capture peer index for OSC cleanup
-                clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientPeerLeft, this, CharPointer_UTF8 (e->group), CharPointer_UTF8 (e->user));
-
                 EndpointState * endpoint = findOrAddRawEndpoint(e->address);
                 if (endpoint) {
                     
@@ -4415,6 +4381,7 @@ int32_t SonobusAudioProcessor::handleClientEvents(const aoo_event ** events, int
                 }
                 
                 //aoo_node_remove_peer(x->x_node, gensym(e->group), gensym(e->user));
+                clientListeners.call(&SonobusAudioProcessor::ClientListener::aooClientPeerLeft, this, CharPointer_UTF8 (e->group), CharPointer_UTF8 (e->user));
 
             } else {
                 DBG("bug bad result on leave event");
@@ -6868,9 +6835,6 @@ void SonobusAudioProcessor::parameterChanged (const String &parameterID, float n
     else if (parameterID == paramDefaultAutoNetbuf) {
         defaultAutoNetbufMode = (int) newValue;
     }
-    else if (parameterID == paramMaxRecvPaddingMs) {
-        mMaxRecvPaddingMs = newValue;
-    }
 
 }
 
@@ -6900,11 +6864,7 @@ bool SonobusAudioProcessor::producesMidi() const
 
 bool SonobusAudioProcessor::isMidiEffect() const
 {
-   #if JucePlugin_IsMidiEffect
-    return true;
-   #else
     return false;
-   #endif
 }
 
 double SonobusAudioProcessor::getTailLengthSeconds() const
@@ -8244,25 +8204,21 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
 
     // mix input reverb into main buffer
     if (doinreverb) {
-
-        if (inReverbEnabled != mLastInputReverbEnabled && inReverbEnabled) {
-            mInputReverb.reset();
+        for (int channel = 0; channel < mainBusOutputChannels && channel < 2; ++channel) {
+            if (drynow > 0.0f || dryrampit) {
+                // attenuate reverb with monitor level if used
+                if (dryrampit) {
+                    buffer.addFromWithRamp(channel, 0, inputRevBuffer.getReadPointer(channel), numSamples, mLastDry, drynow);
+                }
+                else {
+                    buffer.addFrom(channel, 0, inputRevBuffer.getReadPointer(channel), numSamples, drynow);
+                }
+            }
+            else if (inrevdirect) {
+                // add the full input reverb to mix, if monitoring is off
+                buffer.addFrom(channel, 0, inputRevBuffer.getReadPointer(channel), numSamples);
+            }
         }
-
-        mInputReverb.process((float **)inputRevBuffer.getArrayOfWritePointers(), (float **)inputRevBuffer.getArrayOfWritePointers(), numSamples);
-
-        if (inReverbEnabled != mLastInputReverbEnabled ) {
-            float sgain = inReverbEnabled ? 0.0f : 1.0f;
-            float egain = inReverbEnabled ? 1.0f : 0.0f;
-
-            inputRevBuffer.applyGainRamp(0, numSamples, sgain, egain);
-        }
-
-        // mix it into send workbuffer for each channel up to 4
-        for (int channel = 0; channel < sendPanChannels && channel < 4; ++channel) {
-              sendWorkBuffer.addFrom(channel, 0, inputRevBuffer, channel, 0, numSamples);
-        }
-
     }
 
     // add from file playback buffer
@@ -8462,60 +8418,6 @@ AudioProcessorValueTreeState& SonobusAudioProcessor::getValueTreeState()
     return mState;
 }
 
-OSCManager& SonobusAudioProcessor::getOSCManager()
-{
-    return oscManager;
-}
-
-void SonobusAudioProcessor::setOSCEnabled(bool enabled)
-{
-    mOSCEnabled = enabled;
-    
-    if (enabled) {
-        // Initialize OSC when enabled
-        oscManager.initializeReceiver(mOSCReceivePort);
-        oscManager.initializeSender(mOSCTargetIPAddress, mOSCTargetPort);
-        
-        // Register OSC controls in the editor
-        if (auto* editor = dynamic_cast<SonobusAudioProcessorEditor*>(getActiveEditor())) {
-            editor->registerAllOSCControls();
-        }
-    } else {
-        // Unregister OSC controls in the editor
-        if (auto* editor = dynamic_cast<SonobusAudioProcessorEditor*>(getActiveEditor())) {
-            editor->unregisterAllOSCControls();
-        }
-        
-        // Disconnect OSC when disabled
-        oscManager.disconnectReceiver();
-        oscManager.disconnectSender();
-    }
-}
-
-void SonobusAudioProcessor::setOSCTargetIPAddress(const String& ipAddress)
-{
-    mOSCTargetIPAddress = ipAddress;
-    if (mOSCEnabled) {
-        oscManager.initializeSender(mOSCTargetIPAddress, mOSCTargetPort);
-    }
-}
-
-void SonobusAudioProcessor::setOSCTargetPort(int port)
-{
-    mOSCTargetPort = port;
-    if (mOSCEnabled) {
-        oscManager.initializeSender(mOSCTargetIPAddress, mOSCTargetPort);
-    }
-}
-
-void SonobusAudioProcessor::setOSCReceivePort(int port)
-{
-    mOSCReceivePort = port;
-    if (mOSCEnabled) {
-        oscManager.initializeReceiver(mOSCReceivePort);
-    }
-}
-
 ValueTree AooServerConnectionInfo::getValueTree() const
 {
     ValueTree item(recentsItemKey);
@@ -8614,21 +8516,12 @@ void SonobusAudioProcessor::getStateInformationWithOptions(MemoryBlock& destData
     extraTree.setProperty(recordSelfPreFxKey, mRecordInputPreFX, nullptr);
     extraTree.setProperty(recordSelfSilenceMutedKey, mRecordInputSilenceWhenMuted, nullptr);
     extraTree.setProperty(recordFinishOpenKey, mRecordFinishOpens, nullptr);
-    extraTree.setProperty(recordStealthKey, mRecordStealth, nullptr);
 
     if (mDefaultRecordDir.isLocalFile()) {
         // backwards compat
         extraTree.setProperty(defRecordDirKey, mDefaultRecordDir.getLocalFile().getFullPathName(), nullptr);
     }
     extraTree.setProperty(defRecordDirURLKey, mDefaultRecordDir.toString(false), nullptr);
-
-    // OSC Configuration
-    extraTree.setProperty(oscEnabledKey, mOSCEnabled, nullptr);
-    extraTree.setProperty(oscSendStateOnStartKey, mOSCSendStateOnStart, nullptr);
-    extraTree.setProperty(oscSendPeerLevelsKey, mOSCSendPeerLevels, nullptr);
-    extraTree.setProperty(oscTargetIPAddressKey, mOSCTargetIPAddress, nullptr);
-    extraTree.setProperty(oscTargetPortKey, mOSCTargetPort, nullptr);
-    extraTree.setProperty(oscReceivePortKey, mOSCReceivePort, nullptr);
 
     extraTree.setProperty(lastBrowseDirKey, mLastBrowseDir, nullptr);
     extraTree.setProperty(sliderSnapKey, mSliderSnapToMouse, nullptr);
@@ -8771,21 +8664,6 @@ void SonobusAudioProcessor::setStateInformationWithOptions (const void* data, in
 
 
             setRecordFinishOpens(extraTree.getProperty(recordFinishOpenKey, mRecordFinishOpens));
-            setRecordStealth(extraTree.getProperty(recordStealthKey, mRecordStealth));
-            
-            // OSC Configuration
-            mOSCEnabled = extraTree.getProperty(oscEnabledKey, mOSCEnabled);
-            mOSCSendStateOnStart = extraTree.getProperty(oscSendStateOnStartKey, mOSCSendStateOnStart);
-            mOSCSendPeerLevels = extraTree.getProperty(oscSendPeerLevelsKey, mOSCSendPeerLevels);
-            mOSCTargetIPAddress = extraTree.getProperty(oscTargetIPAddressKey, mOSCTargetIPAddress);
-            mOSCTargetPort = extraTree.getProperty(oscTargetPortKey, mOSCTargetPort);
-            mOSCReceivePort = extraTree.getProperty(oscReceivePortKey, mOSCReceivePort);
-            
-            // Reinitialize OSC with loaded settings if enabled
-            if (mOSCEnabled) {
-                oscManager.initializeSender(mOSCTargetIPAddress, mOSCTargetPort);
-                oscManager.initializeReceiver(mOSCReceivePort);
-            }
 
 
 #if !(JUCE_IOS)
