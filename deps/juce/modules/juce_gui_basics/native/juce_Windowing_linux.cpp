@@ -1,24 +1,33 @@
 /*
   ==============================================================================
 
-   This file is part of the JUCE library.
-   Copyright (c) 2022 - Raw Material Software Limited
+   This file is part of the JUCE framework.
+   Copyright (c) Raw Material Software Limited
 
-   JUCE is an open source library subject to commercial or open-source
+   JUCE is an open source framework subject to commercial or open source
    licensing.
 
-   By using JUCE, you agree to the terms of both the JUCE 7 End-User License
-   Agreement and JUCE Privacy Policy.
+   By downloading, installing, or using the JUCE framework, or combining the
+   JUCE framework with any other source code, object code, content or any other
+   copyrightable work, you agree to the terms of the JUCE End User Licence
+   Agreement, and all incorporated terms including the JUCE Privacy Policy and
+   the JUCE Website Terms of Service, as applicable, which will bind you. If you
+   do not agree to the terms of these agreements, we will not license the JUCE
+   framework to you, and you must discontinue the installation or download
+   process and cease use of the JUCE framework.
 
-   End User License Agreement: www.juce.com/juce-7-licence
-   Privacy Policy: www.juce.com/juce-privacy-policy
+   JUCE End User Licence Agreement: https://juce.com/legal/juce-8-licence/
+   JUCE Privacy Policy: https://juce.com/juce-privacy-policy
+   JUCE Website Terms of Service: https://juce.com/juce-website-terms-of-service/
 
-   Or: You may also use this code under the terms of the GPL v3 (see
-   www.gnu.org/licenses).
+   Or:
 
-   JUCE IS PROVIDED "AS IS" WITHOUT ANY WARRANTY, AND ALL WARRANTIES, WHETHER
-   EXPRESSED OR IMPLIED, INCLUDING MERCHANTABILITY AND FITNESS FOR PURPOSE, ARE
-   DISCLAIMED.
+   You may also use this code under the terms of the AGPLv3:
+   https://www.gnu.org/licenses/agpl-3.0.en.html
+
+   THE JUCE FRAMEWORK IS PROVIDED "AS IS" WITHOUT ANY WARRANTY, AND ALL
+   WARRANTIES, WHETHER EXPRESSED OR IMPLIED, INCLUDING WARRANTY OF
+   MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE, ARE DISCLAIMED.
 
   ==============================================================================
 */
@@ -35,7 +44,7 @@ public:
         : ComponentPeer (comp, windowStyleFlags),
           isAlwaysOnTop (comp.isAlwaysOnTop())
     {
-        // it's dangerous to create a window on a thread other than the message thread.
+        // it's dangerous to create a window on a thread other than the message thread
         JUCE_ASSERT_MESSAGE_MANAGER_IS_LOCKED
 
         const auto* instance = XWindowSystem::getInstance();
@@ -63,7 +72,7 @@ public:
 
     ~LinuxComponentPeer() override
     {
-        // it's dangerous to delete a window on a thread other than the message thread.
+        // it's dangerous to delete a window on a thread other than the message thread
         JUCE_ASSERT_MESSAGE_MANAGER_IS_LOCKED
 
         auto* instance = XWindowSystem::getInstance();
@@ -97,11 +106,17 @@ public:
         updateScaleFactorFromNewBounds (bounds, false);
 
         auto physicalBounds = parentWindow == 0 ? Desktop::getInstance().getDisplays().logicalToPhysical (bounds)
-                                                : bounds * currentScaleFactor;
+                                                : bounds * getPlatformScaleFactor();
 
         WeakReference<Component> deletionChecker (&component);
 
-        XWindowSystem::getInstance()->setBounds (windowH, physicalBounds, isNowFullScreen);
+        // If we are in a ConfigureNotify handler then forceSetBounds is being called as a
+        // consequence of X11 telling us what the window size is. There's no need to report this
+        // size back again to X11. By this we are avoiding a pitfall, when we get many subsequent
+        // ConfigureNotify events, many of which has stale size information. By not calling
+        // XWindowSystem::setBounds we are not actualising these old, incorrect sizes.
+        if (! inConfigureNotifyHandler)
+            moveResizeSerial = jmax (moveResizeSerial, XWindowSystem::getInstance()->setBounds (windowH, physicalBounds, isNowFullScreen).value_or (0));
 
         fullScreen = isNowFullScreen;
 
@@ -125,14 +140,14 @@ public:
     {
         auto physicalParentPosition = XWindowSystem::getInstance()->getPhysicalParentScreenPosition();
         auto parentPosition = parentWindow == 0 ? Desktop::getInstance().getDisplays().physicalToLogical (physicalParentPosition)
-                                                : physicalParentPosition / currentScaleFactor;
+                                                : physicalParentPosition / getPlatformScaleFactor();
 
         auto screenBounds = parentWindow == 0 ? bounds
                                               : bounds.translated (parentPosition.x, parentPosition.y);
 
         if (physical)
             return parentWindow == 0 ? Desktop::getInstance().getDisplays().logicalToPhysical (screenBounds.getTopLeft())
-                                     : screenBounds.getTopLeft() * currentScaleFactor;
+                                     : screenBounds.getTopLeft() * getPlatformScaleFactor();
 
         return screenBounds.getTopLeft();
     }
@@ -195,6 +210,11 @@ public:
         return XWindowSystem::getInstance()->isMinimised (windowH);
     }
 
+    bool isShowing() const override
+    {
+        return ! XWindowSystem::getInstance()->isMinimised (windowH);
+    }
+
     void setFullScreen (bool shouldBeFullScreen) override
     {
         auto r = lastNonFullscreenBounds; // (get a copy of this before de-minimising)
@@ -250,7 +270,7 @@ public:
         if (trueIfInAChildWindow)
             return true;
 
-        return XWindowSystem::getInstance()->contains (windowH, localPos * currentScaleFactor);
+        return XWindowSystem::getInstance()->contains (windowH, localPos * getPlatformScaleFactor());
     }
 
     void toFront (bool makeActive) override
@@ -312,7 +332,24 @@ public:
 
     double getPlatformScaleFactor() const noexcept override
     {
-        return currentScaleFactor;
+        return scaleFactorOverride.value_or (currentScaleFactor);
+    }
+
+    void setCustomPlatformScaleFactor (std::optional<double> scaleIn) override
+    {
+        const auto prev = getPlatformScaleFactor();
+        scaleFactorOverride = scaleIn;
+        const auto next = getPlatformScaleFactor();
+
+        if (approximatelyEqual (prev, next))
+            return;
+
+        scaleFactorListeners.call ([&] (ScaleFactorListener& l) { l.nativeScaleFactorChanged (next); });
+    }
+
+    std::optional<double> getCustomPlatformScaleFactor() const override
+    {
+        return scaleFactorOverride;
     }
 
     void setAlpha (float) override                                  {}
@@ -366,7 +403,7 @@ public:
         updateScaleFactorFromNewBounds (physicalBounds, true);
 
         bounds = parentWindow == 0 ? Desktop::getInstance().getDisplays().physicalToLogical (physicalBounds)
-                                   : physicalBounds / currentScaleFactor;
+                                   : physicalBounds / getPlatformScaleFactor();
 
         updateVBlankTimer();
     }
@@ -383,7 +420,7 @@ public:
             windowBorder = [&]()
             {
                 if (auto unscaledBorderSize = XWindowSystem::getInstance()->getBorderSize (windowH))
-                    return OptionalBorderSize { (*unscaledBorderSize).multipliedBy (1.0 / currentScaleFactor) };
+                    return OptionalBorderSize { (*unscaledBorderSize).multipliedBy (1.0 / getPlatformScaleFactor()) };
 
                 return OptionalBorderSize {};
             }();
@@ -399,15 +436,20 @@ public:
 
     void clearWindowAssociation() { association = {}; }
 
-    void startHostManagedResize (Point<int> mouseDownPosition,
-                                 ResizableBorderComponent::Zone zone) override
+    void startHostManagedResize (Point<int>, ResizableBorderComponent::Zone zone) override
     {
-        XWindowSystem::getInstance()->startHostManagedResize (windowH, mouseDownPosition, zone);
+        XWindowSystem::getInstance()->startHostManagedResize (windowH, zone);
     }
 
     //==============================================================================
     static bool isActiveApplication;
     bool focused = false;
+    bool inConfigureNotifyHandler = false;
+
+    unsigned long getMoveResizeSerial() const
+    {
+        return moveResizeSerial;
+    }
 
 private:
     //==============================================================================
@@ -435,7 +477,7 @@ private:
 
         void repaint (Rectangle<int> area)
         {
-            regionsNeedingRepaint.add (area * peer.currentScaleFactor);
+            regionsNeedingRepaint.add (area * peer.getPlatformScaleFactor());
         }
 
         void performAnyPendingRepaintsNow()
@@ -486,7 +528,7 @@ private:
                     auto context = peer.getComponent().getLookAndFeel()
                                      .createGraphicsContext (image, -totalArea.getPosition(), adjustedList);
 
-                    context->addTransform (AffineTransform::scale ((float) peer.currentScaleFactor));
+                    context->addTransform (AffineTransform::scale ((float) peer.getPlatformScaleFactor()));
                     peer.handlePaint (*context);
                 }
 
@@ -507,26 +549,6 @@ private:
         bool useARGBImagesForRendering = XWindowSystem::getInstance()->canUseARGBImages();
 
         JUCE_DECLARE_NON_COPYABLE (LinuxRepaintManager)
-    };
-
-    class LinuxVBlankManager final : public Timer
-    {
-    public:
-        explicit LinuxVBlankManager (std::function<void()> cb)  : callback (std::move (cb))
-        {
-            jassert (callback);
-        }
-
-        ~LinuxVBlankManager() override           { stopTimer(); }
-
-        //==============================================================================
-        void timerCallback() override            { callback(); }
-
-    private:
-        std::function<void()> callback;
-
-        JUCE_DECLARE_NON_COPYABLE (LinuxVBlankManager)
-        JUCE_DECLARE_NON_MOVEABLE (LinuxVBlankManager)
     };
 
     //==============================================================================
@@ -573,7 +595,8 @@ private:
 
     void onVBlank()
     {
-        vBlankListeners.call ([] (auto& l) { l.onVBlank(); });
+        const auto timestampSec = Time::getMillisecondCounterHiRes() / 1000.0;
+        callVBlankListeners (timestampSec);
 
         if (repainter != nullptr)
             repainter->dispatchDeferredRepaints();
@@ -595,15 +618,17 @@ private:
 
     //==============================================================================
     std::unique_ptr<LinuxRepaintManager> repainter;
-    LinuxVBlankManager vBlankManager { [this]() { onVBlank(); } };
+    TimedCallback vBlankManager { [this]() { onVBlank(); } };
 
     ::Window windowH = {}, parentWindow = {};
     Rectangle<int> bounds;
     ComponentPeer::OptionalBorderSize windowBorder;
     bool fullScreen = false, isAlwaysOnTop = false;
+    std::optional<double> scaleFactorOverride;
     double currentScaleFactor = 1.0;
     Array<Component*> glRepaintListeners;
     ScopedWindowAssociation association;
+    unsigned long moveResizeSerial = 0;
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LinuxComponentPeer)
@@ -630,11 +655,11 @@ void Desktop::setKioskComponent (Component* comp, bool enableOrDisable, bool)
         comp->setBounds (getDisplays().getDisplayForRect (comp->getScreenBounds())->totalArea);
 }
 
-void Displays::findDisplays (float masterScale)
+void Displays::findDisplays (const Desktop& desktop)
 {
     if (XWindowSystem::getInstance()->getDisplay() != nullptr)
     {
-        displays = XWindowSystem::getInstance()->findDisplays (masterScale);
+        displays = XWindowSystem::getInstance()->findDisplays (desktop.getGlobalScaleFactor());
 
         if (! displays.isEmpty())
             updateToLogical();

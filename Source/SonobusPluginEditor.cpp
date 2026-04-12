@@ -7821,7 +7821,7 @@ void SonobusAudioProcessorEditor::copyGroupLink()
             SafePointer<SonobusAudioProcessorEditor> safeThis(this);
             mScopedShareBox = ContentSharer::shareTextScoped(message, [safeThis](bool result, const String& msg){ DBG("share returned " << (int)result << " : " << msg);
                 safeThis->mScopedShareBox = {};
-            });
+            }, this);
         }
     }
 #else
@@ -8868,7 +8868,7 @@ void SonobusAudioProcessorEditor::genericItemChooserSelected(GenericItemChooser 
             urlarray.add(mCurrentAudioFile);
             mScopedShareBox = ContentSharer::shareFilesScoped(urlarray, [safeThis](bool result, const String& msg){ DBG("url share returned " << (int)result << " : " << msg);
                 safeThis->mScopedShareBox = {};
-            });
+            }, this);
 #else
             // reveal
             if (mCurrentAudioFile.getFileName().isNotEmpty()) {

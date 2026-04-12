@@ -548,7 +548,7 @@ enum {
 #if JUCE_IOS
 #define ALTBUS_ACTIVE true
 #else
-#define ALTBUS_ACTIVE false
+#define ALTBUS_ACTIVE true
 #endif
 
 
@@ -570,7 +570,7 @@ SonobusAudioProcessor::BusesProperties SonobusAudioProcessor::getDefaultLayout()
     else if (plugtype == AudioProcessor::wrapperType_VST) {
         // no multi-bus outputs for now for VST2, so it works in OBS
     }
-    else {
+    else if (plugtype != AudioProcessor::wrapperType_Standalone) {
         // throw in some input sidechains
         props = props.withInput  ("Aux 1 In",  AudioChannelSet::stereo(), ALTBUS_ACTIVE)
         .withInput  ("Aux 2 In",  AudioChannelSet::stereo(), ALTBUS_ACTIVE)
@@ -586,7 +586,7 @@ SonobusAudioProcessor::BusesProperties SonobusAudioProcessor::getDefaultLayout()
     if (plugtype == AudioProcessor::wrapperType_VST) {
         // no multi-bus outputs for now for VST2, so it works in OBS
     }
-    else {
+    else if (plugtype != AudioProcessor::wrapperType_Standalone) {
         props = props.withOutput ("Aux 1 Out", AudioChannelSet::stereo(), ALTBUS_ACTIVE)
         .withOutput ("Aux 2 Out", AudioChannelSet::stereo(), ALTBUS_ACTIVE)
         .withOutput ("Aux 3 Out", AudioChannelSet::stereo(), ALTBUS_ACTIVE)
@@ -7455,9 +7455,11 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
 
     bool hostPlaying = rposInfo && rposInfo->getIsPlaying();
     auto hostBpm = rposInfo->getBpm();
-    if (hostBpm && *hostBpm > 0.0) {
-        useBpm = *hostBpm;
-    }
+    if (rposInfo) {
+        auto hostBpm = rposInfo->getBpm();
+        if ( hostBpm && *hostBpm > 0.0) {
+            useBpm = *hostBpm;
+        }
 
     if (syncmethost) {
         if (rposInfo && fabs(useBpm - mMetTempo.get()) > 0.001) {

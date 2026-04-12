@@ -457,7 +457,11 @@ public:
 
             if (auto * sonoproc = dynamic_cast<SonobusAudioProcessor*>(mainWindow->pluginHolder->processor.get())) {
                 if (sonoproc->hasEditor()) {
-                    if (auto * sonoeditor = dynamic_cast<SonobusAudioProcessorEditor*>(sonoproc->createEditorIfNeeded())) {
+                    auto * sonoeditor = dynamic_cast<SonobusAudioProcessorEditor*>(sonoproc->getActiveEditor());
+                    if (!sonoeditor) {
+                        sonoeditor = dynamic_cast<SonobusAudioProcessorEditor*>(sonoproc->createEditorIfNeeded());
+                    }
+                    if (sonoeditor) {
                         sonoeditor->saveSettingsIfNeeded = [this]() {
                             mainWindow->pluginHolder->savePluginState();
                             mainWindow->pluginHolder->saveAudioDeviceState();

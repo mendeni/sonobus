@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef OBOE_MULTICHANNEL_RESAMPLER_H
-#define OBOE_MULTICHANNEL_RESAMPLER_H
+#ifndef RESAMPLER_MULTICHANNEL_RESAMPLER_H
+#define RESAMPLER_MULTICHANNEL_RESAMPLER_H
 
 #include <memory>
 #include <vector>
@@ -35,7 +35,9 @@
 #include "HyperbolicCosineWindow.h"
 #endif
 
-namespace resampler {
+#include "ResamplerDefinitions.h"
+
+namespace RESAMPLER_OUTER_NAMESPACE::resampler {
 
 class MultiChannelResampler {
 
@@ -109,6 +111,9 @@ public:
          * Set to 1.0 to match the Nyquist frequency.
          * Set lower to reduce aliasing.
          * Default is 0.70.
+         *
+         * Note that this value is ignored when upsampling, which is when
+         * the outputRate is higher than the inputRate.
          *
          * @param normalizedCutoff anti-aliasing filter cutoff
          * @return address of this builder for chaining calls
@@ -226,6 +231,10 @@ protected:
 
     /**
      * Generate the filter coefficients in optimal order.
+     *
+     * Note that normalizedCutoff is ignored when upsampling, which is when
+     * the outputRate is higher than the inputRate.
+     *
      * @param inputRate sample rate of the input stream
      * @param outputRate  sample rate of the output stream
      * @param numRows number of rows in the array that contain a set of tap coefficients
@@ -268,5 +277,6 @@ private:
     const int              mChannelCount;
 };
 
-}
-#endif //OBOE_MULTICHANNEL_RESAMPLER_H
+} /* namespace RESAMPLER_OUTER_NAMESPACE::resampler */
+
+#endif //RESAMPLER_MULTICHANNEL_RESAMPLER_H

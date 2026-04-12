@@ -1,18 +1,22 @@
 /*
   ==============================================================================
 
-   This file is part of the JUCE examples.
-   Copyright (c) 2022 - Raw Material Software Limited
+   This file is part of the JUCE framework examples.
+   Copyright (c) Raw Material Software Limited
 
    The code included in this file is provided under the terms of the ISC license
    http://www.isc.org/downloads/software-support-policy/isc-license. Permission
-   To use, copy, modify, and/or distribute this software for any purpose with or
+   to use, copy, modify, and/or distribute this software for any purpose with or
    without fee is hereby granted provided that the above copyright notice and
    this permission notice appear in all copies.
 
-   THE SOFTWARE IS PROVIDED "AS IS" WITHOUT ANY WARRANTY, AND ALL WARRANTIES,
-   WHETHER EXPRESSED OR IMPLIED, INCLUDING MERCHANTABILITY AND FITNESS FOR
-   PURPOSE, ARE DISCLAIMED.
+   THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+   REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+   AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+   INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+   LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+   OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+   PERFORMANCE OF THIS SOFTWARE.
 
   ==============================================================================
 */
@@ -32,7 +36,8 @@
  dependencies:     juce_audio_basics, juce_audio_devices, juce_core,
                    juce_data_structures, juce_events, juce_graphics,
                    juce_gui_basics, juce_midi_ci
- exporters:        xcode_mac, vs2022, linux_make, androidstudio, xcode_iphone
+ exporters:        xcode_mac, vs2022, vs2026, linux_make, androidstudio,
+                   xcode_iphone
 
  moduleFlags:      JUCE_STRICT_REFCOUNTEDPOINTER=1
 
@@ -740,14 +745,7 @@ struct Model
         DeviceInfo info;
         Profiles profiles;
         Properties properties;
-        std::map<String, String> subscribeIdForResource;
-
-        std::optional<String> getSubscriptionId (const String& resource) const
-        {
-            const auto iter = subscribeIdForResource.find (resource);
-            return iter != subscribeIdForResource.end() ? std::optional (iter->second)
-                                                        : std::nullopt;
-        }
+        std::map<ci::SubscriptionKey, ci::Subscription> subscriptions;
 
         template <typename Archive, typename This>
         static auto serialise (Archive& archive, This& t)
@@ -761,7 +759,7 @@ struct Model
 
         auto tie() const
         {
-            return std::tie (muid, info, profiles, properties, subscribeIdForResource);
+            return std::tie (muid, info, profiles, properties, subscriptions);
         }
         JUCE_TUPLE_RELATIONAL_OPS (Device)
     };
@@ -910,7 +908,7 @@ class MonospaceEditor : public TextEditor
 public:
     MonospaceEditor()
     {
-        setFont (Font { Font::getDefaultMonospacedFontName(), 12, 0 });
+        setFont (FontOptions { Font::getDefaultMonospacedFontName(), 12, 0 });
     }
 
     void onCommit (std::function<void()> fn)
@@ -929,7 +927,7 @@ class MonospaceLabel : public Label
 public:
     MonospaceLabel()
     {
-        setFont (Font { Font::getDefaultMonospacedFontName(), 12, 0 });
+        setFont (FontOptions { Font::getDefaultMonospacedFontName(), 12, 0 });
         setMinimumHorizontalScale (1.0f);
         setInterceptsMouseClicks (false, false);
     }
@@ -1221,6 +1219,12 @@ private:
     });
 };
 
+static constexpr auto ioLabelText = R"(Pick the input and output used to talk to the Capability Inquiry (CI) responder.
+
+In order to use this demo you'll need another program/device that understands MIDI CI.
+You could run a second copy of this CapabilityInquiryDemo, or install and use one of the apps listed below.
+If you want to communicate with a program that doesn't have its own virtual MIDI ports, you may need to set up virtual ports yourself, e.g. by enabling the IAC MIDI driver on macOS.)";
+
 class IOPickerLists : public Component
 {
 public:
@@ -1230,16 +1234,34 @@ public:
     {
         addAndMakeVisible (inputs);
         addAndMakeVisible (outputs);
+
+        addAndMakeVisible (label);
+        addAndMakeVisible (toolsHeader);
+        addAndMakeVisible (workbenchButton);
+        addAndMakeVisible (responderButton);
+        toolsHeader.setJustificationType (Justification::centred);
     }
 
     void resized() override
     {
-        Utils::doColumnLayout (getLocalBounds().reduced (Utils::padding), inputs, outputs);
+        auto bounds = getLocalBounds().reduced (Utils::padding);
+
+        responderButton.setBounds (bounds.removeFromBottom (20));
+        workbenchButton.setBounds (bounds.removeFromBottom (20));
+        toolsHeader.setBounds (bounds.removeFromBottom (20));
+        label.setBounds (bounds.removeFromBottom (200).withSizeKeepingCentre (jmin (600, bounds.getWidth()), 200));
+
+        Utils::doColumnLayout (bounds, inputs, outputs);
     }
 
 private:
     IOPickerList<MidiInput> inputs;
     IOPickerList<MidiOutput> outputs;
+    Label label { "", ioLabelText };
+
+    Label toolsHeader { "", "Other MIDI-CI software for testing:" };
+    HyperlinkButton workbenchButton { "MIDI 2.0 Workbench", URL { "https://github.com/midi2-dev/MIDI2.0Workbench" } };
+    HyperlinkButton responderButton { "Bome MIDI-CI Responder", URL { "https://www.bome.com/products/midi-ci-tools" } };
 };
 
 class SectionHeader : public Component
@@ -1534,7 +1556,7 @@ public:
 
         const auto groupWidth = 100;
         GlyphArrangement groupArrangement;
-        groupArrangement.addJustifiedText ({},
+        groupArrangement.addJustifiedText (FontOptions{},
                                            "Group",
                                            0,
                                            0,
@@ -1574,7 +1596,7 @@ public:
             const auto bounds = buttons[(size_t) i].getBounds();
 
             GlyphArrangement channelArrangement;
-            channelArrangement.addJustifiedText ({},
+            channelArrangement.addJustifiedText (FontOptions{},
                                                  i < 16 ? String (i + 1) : "All",
                                                  0,
                                                  0,
@@ -2113,10 +2135,11 @@ public:
     DiscoveryInfoPanel (State<ci::MUID> m, State<Model::DeviceInfo> s)
         : muidState (m), state (s)
     {
+        const auto setStateCallback = [this] { setStateFromUI(); };
         [&] (auto&&... item)
         {
             (addAndMakeVisible (item), ...);
-            ((item.onCommit ([this] { setStateFromUI(); })), ...);
+            ((item.onCommit (setStateCallback)), ...);
         } (manufacturer, family, modelNumber, revision, maxSysExSize);
 
         [&] (auto&&... item)
@@ -2264,10 +2287,9 @@ public:
                 auto updated = *state;
                 auto& props = updated.properties;
 
-                if (auto* item = props.getSelected())
+                if (0 <= props.selection)
                 {
-                    const auto toErase = props.items.begin() + props.selection;
-                    props.items.erase (toErase);
+                    props.items.erase (props.items.begin() + props.selection);
                     props.selection = -1;
 
                     state = std::move (updated);
@@ -2472,7 +2494,7 @@ public:
     explicit PropertyValuePanel (State<Model::Properties> s)
         : PropertyValuePanel (s, {}) {}
 
-    PropertyValuePanel (State<Model::Properties> s, State<std::map<String, String>> subState)
+    PropertyValuePanel (State<Model::Properties> s, State<std::map<ci::SubscriptionKey, ci::Subscription>> subState)
         : state (s), subscriptions (subState)
     {
         addAndMakeVisible (value);
@@ -2590,13 +2612,13 @@ private:
 
         if (const auto* selectedProp = state->properties.getSelected())
         {
-            const auto text = sub.count (selectedProp->name) != 0 ? "Unsubscribe" : "Subscribe";
+            const auto text = std::any_of (sub.begin(), sub.end(), [&] (const auto& p) { return p.second.resource == selectedProp->name; }) ? "Unsubscribe" : "Subscribe";
             subscribe.setButtonText (text);
         }
     }
 
     State<Model::Properties> state;
-    State<std::map<String, String>> subscriptions;
+    State<std::map<ci::SubscriptionKey, ci::Subscription>> subscriptions;
 
     MonospaceEditor value;
     TextField<editable> format;
@@ -2630,8 +2652,9 @@ private:
                     return;
                 }
 
+                constexpr auto isEditable = editable == Editable::yes;
                 const auto canSetFull = item->canSet != Model::CanSet::none
-                                        || editable == Editable::yes;
+                                        || isEditable;
                 setFull.setEnabled (canSetFull);
                 setPartial.setEnabled (item->canSet == Model::CanSet::partial);
                 get.setEnabled (item->canGet);
@@ -2684,7 +2707,9 @@ public:
     explicit PropertyInfoPanel (State<Model::Properties> s)
         : state (s)
     {
-        if constexpr (editable == Editable::yes)
+        constexpr auto isEditable = editable == Editable::yes;
+
+        if constexpr (isEditable)
         {
 
             addAndMakeVisible (canSet);
@@ -2696,11 +2721,13 @@ public:
             addAndMakeVisible (canSetField);
         }
 
+        const auto updateStateCallback = [this] { updateStateFromUI(); };
+
         [&] (auto&&... args)
         {
             (addAndMakeVisible (args), ...);
-            (args.setClickingTogglesState (editable == Editable::yes), ...);
-            ((args.onClick = [this] { updateStateFromUI(); }), ...);
+            (args.setClickingTogglesState (isEditable), ...);
+            ((args.onClick = updateStateCallback), ...);
         } (canGet,
            canSubscribe,
            canPaginate,
@@ -2717,11 +2744,11 @@ public:
         [&] (auto&&... args)
         {
             (addAndMakeVisible (args), ...);
-            (args.setReadOnly (editable == Editable::no), ...);
+            (args.setReadOnly (! isEditable), ...);
             (args.setMultiLine (true), ...);
             ((args.onReturnKey = args.onEscapeKey
                                = args.onFocusLost
-                               = [this] { updateStateFromUI(); }), ...);
+                               = updateStateCallback), ...);
         } (schema, mediaTypes, columns);
 
         addAndMakeVisible (name);
@@ -2970,9 +2997,9 @@ private:
     {
         const auto selected = (size_t) state->transient.devices.selection;
         return state[&Model::App::transient]
-        [&Model::Transient::devices]
-        [&Model::ListWithSelection<Model::Device>::items]
-        [selected];
+                    [&Model::Transient::devices]
+                    [&Model::ListWithSelection<Model::Device>::items]
+                    [selected];
     }
 
     State<Model::App> state;
@@ -2980,7 +3007,7 @@ private:
     PropertyValuePanel<Editable::no> value
     {
         getDeviceState()[&Model::Device::properties],
-        getDeviceState()[&Model::Device::subscribeIdForResource]
+        getDeviceState()[&Model::Device::subscriptions]
     };
     TabbedComponent tabs { TabbedButtonBar::Orientation::TabsAtTop };
 };
@@ -3613,7 +3640,8 @@ private:
     });
 };
 
-class CapabilityInquiryDemo : public Component
+class CapabilityInquiryDemo : public Component,
+                              private Timer
 {
 public:
     CapabilityInquiryDemo()
@@ -3667,10 +3695,14 @@ public:
         {
             setPropertyPartial (bytes);
         };
+
+        startTimer (2'000);
     }
 
     ~CapabilityInquiryDemo() override
     {
+        stopTimer();
+
         // In a production app, it'd be a bit risky to write to a file from a destructor as it's
         // bad karma to throw an exception inside a destructor!
         if (auto* userSettings = applicationProperties.getUserSettings())
@@ -3682,15 +3714,25 @@ public:
 
     void resized() override
     {
-        tabs.setBounds (getLocalBounds());
+        auto bounds = getLocalBounds();
+        auto buttonStrip = bounds.getWidth() < 650 ? bounds.removeFromTop (tabs.getTabBarDepth())
+                                                   : getLocalBounds().removeFromTop (tabs.getTabBarDepth());
 
-        const auto buttonBounds = getLocalBounds().removeFromTop (tabs.getTabBarDepth())
-                                                  .removeFromRight (300)
-                                                  .reduced (2);
+        tabs.setBounds (bounds);
+
+        const auto buttonBounds = buttonStrip.removeFromTop (tabs.getTabBarDepth())
+                                             .removeFromRight (300)
+                                             .reduced (2);
         Utils::doColumnLayout (buttonBounds, loadButton, saveButton);
     }
 
 private:
+    void timerCallback() override
+    {
+        if (device.has_value())
+            device->sendPendingMessages();
+    }
+
     std::optional<std::tuple<ci::MUID, String>> getPropertyRequestInfo() const
     {
         auto* selectedDevice = appState->transient.devices.getSelected();
@@ -3860,58 +3902,40 @@ private:
 
         const auto& [muid, propName] = *details;
 
-        const auto subId = [&, propNameCopy = propName]
+        // Find the subscription for this resource, if any
+        const auto existingToken = [&, propNameCopy = propName]() -> std::optional<ci::SubscriptionKey>
         {
-            const auto ongoing = device->getOngoingSubscriptionsForMuid (selectedDevice->muid);
-            const auto iter = std::find_if (ongoing.begin(), ongoing.end(), [&] (const auto& sub)
-            {
-                return sub.resource == propNameCopy;
-            });
+            const auto ongoing = device->getOngoingSubscriptions();
 
-            return iter != ongoing.end() ? iter->subscribeId : String();
+            for (const auto& o : ongoing)
+                if (propNameCopy == device->getResourceForKey (o))
+                    return o;
+
+            return std::nullopt;
         }();
 
-        ci::PropertySubscriptionHeader header;
-        header.resource = propName;
-        header.command = subId.isEmpty() ? ci::PropertySubscriptionCommand::start : ci::PropertySubscriptionCommand::end;
-        header.subscribeId = subId;
-
-        auto callback = [this,
-                         target = muid,
-                         propertyName = propName,
-                         existingSubscription = subId.isNotEmpty()] (const ci::PropertyExchangeResult& response)
+        // If we're already subscribed, end that subscription.
+        // Otherwise, begin a new subscription to this resource.
+        const auto changedToken = [this,
+                                   propNameCopy = propName,
+                                   muidCopy = muid,
+                                   existingTokenCopy = existingToken]() -> std::optional<ci::SubscriptionKey>
         {
-            if (response.getError().has_value())
-                return;
-
-            auto updated = *appState;
-
-            auto& knownDevices = updated.transient.devices.items;
-            const auto deviceIter = std::find_if (knownDevices.begin(),
-                                                  knownDevices.end(),
-                                                  [target] (const auto& d) { return d.muid == target; });
-
-            if (deviceIter == knownDevices.end())
+            // We're not subscribed, so begin a new subscription
+            if (! existingTokenCopy.has_value())
             {
-                // The device has gone away?
-                jassertfalse;
-                return;
+                ci::PropertySubscriptionHeader header;
+                header.resource = propNameCopy;
+                header.command = ci::PropertySubscriptionCommand::start;
+                return device->beginSubscription (muidCopy, header);
             }
 
-            const auto parsedHeader = response.getHeaderAsSubscriptionHeader();
+            device->endSubscription (*existingTokenCopy);
+            return existingTokenCopy;
+        }();
 
-            if (parsedHeader.subscribeId.isNotEmpty() && ! existingSubscription)
-                deviceIter->subscribeIdForResource.emplace (propertyName, parsedHeader.subscribeId);
-            else
-                deviceIter->subscribeIdForResource.erase (propertyName);
-
-            appState = std::move (updated);
-        };
-
-        if (subId.isEmpty())
-            device->sendPropertySubscriptionStart (muid, header, callback);
-        else
-            device->sendPropertySubscriptionEnd (muid, subId, callback);
+        if (changedToken.has_value())
+            deviceListener.propertySubscriptionChanged (*changedToken);
     }
 
     template <typename Transient>
@@ -3973,11 +3997,8 @@ private:
         header.resource = propertyName;
         header.mutualEncoding = *encodingToUse;
 
-        const auto it = ongoingGetInquiries.insert (ongoingGetInquiries.end(), ErasedScopeGuard{});
-        *it = device->sendPropertyGetInquiry (target, header, [this, it, target, propertyName] (const auto& response)
+        device->sendPropertyGetInquiry (target, header, [this, target, propertyName] (const auto& response)
         {
-            ongoingGetInquiries.erase (it);
-
             if (response.getError().has_value())
                 return;
 
@@ -4088,10 +4109,7 @@ private:
             else
                 h->addProfile (profileAtAddress, state.supported);
 
-            if (state.active == 0)
-                h->disableProfile (profileAtAddress);
-            else
-                h->enableProfile (profileAtAddress, state.active);
+            h->setProfileEnablement (profileAtAddress, state.active);
         }
     }
 
@@ -4116,7 +4134,7 @@ private:
                     header.command = ci::PropertySubscriptionCommand::notify;
                     header.subscribeId = subId;
                     header.resource = propertyName;
-                    host->sendSubscriptionUpdate (receiver, header, {}, {}).release();
+                    host->sendSubscriptionUpdate (receiver, header, {}, {});
                 }
             }
         }
@@ -4351,9 +4369,13 @@ private:
         {
             const auto resource = [&]
             {
-                for (const auto& [subId, res] : demo.device->getOngoingSubscriptionsForMuid (muid))
-                    if (subId == subscription.header.subscribeId)
-                        return res;
+                const auto ongoing = demo.device->getOngoingSubscriptions();
+
+                for (const auto& o : ongoing)
+                {
+                    if (subscription.header.subscribeId == demo.device->getSubscribeIdForKey (o))
+                        return demo.device->getResourceForKey (o).value_or (String{});
+                }
 
                 return String{};
             }();
@@ -4366,8 +4388,8 @@ private:
             }
 
             auto devicesState = demo.appState[&Model::App::transient]
-            [&Model::Transient::devices]
-            [&Model::ListWithSelection<Model::Device>::items];
+                                             [&Model::Transient::devices]
+                                             [&Model::ListWithSelection<Model::Device>::items];
             auto copiedDevices = *devicesState;
 
             const auto matchingDevice = [&]
@@ -4428,10 +4450,7 @@ private:
                 }
 
                 case ci::PropertySubscriptionCommand::end:
-                {
-                    matchingDevice->subscribeIdForResource.erase (resource);
                     break;
-                }
 
                 case ci::PropertySubscriptionCommand::start:
                     jassertfalse;
@@ -4439,6 +4458,35 @@ private:
             }
 
             devicesState = std::move (copiedDevices);
+        }
+
+        void propertySubscriptionChanged (ci::SubscriptionKey key, const std::optional<String>&) override
+        {
+            propertySubscriptionChanged (key);
+        }
+
+        void propertySubscriptionChanged (ci::SubscriptionKey key)
+        {
+            auto updated = *demo.appState;
+
+            auto& knownDevices = updated.transient.devices.items;
+            const auto deviceIter = std::find_if (knownDevices.begin(),
+                                                  knownDevices.end(),
+                                                  [target = key.getMuid()] (const auto& d) { return d.muid == target; });
+
+            if (deviceIter == knownDevices.end())
+            {
+                // The device has gone away?
+                jassertfalse;
+                return;
+            }
+
+            if (const auto resource = demo.device->getResourceForKey (key))
+                deviceIter->subscriptions.emplace (key, ci::Subscription { demo.device->getSubscribeIdForKey (key).value_or (String{}), *resource });
+            else
+                deviceIter->subscriptions.erase (key);
+
+            demo.appState = std::move (updated);
         }
 
     private:
@@ -4589,12 +4637,9 @@ private:
 
             if (auto* host = demo.getProfileHost())
             {
-                if (enabled)
-                    host->enableProfile (profileAtAddress, numChannels);
-                else
-                    host->disableProfile (profileAtAddress);
-
-                profiles.channels[profileAtAddress].active = (uint16_t) numChannels;
+                const auto count = enabled ? jmax (1, numChannels) : 0;
+                host->setProfileEnablement (profileAtAddress, count);
+                profiles.channels[profileAtAddress].active = (uint16_t) count;
 
                 state = profiles;
             }
@@ -4849,7 +4894,6 @@ private:
     std::unique_ptr<MidiInput> input;
     std::unique_ptr<MidiOutput> output;
     std::optional<ci::Device> device;
-    std::list<ErasedScopeGuard> ongoingGetInquiries;
 
     FileChooser fileChooser { "Pick State JSON File", {}, "*.json", true, false, this };
 
@@ -4881,7 +4925,6 @@ private:
                     .withPropertyDelegate (&propertyDelegate)
                     .withProfileDelegate (&profileDelegate);
 
-            ongoingGetInquiries.clear();
             device.emplace (options);
             device->addListener (deviceListener);
 
