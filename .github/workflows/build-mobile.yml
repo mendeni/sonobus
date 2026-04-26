@@ -13,7 +13,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           submodules: recursive
 
@@ -42,7 +42,7 @@ jobs:
         run: cp ./mobile/Builds/Android/app/build/outputs/apk/release_/release/app-release_-release-unsigned.apk ./mobile/Builds/Android/app/build/SonoBusMendeni-Android.apk
 
       - name: Upload APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: SonoBusMendeni-Android
           path: ./mobile/Builds/Android/app/build/SonoBusMendeni-Android.apk

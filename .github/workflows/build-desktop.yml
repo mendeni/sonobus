@@ -15,7 +15,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install dependencies (Linux)
         if: runner.os == 'Linux'
@@ -49,7 +49,7 @@ jobs:
 
       - name: Upload Sonobus artifacts (Windows & Linux)
         if: runner.os != 'macOS'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: SonoBusMendeni-${{ runner.os }}
           path: |
@@ -59,7 +59,7 @@ jobs:
 
       - name: Upload Sonobus artifacts
         if: runner.os == 'macOS'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: SonoBusMendeni-${{ runner.os }}
           path: |
