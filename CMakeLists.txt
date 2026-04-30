@@ -232,7 +232,7 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
             _USE_MATH_DEFINES
             # Windows 10 is minimum version
             WINVER=0x0A00
-            _WIN32_WINNT=0x0A00
+            _WIN32_WINNT=0x0A00)
     else()
         # Linux
         message(${CMAKE_CURRENT_SOURCE_DIR})
