@@ -806,7 +806,6 @@ private:
 
             for (auto& newDevice : newMidiDevices)
                 if (! lastMidiDevices.contains (newDevice))
-                    deviceManager.setMidiInputEnabled (newDevice, true);
                     deviceManager.setMidiInputDeviceEnabled (newDevice.identifier, true);
 
             lastMidiDevices = newMidiDevices;
