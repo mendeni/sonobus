@@ -7460,7 +7460,7 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
         if ( hostBpm && *hostBpm > 0.0) {
             useBpm = *hostBpm;
         }
-
+    }
     if (syncmethost) {
         if (rposInfo && fabs(useBpm - mMetTempo.get()) > 0.001) {
             mMetTempo = useBpm;
