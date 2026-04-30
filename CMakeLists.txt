@@ -230,9 +230,8 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
 
         list (APPEND PLAT_COMPILE_DEFS
             _USE_MATH_DEFINES
-            # Windows 10 is minimum version
-            WINVER=0x0A00
-            _WIN32_WINNT=0x0A00)
+            WINVER=0x0601
+            _WIN32_WINNT=0x0601)
     else()
         # Linux
         message(${CMAKE_CURRENT_SOURCE_DIR})
