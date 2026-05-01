@@ -53,7 +53,7 @@ jobs:
 
       - name: Upload Sonobus artifacts (Windows & Linux)
         if: runner.os != 'macOS'
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: SonoBusMendeni-${{ runner.os }}
           path: |
@@ -63,7 +63,7 @@ jobs:
 
       - name: Upload Sonobus artifacts
         if: runner.os == 'macOS'
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: SonoBusMendeni-${{ runner.os }}
           path: |
