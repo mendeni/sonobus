@@ -115,8 +115,7 @@ public class SonoBusService extends Service {
             notificationBuilder.setVisibility(NotificationCompat.VISIBILITY_PUBLIC);
         }
         
-        ServiceCompat.startForeground(this, 1555, notificationBuilder.build(), ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK);
-        
+        ServiceCompat.startForeground(this, 1555, notificationBuilder.build(), ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK);        
     }
     
     @Override
