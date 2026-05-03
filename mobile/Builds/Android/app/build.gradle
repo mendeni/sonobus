@@ -5,7 +5,7 @@ def ndkVersionString = "28.1.13356709"
 android {
     compileSdk 36
     ndkVersion ndkVersionString
-    namespace "com.sonosaurus.sonobusmendeni"
+    namespace "com.sonosaurus.sonobus"
     externalNativeBuild {
         cmake {
             path "CMakeLists.txt"
@@ -23,7 +23,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.sonosaurus.sonobusmendeni"
+        applicationId "com.sonosaurus.sonobus"
         minSdkVersion    24
         targetSdkVersion 36
         externalNativeBuild {
