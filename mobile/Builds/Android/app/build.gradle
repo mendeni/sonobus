@@ -1,11 +1,11 @@
 apply plugin: 'com.android.application'
 
-def ndkVersionString = "28.1.13356709"
+def ndkVersionString = "25.2.9519653"
 
 android {
-    compileSdk 36
+    compileSdkVersion 33
     ndkVersion ndkVersionString
-    namespace "com.sonosaurus.sonobus"
+    namespace "com.sonosaurus.sonobusmendeni"
     externalNativeBuild {
         cmake {
             path "CMakeLists.txt"
@@ -14,21 +14,26 @@ android {
     }
     signingConfigs {
         juceSigning {
-            storeFile     file("${System.properties['user.home']}${File.separator}.android${File.separator}sonouploadnew.jks")
-            storePassword "${sonoupload_keystore_password}"
-            keyAlias      "${sonoupload_key}"
-            keyPassword   "${sonoupload_key_password}"
-            storeType     "jks"
+            def keystoreExists = file("${System.properties['user.home']}${File.separator}.android${File.separator}sonouploadnew.jks").exists()
+            def hasKeystoreProps = project.hasProperty('sonoupload_keystore_password') && project.hasProperty('sonoupload_key') && project.hasProperty('sonoupload_key_password')
+            
+            if (keystoreExists && hasKeystoreProps) {
+                storeFile     file("${System.properties['user.home']}${File.separator}.android${File.separator}sonouploadnew.jks")
+                storePassword "${sonoupload_keystore_password}"
+                keyAlias      "${sonoupload_key}"
+                keyPassword   "${sonoupload_key_password}"
+                storeType     "jks"
+            }
         }
     }
 
     defaultConfig {
-        applicationId "com.sonosaurus.sonobus"
+        applicationId "com.sonosaurus.sonobusmendeni"
         minSdkVersion    24
-        targetSdkVersion 36
+        targetSdkVersion 33
         externalNativeBuild {
             cmake {
-                arguments "-DANDROID_TOOLCHAIN=clang", "-DANDROID_PLATFORM=android-24", "-DANDROID_STL=c++_static", "-DANDROID_CPP_FEATURES=exceptions rtti", "-DANDROID_ARM_MODE=arm", "-DANDROID_ARM_NEON=TRUE", "-DANDROID_WEAK_API_DEFS=ON", "-DCMAKE_CXX_STANDARD=17", "-DCMAKE_CXX_EXTENSIONS=OFF"
+                arguments "-DANDROID_TOOLCHAIN=clang", "-DANDROID_PLATFORM=android-24", "-DANDROID_STL=c++_static", "-DANDROID_CPP_FEATURES=exceptions rtti", "-DANDROID_ARM_MODE=arm", "-DANDROID_ARM_NEON=TRUE", "-DCMAKE_CXX_STANDARD=17", "-DCMAKE_CXX_EXTENSIONS=OFF"
             }
         }
     }
@@ -38,13 +43,17 @@ android {
              initWith debug
              debuggable    true
              jniDebuggable true
-             signingConfig signingConfigs.juceSigning
+             if (signingConfigs.juceSigning.storeFile != null) {
+                 signingConfig signingConfigs.juceSigning
+             }
          }
          release {
              initWith release
              debuggable    false
              jniDebuggable false
-             signingConfig signingConfigs.juceSigning
+             if (signingConfigs.juceSigning.storeFile != null) {
+                 signingConfig signingConfigs.juceSigning
+             }
          }
     }
 
@@ -105,29 +114,8 @@ android {
     }
 
     dependencies {
-        def core_version = "1.18.0"
-        implementation "androidx.core:core:$core_version"
-        implementation "androidx.core:core-ktx:$core_version"
-        
-        implementation 'androidx.appcompat:appcompat:1.7.1'
-        implementation(platform("org.jetbrains.kotlin:kotlin-bom:1.8.0"))
+        implementation 'androidx.appcompat:appcompat:1.0.2'
     }
-
-ndkVersion "28.2.13676358"
-lintOptions {
-     abortOnError false
-}
-  
-// ensure Java 8 is used
-compileOptions {
-      sourceCompatibility JavaVersion.VERSION_1_8
-      targetCompatibility JavaVersion.VERSION_1_8
- }
-
- buildFeatures {
-       buildConfig = true
- }
-
 
 }
 
