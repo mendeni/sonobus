@@ -20,6 +20,7 @@
 #include <juce_audio_formats/juce_audio_formats.h>
 #include <juce_audio_plugin_client/juce_audio_plugin_client.h>
 #include <juce_audio_processors/juce_audio_processors.h>
+#include <juce_audio_processors_headless/juce_audio_processors_headless.h>
 #include <juce_audio_utils/juce_audio_utils.h>
 #include <juce_core/juce_core.h>
 #include <juce_cryptography/juce_cryptography.h>
@@ -30,7 +31,6 @@
 #include <juce_gui_basics/juce_gui_basics.h>
 #include <juce_gui_extra/juce_gui_extra.h>
 #include <juce_opengl/juce_opengl.h>
-#include <juce_osc/juce_osc.h>
 
 #include "BinaryData.h"
 
@@ -54,7 +54,7 @@ namespace ProjectInfo
 {
     const char* const  projectName    = "SonoBus";
     const char* const  companyName    = "Sonosaurus";
-    const char* const  versionString  = "1.7.2";
-    const int          versionNumber  = 0x10702;
+    const char* const  versionString  = "1.7.3";
+    const int          versionNumber  = 0x10703;
 }
 #endif
