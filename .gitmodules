@@ -1,0 +1,4 @@
+[submodule "deps/juce"]
+	path = deps/juce
+	url = https://github.com/essej/JUCE.git
+	branch = sono8good

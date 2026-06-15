@@ -16,6 +16,9 @@ import android.os.Binder;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
+import androidx.core.app.ServiceCompat;
+import android.content.pm.ServiceInfo;
+
 import android.util.Log;
 
 public class SonoBusService extends Service {
@@ -112,8 +115,7 @@ public class SonoBusService extends Service {
             notificationBuilder.setVisibility(NotificationCompat.VISIBILITY_PUBLIC);
         }
         
-        startForeground(1555, notificationBuilder.build());
-        
+        ServiceCompat.startForeground(this, 1555, notificationBuilder.build(), ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK);        
     }
     
     @Override

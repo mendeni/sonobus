@@ -548,7 +548,7 @@ enum {
 #if JUCE_IOS
 #define ALTBUS_ACTIVE true
 #else
-#define ALTBUS_ACTIVE false
+#define ALTBUS_ACTIVE true
 #endif
 
 
@@ -570,7 +570,7 @@ SonobusAudioProcessor::BusesProperties SonobusAudioProcessor::getDefaultLayout()
     else if (plugtype == AudioProcessor::wrapperType_VST) {
         // no multi-bus outputs for now for VST2, so it works in OBS
     }
-    else {
+    else if (plugtype != AudioProcessor::wrapperType_Standalone) {
         // throw in some input sidechains
         props = props.withInput  ("Aux 1 In",  AudioChannelSet::stereo(), ALTBUS_ACTIVE)
         .withInput  ("Aux 2 In",  AudioChannelSet::stereo(), ALTBUS_ACTIVE)
@@ -586,7 +586,7 @@ SonobusAudioProcessor::BusesProperties SonobusAudioProcessor::getDefaultLayout()
     if (plugtype == AudioProcessor::wrapperType_VST) {
         // no multi-bus outputs for now for VST2, so it works in OBS
     }
-    else {
+    else if (plugtype != AudioProcessor::wrapperType_Standalone) {
         props = props.withOutput ("Aux 1 Out", AudioChannelSet::stereo(), ALTBUS_ACTIVE)
         .withOutput ("Aux 2 Out", AudioChannelSet::stereo(), ALTBUS_ACTIVE)
         .withOutput ("Aux 3 Out", AudioChannelSet::stereo(), ALTBUS_ACTIVE)
@@ -7455,10 +7455,12 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
 
     bool hostPlaying = rposInfo && rposInfo->getIsPlaying();
     auto hostBpm = rposInfo->getBpm();
-    if (hostBpm && *hostBpm > 0.0) {
-        useBpm = *hostBpm;
+    if (rposInfo) {
+        auto hostBpm = rposInfo->getBpm();
+        if ( hostBpm && *hostBpm > 0.0) {
+            useBpm = *hostBpm;
+        }
     }
-
     if (syncmethost) {
         if (rposInfo && fabs(useBpm - mMetTempo.get()) > 0.001) {
             mMetTempo = useBpm;
@@ -8244,25 +8246,21 @@ void SonobusAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer
 
     // mix input reverb into main buffer
     if (doinreverb) {
-
-        if (inReverbEnabled != mLastInputReverbEnabled && inReverbEnabled) {
-            mInputReverb.reset();
+        for (int channel = 0; channel < mainBusOutputChannels && channel < 2; ++channel) {
+            if (drynow > 0.0f || dryrampit) {
+                // attenuate reverb with monitor level if used
+                if (dryrampit) {
+                    buffer.addFromWithRamp(channel, 0, inputRevBuffer.getReadPointer(channel), numSamples, mLastDry, drynow);
+                }
+                else {
+                    buffer.addFrom(channel, 0, inputRevBuffer.getReadPointer(channel), numSamples, drynow);
+                }
+            }
+            else if (inrevdirect) {
+                // add the full input reverb to mix, if monitoring is off
+                buffer.addFrom(channel, 0, inputRevBuffer.getReadPointer(channel), numSamples);
+            }
         }
-
-        mInputReverb.process((float **)inputRevBuffer.getArrayOfWritePointers(), (float **)inputRevBuffer.getArrayOfWritePointers(), numSamples);
-
-        if (inReverbEnabled != mLastInputReverbEnabled ) {
-            float sgain = inReverbEnabled ? 0.0f : 1.0f;
-            float egain = inReverbEnabled ? 1.0f : 0.0f;
-
-            inputRevBuffer.applyGainRamp(0, numSamples, sgain, egain);
-        }
-
-        // mix it into send workbuffer for each channel up to 4
-        for (int channel = 0; channel < sendPanChannels && channel < 4; ++channel) {
-              sendWorkBuffer.addFrom(channel, 0, inputRevBuffer, channel, 0, numSamples);
-        }
-
     }
 
     // add from file playback buffer

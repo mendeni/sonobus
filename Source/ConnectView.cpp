@@ -1124,11 +1124,11 @@ void ConnectView::buttonClicked (Button* buttonThatWasClicked)
                 urlarray.add(url);
                 mScopedShareBox = ContentSharer::shareFilesScoped(urlarray, [safeThis](bool result, const String& msg){ DBG("url share returned " << (int)result << " : " <<  msg);
                     safeThis->mScopedShareBox = {};
-                });
+                }, this);
             } else {
                 mScopedShareBox = ContentSharer::shareTextScoped(message, [safeThis](bool result, const String& msg){ DBG("share returned " << (int)result << " : " << msg);
                     safeThis->mScopedShareBox = {};
-                });
+                }, this);
             }
         }
 
