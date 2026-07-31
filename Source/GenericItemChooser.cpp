@@ -139,7 +139,8 @@ int GenericItemChooser::getAutoWidth()
     int targw = 60;
     
     for (int i=0; i < items.size(); ++i) {
-        int tsize = font.getStringWidth(items[i].name);
+        const auto stringWidth{ juce::GlyphArrangement::getStringWidth(font, juce::StringRef(items[i].name)) };
+        int tsize = stringWidth;
         if (items[i].image.isValid()) {
             tsize += rowHeight - 8;
         }
