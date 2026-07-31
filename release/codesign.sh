@@ -14,13 +14,13 @@ codesign ${AOPTS} --entitlements SonoBus.entitlements ${BASEAPPNAME}/${BASEAPPNA
 codesign ${POPTS} --entitlements SonoBus.entitlements  ${BASEAPPNAME}/${BASEAPPNAME}.component
 codesign ${POPTS} --entitlements SonoBus.entitlements ${BASEAPPNAME}/${BASEAPPNAME}.vst3
 codesign ${POPTS} --entitlements SonoBus.entitlements ${BASEAPPNAME}/${BASEAPPNAME}Instrument.vst3
-codesign ${POPTS} --entitlements SonoBus.entitlements  ${BASEAPPNAME}/${BASEAPPNAME}.vst
+#codesign ${POPTS} --entitlements SonoBus.entitlements  ${BASEAPPNAME}/${BASEAPPNAME}.vst
 
 # AAX is special
-if [ -n "${AAXSIGNCMD}" ]; then
- echo "Signing AAX plugin"
- ${AAXSIGNCMD}  --in ${BASEAPPNAME}/${BASEAPPNAME}.aaxplugin --out ${BASEAPPNAME}/${BASEAPPNAME}.aaxplugin
-fi
+#if [ -n "${AAXSIGNCMD}" ]; then
+# echo "Signing AAX plugin"
+# ${AAXSIGNCMD}  --in ${BASEAPPNAME}/${BASEAPPNAME}.aaxplugin --out ${BASEAPPNAME}/${BASEAPPNAME}.aaxplugin
+#fi
 
 
 if [ "x$1" = "xonly" ] ; then
