@@ -302,6 +302,9 @@ function(sono_add_custom_plugin_target target_name product_name formats is_instr
         Source/SonoCallOutBox.h
         Source/SonoChoiceButton.cpp
         Source/SonoChoiceButton.h
+        Source/SonoAccessibility.cpp
+        Source/SonoAccessibilityWindows.cpp
+        Source/SonoAccessibility.h
         Source/SonoDrawableButton.cpp
         Source/SonoDrawableButton.h
         Source/SonoLookAndFeel.cpp

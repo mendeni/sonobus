@@ -2,6 +2,7 @@
 // Copyright (C) 2020 Jesse Chappell
 
 #include "PeersContainerView.h"
+#include "SonoAccessibility.h"
 #include "JitterBufferMeter.h"
 #include <set>
 
@@ -362,6 +363,9 @@ void PeersContainerView::resized()
 
 void PeersContainerView::showPopTip(const String & message, int timeoutMs, Component * target, int maxwidth)
 {
+    // pop tips are visual only; also speak them for screen reader users
+    SonoAccessibility::announce(message);
+
     popTip.reset(new BubbleMessageComponent());
     popTip->setAllowedPlacement(BubbleComponent::above);
     

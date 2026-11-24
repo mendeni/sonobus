@@ -53,7 +53,44 @@ void SonoChoiceButton::setSelectedItemIndex(int index, NotificationType notifica
         listeners.call (&SonoChoiceButton::Listener::choiceButtonSelected, this, index, ident);
     }
 
+    if (auto* handler = getAccessibilityHandler()) {
+        handler->notifyAccessibilityEvent (AccessibilityEvent::valueChanged);
+    }
+
     repaint();
+}
+
+bool SonoChoiceButton::selectAdjacentItem(int delta)
+{
+    // skip disabled entries (e.g. explanatory notes in the list)
+    for (int i = selIndex + delta; i >= 0 && i < items.size(); i += delta) {
+        if (!items[i].disabled) {
+            setSelectedItemIndex(i, sendNotificationSync);
+            return true;
+        }
+    }
+    return true; // at the end of the list: consume the key so focus doesn't jump
+}
+
+bool SonoChoiceButton::keyPressed (const KeyPress& key)
+{
+    if (!items.isEmpty()) {
+        const auto mods = key.getModifiers();
+
+        if ((key.isKeyCode(KeyPress::downKey) && mods.isAltDown()) || key.isKeyCode(KeyPress::F4Key)) {
+            showPopup();
+            return true;
+        }
+
+        if (arrowKeysChangeSelection && !mods.isAnyModifierKeyDown()) {
+            if (key.isKeyCode(KeyPress::upKey) || key.isKeyCode(KeyPress::leftKey))
+                return selectAdjacentItem(-1);
+            if (key.isKeyCode(KeyPress::downKey) || key.isKeyCode(KeyPress::rightKey))
+                return selectAdjacentItem(1);
+        }
+    }
+
+    return SonoTextButton::keyPressed(key);
 }
 
 void SonoChoiceButton::setSelectedId(int ident, NotificationType notification)
@@ -69,8 +106,8 @@ void SonoChoiceButton::setSelectedId(int ident, NotificationType notification)
 
 String SonoChoiceButton::getItemText(int index) const
 {
-    if (selIndex < items.size()) {
-        return items[selIndex].name;
+    if (isPositiveAndBelow(index, items.size())) {
+        return items[index].name;
     }
     
     return "";
@@ -174,6 +211,8 @@ void SonoChoiceButton::showPopup()
     chooser->setRowHeight(std::min(getHeight(), 40));
     chooser->addListener(this);
     chooser->setCurrentRow(selIndex);
+    chooser->setListTitle(getTitle());
+    auto* chooserPtr = chooser.get();
     //DocumentWindow* const dw = this->findParentComponentOfClass<DocumentWindow>();
     Component* dw = this->findParentComponentOfClass<DocumentWindow>();
 
@@ -194,7 +233,12 @@ void SonoChoiceButton::showPopup()
     box.setDismissalMouseClicksAreAlwaysConsumed(true);
     //box.setArrowSize(0);
 
-    box.grabKeyboardFocus();
+    box.setTitle(getTitle());
+
+    // Put focus on the list itself (on the current choice), not on the popup frame,
+    // and bring it back here when the popup closes, even with Escape.
+    chooserPtr->focusList();
+    SonoAccessibility::returnFocusWhenClosed(box, *this);
 
     activeCalloutBox = &box;
 }
@@ -212,10 +256,22 @@ public:
     explicit SonoChoiceButtonAccessibilityHandler (SonoChoiceButton& comboBoxToWrap)
         : AccessibilityHandler (comboBoxToWrap,
                                 AccessibilityRole::comboBox,
-                                getAccessibilityActions (comboBoxToWrap)),
+                                getAccessibilityActions (comboBoxToWrap),
+                                { std::make_unique<ValueInterface> (comboBoxToWrap) }),
           comboBox (comboBoxToWrap)
     {
     }
+
+    class ValueInterface : public AccessibilityTextValueInterface
+    {
+    public:
+        explicit ValueInterface (SonoChoiceButton& c) : choice (c) {}
+        bool isReadOnly() const override                 { return true; }
+        String getCurrentValueAsString() const override  { return choice.getCurrentText(); }
+        void setValueAsString (const String&) override   {}
+    private:
+        SonoChoiceButton& choice;
+    };
 
     AccessibleState getCurrentState() const override
     {
@@ -224,7 +280,10 @@ public:
         return comboBox.isPopupActive() ? state.withExpanded() : state.withCollapsed();
     }
 
-    String getTitle() const override  { return comboBox.getTitle() + ", " + comboBox.getCurrentText(); }
+    // The current choice is exposed as the value (below), the way screen readers expect
+    // for combo boxes, rather than being folded into the name.
+    String getTitle() const override  { return comboBox.getTitle().isNotEmpty() ? comboBox.getTitle() : comboBox.getButtonText(); }
+    String getHelp() const override   { return comboBox.getTooltip(); }
 
 private:
     static AccessibilityActions getAccessibilityActions (SonoChoiceButton& comboBox)

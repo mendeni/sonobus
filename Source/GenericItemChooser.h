@@ -7,6 +7,7 @@
 #include "JuceHeader.h"
 
 #include "SonoTextButton.h"
+#include "SonoAccessibility.h"
 
 class KeyListBox;
 
@@ -55,6 +56,12 @@ public:
 
     
     void setCurrentRow(int index);
+
+    /** Name the screen reader speaks for the list. */
+    void setListTitle(const String & title) { table.setTitle(title); }
+
+    /** Moves keyboard focus into the list, on the current item. */
+    void focusList();
     int getCurrentRow() const { return currentIndex; }
     
     //==============================================================================
@@ -93,7 +100,7 @@ private:
     
     ListenerList<Listener> listeners;
 
-    ListBox table;     // the table component itself
+    SonoAccessibility::SpeakingListBox table;     // the list itself; speaks the current item for screen readers
     Font font;
     Font catFont;
 

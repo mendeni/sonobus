@@ -9,6 +9,7 @@
 #include "SonoTextButton.h"
 #include "GenericItemChooser.h"
 #include "SonoLookAndFeel.h"
+#include "SonoAccessibility.h"
 
 class SonoChoiceLookAndFeel : public SonoLookAndFeel
 {
@@ -68,6 +69,14 @@ public:
 
     std::unique_ptr<AccessibilityHandler> createAccessibilityHandler() override;
 
+    /** Up/Down (and Left/Right) arrows pick the previous/next item without opening
+        the list, like a standard combo box. Alt+Down, F4, Space or Enter open the list.
+        Turn this off for choices where every change has a big side effect. */
+    void setArrowKeysChangeSelection(bool flag) { arrowKeysChangeSelection = flag; }
+    bool getArrowKeysChangeSelection() const { return arrowKeysChangeSelection; }
+
+    bool keyPressed (const KeyPress& key) override;
+
 protected:
     ListenerList<Listener> listeners;
 
@@ -78,6 +87,9 @@ protected:
     
     int selIndex;
     bool showArrow = true;
+    bool arrowKeysChangeSelection = true;
+
+    bool selectAdjacentItem(int delta);
 
     WeakReference<Component> activeCalloutBox;
 

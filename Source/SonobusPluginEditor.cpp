@@ -4,6 +4,7 @@
 
 
 #include "SonobusPluginProcessor.h"
+#include "SonoAccessibility.h"
 #include "SonobusPluginEditor.h"
 #include "OSCManager.h"
 
@@ -1411,6 +1412,10 @@ SonobusAudioProcessorEditor::SonobusAudioProcessorEditor (SonobusAudioProcessor&
     
     // handles registering commands
     updateUseKeybindings();
+
+    // Keep whatever has keyboard focus scrolled into view, so screen readers
+    // never see the focused control as "offscreen".
+    SonoAccessibility::installFocusScroller();
         
     commandManager.commandStatusChanged();
     
@@ -5625,9 +5630,9 @@ void SonobusAudioProcessorEditor::buttonClicked (Button* buttonThatWasClicked)
             //mFileRecordingLabel->setText("Total: " + SonoUtility::durationToString(processor.getElapsedRecordTime(), true), dontSendNotification);
             mFileRecordingLabel->setText("", dontSendNotification);
 
-            //Timer::callAfterDelay(200, []() {
-            //    AccessibilityHandler::postAnnouncement(TRANS("Recording finished"), AccessibilityHandler::AnnouncementPriority::high);
-            //});
+            Timer::callAfterDelay(200, []() {
+                SonoAccessibility::announce(TRANS("Recording finished"), AccessibilityHandler::AnnouncementPriority::high);
+            });
 
 
             if (processor.getRecordFinishOpens()) {
@@ -6862,6 +6867,11 @@ void SonobusAudioProcessorEditor::componentParentHierarchyChanged (Component& co
     }
 }
 
+std::unique_ptr<ComponentTraverser> SonobusAudioProcessorEditor::createKeyboardFocusTraverser()
+{
+    return std::make_unique<SonoAccessibility::ScrollingKeyboardFocusTraverser>();
+}
+
 bool SonobusAudioProcessorEditor::keyPressed (const KeyPress & key)
 {
     DBG("Got key: " << key.getTextCharacter() << "  isdown: " << (key.isCurrentlyDown() ? 1 : 0) << " keycode: " << key.getKeyCode() << " pcode: " << (int)'p');
@@ -6869,7 +6879,12 @@ bool SonobusAudioProcessorEditor::keyPressed (const KeyPress & key)
     mAltReleaseShouldAct = false; // reset alt check
     bool gotone = false;
 
-    if (key.isKeyCurrentlyDown('T') && !processor.getDisableKeyboardShortcuts()) {
+    // Only plain T: don't trigger push-to-talk on Ctrl/Alt/Cmd + T, which screen readers
+    // and other software use as their own shortcuts.
+    const auto mods = ModifierKeys::getCurrentModifiers();
+    const bool plainKey = !(mods.isCtrlDown() || mods.isAltDown() || mods.isCommandDown());
+
+    if (plainKey && key.isKeyCurrentlyDown('T') && !processor.getDisableKeyboardShortcuts()) {
         if (!mPushToTalkKeyDown) {
             DBG("T press");
             // mute others, send self
@@ -6996,6 +7011,9 @@ void SonobusAudioProcessorEditor::showSettings(bool flag)
         settingsCalloutBox = & CallOutBox::launchAsynchronously (std::move(wrap), bounds , dw, false);
         if (CallOutBox * box = dynamic_cast<CallOutBox*>(settingsCalloutBox.get())) {
             box->setDismissalMouseClicksAreAlwaysConsumed(true);
+            box->setTitle(TRANS("Settings"));
+            // When settings close, put keyboard focus back on the Settings button
+            SonoAccessibility::returnFocusWhenClosed(*box, *mSettingsButton);
         }
 
         settingsClosedTimestamp = 0;
@@ -7631,7 +7649,9 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
 
             //mChatView->addNewChatMessage(SBChatEvent(SBChatEvent::SystemType, "", "", "", "", statstr));
 
-            //AccessibilityHandler::postAnnouncement(TRANS("Disconnected"), AccessibilityHandler::AnnouncementPriority::high);
+            if (statstr.isNotEmpty()) {
+                SonoAccessibility::announce(statstr, AccessibilityHandler::AnnouncementPriority::high);
+            }
 
 
             mPeerContainer->resetPendingUsers();
@@ -7669,6 +7689,7 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
 
                 if (processor.getCurrentJoinedGroup().isEmpty()) {
                     statstr = TRANS("Failed to join group: ") + ev.message;
+                    SonoAccessibility::announce(statstr, AccessibilityHandler::AnnouncementPriority::high);
 
                     mConnectView->groupJoinFailed();
                     
@@ -7699,7 +7720,9 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
                 // statstr = TRANS("Failed to leave group: ") + ev.message;
             }
 
-            //AccessibilityHandler::postAnnouncement(statstr, AccessibilityHandler::AnnouncementPriority::high);
+            if (statstr.isNotEmpty()) {
+                SonoAccessibility::announce(statstr, AccessibilityHandler::AnnouncementPriority::high);
+            }
 
             // mChatView->addNewChatMessage(SBChatEvent(SBChatEvent::SystemType, ev.group, "", "", "", statstr));
 
@@ -7719,6 +7742,12 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
         }
         else if (ev.type == ClientEvent::PeerJoinEvent) {
             DBG("Peer " << ev.user << "joined doing full update");
+
+            // A short spoken notice (not a chat message, which was too noisy for screen readers).
+            // Skipped in public groups, where people come and go a lot.
+            if (!currConnectionInfo.groupIsPublic) {
+                SonoAccessibility::announce(ev.user + " " + TRANS("joined"), AccessibilityHandler::AnnouncementPriority::low);
+            }
 
             // these interfere with screen readers
             // if (!currConnectionInfo.groupIsPublic) {
@@ -7760,6 +7789,10 @@ void SonobusAudioProcessorEditor::handleAsyncUpdate()
             }
 
             mPeerContainer->peerLeftGroup(ev.group, ev.user);
+
+            if (!currConnectionInfo.groupIsPublic) {
+                SonoAccessibility::announce(ev.user + " " + TRANS("left"), AccessibilityHandler::AnnouncementPriority::low);
+            }
 
             updatePeerState(true);
             updateState(false);
@@ -8789,6 +8822,9 @@ void SonobusAudioProcessorEditor::updateLayout()
 
 void SonobusAudioProcessorEditor::showPopTip(const String & message, int timeoutMs, Component * target, int maxwidth)
 {
+    // pop tips are visual only; also speak them for screen reader users
+    SonoAccessibility::announce(message);
+
     if (!popTip) {
         popTip = std::make_unique<BubbleMessageComponent>();
     }

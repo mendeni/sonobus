@@ -22,6 +22,7 @@
 #include "ChannelGroupsView.h"
 #include "PeersContainerView.h"
 #include "OptionsView.h"
+#include "SonoAccessibility.h"
 #include "ReverbView.h"
 #include "VDONinjaView.h"
 
@@ -86,6 +87,9 @@ public:
 
     
     bool keyPressed (const KeyPress & key) override;
+
+    // Scrolls controls into view before they get keyboard focus (helps screen readers)
+    std::unique_ptr<ComponentTraverser> createKeyboardFocusTraverser() override;
     bool keyStateChanged (bool isKeyDown) override;
     
     // ApplicationCommandTarget
