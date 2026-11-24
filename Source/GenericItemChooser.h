@@ -55,6 +55,12 @@ public:
 
     
     void setCurrentRow(int index);
+
+    /** Name the screen reader speaks for the list. */
+    void setListTitle(const String & title) { table.setTitle(title); }
+
+    /** Moves keyboard focus into the list, on the current item. */
+    void focusList();
     int getCurrentRow() const { return currentIndex; }
     
     //==============================================================================

@@ -2,6 +2,7 @@
 // Copyright (C) 2020 Jesse Chappell
 
 #include "ChannelGroupsView.h"
+#include "SonoAccessibility.h"
 
 
 using namespace SonoAudio;
@@ -1279,6 +1280,9 @@ void ChannelGroupsView::resized()
 
 void ChannelGroupsView::showPopTip(const String & message, int timeoutMs, Component * target, int maxwidth)
 {
+    // pop tips are visual only; also speak them for screen reader users
+    SonoAccessibility::announce(message);
+
     popTip.reset(new BubbleMessageComponent());
     popTip->setAllowedPlacement(BubbleComponent::above);
     

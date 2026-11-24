@@ -3,6 +3,7 @@
 
 
 #include "GenericItemChooser.h"
+#include "SonoAccessibility.h"
 #include "SonoLookAndFeel.h"
 
 enum {
@@ -31,10 +32,16 @@ CallOutBox& GenericItemChooser::launchPopupChooser(const Array<GenericItemChoose
     }
     
     
+    auto * chooserPtr = chooser.get();
+    // remember who had focus (usually the button that opened this) to return to it on close
+    auto * focusedBefore = Component::getCurrentlyFocusedComponent();
     CallOutBox & box = CallOutBox::launchAsynchronously (std::move(chooser), targetBounds, targetComponent, false);
     box.setDismissalMouseClicksAreAlwaysConsumed(true);
     // box.setArrowSize(0);
-    box.grabKeyboardFocus();
+    chooserPtr->focusList();
+    if (focusedBefore != nullptr) {
+        SonoAccessibility::returnFocusWhenClosed(box, *focusedBefore);
+    }
 
     return box;
 }
@@ -54,10 +61,16 @@ CallOutBox& GenericItemChooser::launchPopupChooser(const Array<GenericItemChoose
         chooser->setMaxHeight(maxheight);
     }
 
+    auto * chooserPtr = chooser.get();
+    // remember who had focus (usually the button that opened this) to return to it on close
+    auto * focusedBefore = Component::getCurrentlyFocusedComponent();
     CallOutBox & box = CallOutBox::launchAsynchronously (std::move(chooser), targetBounds, targetComponent);
     box.setDismissalMouseClicksAreAlwaysConsumed(true);
     // box.setArrowSize(0);
-    box.grabKeyboardFocus();
+    chooserPtr->focusList();
+    if (focusedBefore != nullptr) {
+        SonoAccessibility::returnFocusWhenClosed(box, *focusedBefore);
+    }
 
     return box;
 }
@@ -122,6 +135,25 @@ void GenericItemChooser::setCurrentRow(int index)
 }
 
 
+void GenericItemChooser::focusList()
+{
+    int row = currentIndex;
+    if (row < 0 || row >= numRows) {
+        // first selectable item
+        row = 0;
+        while (row < numRows && row < items.size() && items[row].disabled) ++row;
+        if (row >= numRows) row = 0;
+    }
+
+    if (numRows > 0) {
+        table.selectRow(row);
+        table.scrollToEnsureRowIsOnscreen(row);
+    }
+
+    table.setWantsKeyboardFocus(true);
+    table.grabKeyboardFocus();
+}
+
 void GenericItemChooser::setItems(const Array<GenericItemChooserItem> & items_)
 {
     items = items_;
@@ -182,7 +214,10 @@ int GenericItemChooser::getNumRows()
 
 String GenericItemChooser::getNameForRow (int rowNumber)
 {
-    if (rowNumber< items.size()) {
+    if (isPositiveAndBelow(rowNumber, items.size())) {
+        if (items[rowNumber].disabled) {
+            return items[rowNumber].name + ", " + TRANS("unavailable");
+        }
         return items[rowNumber].name;
     }
     return ListBoxModel::getNameForRow(rowNumber);
@@ -231,12 +266,12 @@ void GenericItemChooser::returnKeyPressed (int rowNumber)
 {
     DBG("return key pressed: " << rowNumber);
 
-    listeners.call (&GenericItemChooser::Listener::genericItemChooserSelected, this, rowNumber);
-
-    if (rowNumber < items.size() && items[rowNumber].disabled) {
+    if (!isPositiveAndBelow(rowNumber, items.size()) || items[rowNumber].disabled) {
         // not selectable
         return;
     }
+
+    listeners.call (&GenericItemChooser::Listener::genericItemChooserSelected, this, rowNumber);
 
     if (onSelected) {
         onSelected(this, rowNumber);

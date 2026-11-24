@@ -2,6 +2,7 @@
 // Copyright (C) 2021 Jesse Chappell
 
 #include "ConnectView.h"
+#include "SonoAccessibility.h"
 
 #include "RandomSentenceGenerator.h"
 
@@ -1461,6 +1462,9 @@ void ConnectView::updateServerFieldsFromConnectionInfo()
 
 void ConnectView::showPopTip(const String & message, int timeoutMs, Component * target, int maxwidth)
 {
+    // pop tips are visual only; also speak them for screen reader users
+    SonoAccessibility::announce(message);
+
     popTip.reset(new BubbleMessageComponent());
     popTip->setAllowedPlacement(BubbleComponent::above);
     

@@ -2,6 +2,7 @@
 // Copyright (C) 2021 Jesse Chappell
 
 #include "OptionsView.h"
+#include "SonoAccessibility.h"
 #include "SonobusPluginEditor.h"
 
 #if JUCE_ANDROID
@@ -116,6 +117,7 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mBufferTimeAttachment     = std::make_unique<AudioProcessorValueTreeState::SliderAttachment> (processor.getValueTreeState(), SonobusAudioProcessor::paramDefaultNetbufMs, *mBufferTimeSlider);
 
     mOptionsAutosizeDefaultChoice = std::make_unique<SonoChoiceButton>();
+    mOptionsAutosizeDefaultChoice->setTitle(TRANS("Default Jitter Buffer Mode"));
     mOptionsAutosizeDefaultChoice->addChoiceListener(this);
     mOptionsAutosizeDefaultChoice->addItem(TRANS("Manual"), SonobusAudioProcessor::AutoNetBufferModeOff);
     mOptionsAutosizeDefaultChoice->addItem(TRANS("Auto Up"), SonobusAudioProcessor::AutoNetBufferModeAutoIncreaseOnly);
@@ -125,7 +127,7 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mOptionsAutosizeDefaultChoice->setTooltip(TRANS("This controls how the jitter buffers are automatically adjusted based on network conditions. The Auto mode is the recommended choice as it will adjust the jitter buffers up or down based on current conditions. The Auto-Up will only make the buffers larger. The Initial Auto will do an initial adjustment from the smallest value and once it stabilizes will no longer change, even if network conditions worsen. Manual will let you set the jitter buffer manually, leaving it up to you to deal with if network conditions change, but can be useful with known users."));
 
     mOptionsFormatChoiceDefaultChoice = std::make_unique<SonoChoiceButton>();
-    mOptionsFormatChoiceDefaultChoice->setTitle(TRANS("Default Send Quality:"));
+    mOptionsFormatChoiceDefaultChoice->setTitle(TRANS("Default Send Quality"));
 
     mOptionsFormatChoiceDefaultChoice->addChoiceListener(this);
     int numformats = processor.getNumberAudioCodecFormats();
@@ -151,11 +153,14 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mOptionsFormatChoiceStaticLabel = std::make_unique<Label>("", TRANS("Default Send Quality:"));
     configLabel(mOptionsFormatChoiceStaticLabel.get(), false);
     mOptionsFormatChoiceStaticLabel->setJustificationType(Justification::centredRight);
+    mOptionsFormatChoiceStaticLabel->setAccessible(false); // the choice button carries this name
 
 
     mOptionsLanguageChoice = std::make_unique<SonoChoiceButton>();
     mOptionsLanguageChoice->setTitle(TRANS("Language"));
     mOptionsLanguageChoice->addChoiceListener(this);
+    // changing language asks to restart the app, so don't apply it on every arrow key press
+    mOptionsLanguageChoice->setArrowKeysChangeSelection(false);
     auto overridelang = processor.getLanguageOverrideCode();
     int langsel = -1;
     for (int i=0; i < languages.size(); ++i) {
@@ -179,6 +184,7 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mOptionsLanguageLabel = std::make_unique<Label>("", TRANS("Language:"));
     configLabel(mOptionsLanguageLabel.get(), false);
     mOptionsLanguageLabel->setJustificationType(Justification::centredRight);
+    mOptionsLanguageLabel->setAccessible(false);
 
 
     mOptionsUnivFontButton = std::make_unique<ToggleButton>(TRANS("Use Universal Font"));
@@ -225,12 +231,14 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
 
 
     mRecFormatChoice = std::make_unique<SonoChoiceButton>();
+    mRecFormatChoice->setTitle(TRANS("Audio File Format"));
     mRecFormatChoice->addChoiceListener(this);
     mRecFormatChoice->addItem(TRANS("FLAC"), SonobusAudioProcessor::FileFormatFLAC);
     mRecFormatChoice->addItem(TRANS("WAV"), SonobusAudioProcessor::FileFormatWAV);
     mRecFormatChoice->addItem(TRANS("OGG"), SonobusAudioProcessor::FileFormatOGG);
 
     mRecBitsChoice = std::make_unique<SonoChoiceButton>();
+    mRecBitsChoice->setTitle(TRANS("Bit Depth"));
     mRecBitsChoice->addChoiceListener(this);
     mRecBitsChoice->addItem(TRANS("16 bit"), 16);
     mRecBitsChoice->addItem(TRANS("24 bit"), 24);
@@ -239,14 +247,18 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mRecFormatStaticLabel = std::make_unique<Label>("", TRANS("Audio File Format:"));
     configLabel(mRecFormatStaticLabel.get(), false);
     mRecFormatStaticLabel->setJustificationType(Justification::centredRight);
+    mRecFormatStaticLabel->setAccessible(false);
 
 
     mRecLocationStaticLabel = std::make_unique<Label>("", TRANS("Record Location:"));
     configLabel(mRecLocationStaticLabel.get(), false);
     mRecLocationStaticLabel->setJustificationType(Justification::centredRight);
+    mRecLocationStaticLabel->setAccessible(false);
 
     mRecLocationButton = std::make_unique<TextButton>("fileloc");
     mRecLocationButton->setButtonText("");
+    mRecLocationButton->setTitle(TRANS("Record Location"));
+    mRecLocationButton->setDescription(TRANS("Choose the folder where recordings are saved"));
     mRecLocationButton->setLookAndFeel(&smallLNF);
     mRecLocationButton->addListener(this);
 
@@ -289,6 +301,7 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mOptionsChangeAllFormatButton->setLookAndFeel(&smallLNF);
 
     mOptionsUdpPortEditor = std::make_unique<TextEditor>("udp");
+    mOptionsUdpPortEditor->setTitle(TRANS("UDP Port"));
     mOptionsUdpPortEditor->addListener(this);
     mOptionsUdpPortEditor->setFont(Font(16 * SonoLookAndFeel::getFontScale()));
     mOptionsUdpPortEditor->setText(""); // 100.36.128.246:11000
@@ -390,8 +403,10 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mOSCTargetIPAddressLabel = std::make_unique<Label>("", TRANS("OSC Target IP Address:"));
     configLabel(mOSCTargetIPAddressLabel.get(), false);
     mOSCTargetIPAddressLabel->setJustificationType(Justification::centredRight);
+    mOSCTargetIPAddressLabel->setAccessible(false);
     
     mOSCTargetIPAddressEditor = std::make_unique<TextEditor>("osctargetip");
+    mOSCTargetIPAddressEditor->setTitle(TRANS("OSC Target IP Address"));
     mOSCTargetIPAddressEditor->addListener(this);
     mOSCTargetIPAddressEditor->setFont(Font(16 * SonoLookAndFeel::getFontScale()));
     configEditor(mOSCTargetIPAddressEditor.get());
@@ -400,8 +415,10 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mOSCTargetPortLabel = std::make_unique<Label>("", TRANS("OSC Target Port:"));
     configLabel(mOSCTargetPortLabel.get(), false);
     mOSCTargetPortLabel->setJustificationType(Justification::centredRight);
+    mOSCTargetPortLabel->setAccessible(false);
     
     mOSCTargetPortEditor = std::make_unique<TextEditor>("osctargetport");
+    mOSCTargetPortEditor->setTitle(TRANS("OSC Target Port"));
     mOSCTargetPortEditor->addListener(this);
     mOSCTargetPortEditor->setFont(Font(16 * SonoLookAndFeel::getFontScale()));
     mOSCTargetPortEditor->setKeyboardType(TextEditor::numericKeyboard);
@@ -412,8 +429,10 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
     mOSCReceivePortLabel = std::make_unique<Label>("", TRANS("OSC Receive Port:"));
     configLabel(mOSCReceivePortLabel.get(), false);
     mOSCReceivePortLabel->setJustificationType(Justification::centredRight);
+    mOSCReceivePortLabel->setAccessible(false);
     
     mOSCReceivePortEditor = std::make_unique<TextEditor>("oscrecvport");
+    mOSCReceivePortEditor->setTitle(TRANS("OSC Receive Port"));
     mOSCReceivePortEditor->addListener(this);
     mOSCReceivePortEditor->setFont(Font(16 * SonoLookAndFeel::getFontScale()));
     mOSCReceivePortEditor->setKeyboardType(TextEditor::numericKeyboard);
@@ -571,6 +590,9 @@ OptionsView::OptionsView(SonobusAudioProcessor& proc, std::function<AudioDeviceM
             mAudioDeviceSelector->setItemHeight(44);
 #endif
 
+            mAudioDeviceSelector->setTitle(TRANS("Audio device settings"));
+            mAudioDeviceSelectorA11y = std::make_unique<SonoAccessibility::AudioDeviceSelectorHelper>(*mAudioDeviceSelector, *getAudioDeviceManager());
+
             mAudioOptionsViewport = std::make_unique<Viewport>();
             mAudioOptionsViewport->setViewedComponent(mAudioDeviceSelector.get(), false);
 
@@ -630,6 +652,11 @@ juce::Rectangle<int> OptionsView::getPreferredContentBounds() const
 void OptionsView::timerCallback(int timerid)
 {
 
+}
+
+std::unique_ptr<ComponentTraverser> OptionsView::createKeyboardFocusTraverser()
+{
+    return std::make_unique<SonoAccessibility::ScrollingKeyboardFocusTraverser>();
 }
 
 void OptionsView::grabInitialFocus()
@@ -779,6 +806,7 @@ void OptionsView::updateState(bool ignorecheck)
         if (dispath.startsWith(".")) dispath = recdir.getFullPathName();
     }
     mRecLocationButton->setButtonText(dispath);
+    mRecLocationButton->setTitle(TRANS("Record Location") + ": " + dispath);
 
     CompressorParams limparams;
     processor.getInputLimiterParams(0, limparams);
@@ -1672,6 +1700,9 @@ void OptionsView::chooseRecDirBrowser()
 
 void OptionsView::showPopTip(const String & message, int timeoutMs, Component * target, int maxwidth)
 {
+    // pop tips are visual only; also speak them for screen reader users
+    SonoAccessibility::announce(message);
+
     popTip.reset(new BubbleMessageComponent());
     popTip->setAllowedPlacement(BubbleComponent::above);
     

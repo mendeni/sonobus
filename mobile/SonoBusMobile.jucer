@@ -340,6 +340,10 @@
             file="../Source/SonoCallOutBox.cpp"/>
       <FILE id="wIcACJ" name="SonoCallOutBox.h" compile="0" resource="0"
             file="../Source/SonoCallOutBox.h"/>
+      <FILE id="A11yC1" name="SonoAccessibility.cpp" compile="1" resource="0"
+            file="../Source/SonoAccessibility.cpp"/>
+      <FILE id="A11yH1" name="SonoAccessibility.h" compile="0" resource="0"
+            file="../Source/SonoAccessibility.h"/>
       <FILE id="MwSKP0" name="SonoChoiceButton.cpp" compile="1" resource="0"
             file="../Source/SonoChoiceButton.cpp"/>
       <FILE id="ITl3P6" name="SonoChoiceButton.h" compile="0" resource="0"

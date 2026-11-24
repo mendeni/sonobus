@@ -11,6 +11,7 @@
 #include "SonoChoiceButton.h"
 #include "SonoDrawableButton.h"
 #include "GenericItemChooser.h"
+#include "SonoAccessibility.h"
 
 // Forward declaration
 class SonobusAudioProcessorEditor;
@@ -53,6 +54,10 @@ public:
     juce::Rectangle<int> getPreferredContentBounds() const;
 
     void grabInitialFocus();
+
+    // Scrolls each control into view before it gets keyboard focus, so screen readers
+    // don't treat controls below the visible part of a tab as offscreen.
+    std::unique_ptr<ComponentTraverser> createKeyboardFocusTraverser() override;
 
     void updateState(bool ignorecheck=false);
     void updateLayout();
@@ -134,6 +139,7 @@ protected:
     ListenerList<Listener> listeners;
 
     std::unique_ptr<AudioDeviceSelectorComponent> mAudioDeviceSelector;
+    std::unique_ptr<SonoAccessibility::AudioDeviceSelectorHelper> mAudioDeviceSelectorA11y;
     std::unique_ptr<Viewport> mAudioOptionsViewport;
     std::unique_ptr<Viewport> mOtherOptionsViewport;
     std::unique_ptr<Viewport> mRecordOptionsViewport;
