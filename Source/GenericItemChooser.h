@@ -7,6 +7,7 @@
 #include "JuceHeader.h"
 
 #include "SonoTextButton.h"
+#include "SonoAccessibility.h"
 
 class KeyListBox;
 
@@ -99,7 +100,7 @@ private:
     
     ListenerList<Listener> listeners;
 
-    ListBox table;     // the table component itself
+    SonoAccessibility::SpeakingListBox table;     // the list itself; speaks the current item for screen readers
     Font font;
     Font catFont;
 
