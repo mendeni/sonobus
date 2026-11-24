@@ -3,6 +3,15 @@
 
 #include "SonoAccessibility.h"
 
+#if JUCE_WINDOWS
+// Implemented in SonoAccessibilityWindows.cpp (kept apart so <windows.h> doesn't meet JUCE headers)
+namespace SonoAccessibilityWindows
+{
+    bool isAvailable();
+    bool raiseNotification (void* nativeHandle, const wchar_t* text, int priority);
+}
+#endif
+
 namespace SonoAccessibility
 {
 
@@ -175,8 +184,43 @@ static constexpr bool announcementsEnabled = true;
 
 void announce (const String& message, AccessibilityHandler::AnnouncementPriority priority)
 {
-    if (announcementsEnabled && message.isNotEmpty())
-        AccessibilityHandler::postAnnouncement (message, priority);
+    if (! announcementsEnabled || message.isEmpty())
+        return;
+
+   #if JUCE_WINDOWS
+    // JUCE's postAnnouncement speaks with the separate Windows (SAPI) voice. Send a UI
+    // Automation notification instead, which JAWS, NVDA and Narrator speak in their own
+    // voice. It has to come from an accessible element: use the focused control, or the
+    // app's main window.
+    if (SonoAccessibilityWindows::isAvailable())
+    {
+        Component* source = Component::getCurrentlyFocusedComponent();
+
+        if (source == nullptr || ! source->isShowing())
+            source = TopLevelWindow::getActiveTopLevelWindow();
+
+        for (auto* c = source; c != nullptr; c = c->getParentComponent())
+        {
+            auto* handler = c->getAccessibilityHandler();
+
+            if (handler != nullptr && ! handler->isIgnored())
+            {
+                const int level = priority == AccessibilityHandler::AnnouncementPriority::high   ? 2
+                                : priority == AccessibilityHandler::AnnouncementPriority::medium ? 1 : 0;
+
+                if (SonoAccessibilityWindows::raiseNotification (static_cast<void*> (handler->getNativeImplementation()),
+                                                                 message.toWideCharPointer(), level))
+                    return;
+            }
+        }
+
+        // No accessible element to speak from: say nothing rather than use another voice.
+        return;
+    }
+   #endif
+
+    // macOS (VoiceOver), iOS, Android, and Windows older than 10 version 1709
+    AccessibilityHandler::postAnnouncement (message, priority);
 }
 
 void returnFocusWhenClosed (Component& popup, Component& returnTo)
