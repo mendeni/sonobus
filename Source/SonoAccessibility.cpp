@@ -185,6 +185,62 @@ void returnFocusWhenClosed (Component& popup, Component& returnTo)
 }
 
 //==============================================================================
+SpeakingListBox::SpeakingListBox (const String& componentName, const String& emptyMsg)
+    : ListBox (componentName), emptyMessage (emptyMsg)
+{
+}
+
+void SpeakingListBox::focusGained (FocusChangeType cause)
+{
+    ListBox::focusGained (cause);
+
+    if (auto* model = getListBoxModel())
+    {
+        const auto numRows = model->getNumRows();
+
+        if (numRows > 0 && getSelectedRow() < 0)
+            selectRow (0); // selection only; Enter is what acts on the item
+    }
+
+    // Let the screen reader say the list's own name first
+    Timer::callAfterDelay (150, [safe = Component::SafePointer<SpeakingListBox> (this)]
+    {
+        if (safe != nullptr && safe->hasKeyboardFocus (true))
+            safe->speakCurrentRow();
+    });
+}
+
+bool SpeakingListBox::keyPressed (const KeyPress& key)
+{
+    const auto before = getSelectedRow();
+    const auto used = ListBox::keyPressed (key);
+
+    if (used && getSelectedRow() != before)
+        speakCurrentRow();
+
+    return used;
+}
+
+void SpeakingListBox::speakCurrentRow()
+{
+    auto* model = getListBoxModel();
+    const auto numRows = model != nullptr ? model->getNumRows() : 0;
+
+    if (numRows <= 0)
+    {
+        announce (emptyMessage.isNotEmpty() ? emptyMessage : TRANS ("List is empty"));
+        return;
+    }
+
+    const auto row = getSelectedRow();
+
+    if (! isPositiveAndBelow (row, numRows))
+        return;
+
+    announce (model->getNameForRow (row) + ", " + String (row + 1) + " " + TRANS ("of") + " " + String (numRows));
+}
+
+//==============================================================================
 AudioDeviceSelectorHelper::AudioDeviceSelectorHelper (AudioDeviceSelectorComponent& sel, AudioDeviceManager& dm)
     : selector (&sel), manager (dm)
 {

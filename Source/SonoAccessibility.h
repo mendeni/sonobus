@@ -43,6 +43,29 @@ namespace SonoAccessibility
     */
     void returnFocusWhenClosed (Component& popup, Component& returnTo);
 
+    /** A ListBox that speaks its current item when it gets keyboard focus and when the
+        arrow keys move through it ("Jazz Jam, 3 active users, 2 of 5"), and says so when
+        the list is empty. JAWS often stays silent on plain JUCE lists.
+        If nothing is selected when it gets focus, the first item is selected (selection
+        alone never triggers an action; Enter does).
+    */
+    class SpeakingListBox : public ListBox
+    {
+    public:
+        explicit SpeakingListBox (const String& componentName = {}, const String& emptyMessage = {});
+
+        void setEmptyMessage (const String& message) { emptyMessage = message; }
+
+        void focusGained (FocusChangeType cause) override;
+        bool keyPressed (const KeyPress& key) override;
+
+        /** Speaks the selected item and its position, or the empty message. */
+        void speakCurrentRow();
+
+    private:
+        String emptyMessage;
+    };
+
     /** Makes JUCE's AudioDeviceSelectorComponent work better with screen readers:
         - gives every dropdown and list the name of the label shown next to it
           (and hides that label so it isn't read twice),

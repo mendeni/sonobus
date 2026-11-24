@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "SonoAccessibility.h"
 #include "JuceHeader.h"
 
 #include "SonobusPluginProcessor.h"
@@ -51,6 +52,10 @@ public:
     juce::Rectangle<int> getMinimumContentBounds() const;
 
     void grabInitialFocus();
+
+    // Scrolls each control into view before it gets keyboard focus, so screen readers
+    // don't treat fields below the visible part of a tab as offscreen.
+    std::unique_ptr<ComponentTraverser> createKeyboardFocusTraverser() override;
     void escapePressed();
 
     void updateState();

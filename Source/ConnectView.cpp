@@ -139,7 +139,7 @@ publicGroupsListModel(this)
     configEditor(mServerHostEditor.get());
 
     mServerUsernameEditor = std::make_unique<TextEditor>("srvaddredit");
-    mServerUsernameEditor->setTitle(TRANS("Your Displayed Name:"));
+    mServerUsernameEditor->setTitle(TRANS("Your Displayed Name"));
     mServerUsernameEditor->setFont(Font(16 * SonoLookAndFeel::getFontScale()));
     mServerUsernameEditor->setText(processor.getCurrentUsername(), false);
     configEditor(mServerUsernameEditor.get());
@@ -152,6 +152,7 @@ publicGroupsListModel(this)
 
     mServerUserStaticLabel = std::make_unique<Label>("serveruserst", TRANS("Your Displayed Name:"));
     configServerLabel(mServerUserStaticLabel.get());
+    mServerUserStaticLabel->setAccessible(false); // the text field next to it carries this name
     mServerUserStaticLabel->setMinimumHorizontalScale(0.7);
 
     mServerUserPassStaticLabel = std::make_unique<Label>("serveruserpassst", TRANS("Password:"));
@@ -159,17 +160,21 @@ publicGroupsListModel(this)
 
     mServerGroupStaticLabel = std::make_unique<Label>("servergroupst", TRANS("Group Name:"));
     configServerLabel(mServerGroupStaticLabel.get());
+    mServerGroupStaticLabel->setAccessible(false); // the text field next to it carries this name
     mServerGroupStaticLabel->setMinimumHorizontalScale(0.8);
 
     mServerGroupPassStaticLabel = std::make_unique<Label>("servergrouppassst", TRANS("Password:"));
     configServerLabel(mServerGroupPassStaticLabel.get());
+    mServerGroupPassStaticLabel->setAccessible(false); // the text field next to it carries this name
 
     mServerHostStaticLabel = std::make_unique<Label>("serverhostst", TRANS("Connection Server:"));
     configServerLabel(mServerHostStaticLabel.get());
+    mServerHostStaticLabel->setAccessible(false); // the text field next to it carries this name
 
 
     mServerGroupEditor = std::make_unique<TextEditor>("groupedit");
-    mServerGroupEditor->setTitle(TRANS("Group Name:"));
+    mServerGroupEditor->setTitle(TRANS("Group Name"));
+    mServerGroupEditor->setDescription(TRANS("Name of the private group to create or join. Everyone who uses the same group name and server joins the same group."));
     mServerGroupEditor->setFont(Font(16 * SonoLookAndFeel::getFontScale()));
     mServerGroupEditor->setText(!currConnectionInfo.groupIsPublic ? currConnectionInfo.groupName : "", false);
     configEditor(mServerGroupEditor.get());
@@ -248,11 +253,12 @@ publicGroupsListModel(this)
     mClearRecentsButton->addListener(this);
     mClearRecentsButton->setTextJustification(Justification::centred);
 
-    mRecentsListBox = std::make_unique<ListBox>("recentslist");
+    mRecentsListBox = std::make_unique<SonoAccessibility::SpeakingListBox>("recentslist", TRANS("No recent groups"));
     mRecentsListBox->setColour (ListBox::outlineColourId, Colour::fromFloatRGBA(0.7, 0.7, 0.7, 0.0));
     mRecentsListBox->setColour (ListBox::backgroundColourId, Colour::fromFloatRGBA(0.1, 0.12, 0.1, 0.0f));
     mRecentsListBox->setColour (ListBox::textColourId, Colours::whitesmoke.withAlpha(0.8f));
-    mRecentsListBox->setTitle(TRANS("Recents List"));
+    mRecentsListBox->setTitle(TRANS("Recent Groups"));
+    mRecentsListBox->setDescription(TRANS("Use the arrow keys to move through the groups, Enter to connect, and Delete to remove one"));
     mRecentsListBox->setOutlineThickness (1);
 #if JUCE_IOS || JUCE_ANDROID
     mRecentsListBox->getViewport()->setScrollOnDragEnabled(true);
@@ -265,11 +271,12 @@ publicGroupsListModel(this)
     mRecentsListBox->setRowClickedOnMouseDown(false);
 
 
-    mPublicGroupsListBox = std::make_unique<ListBox>("publicgroupslist");
+    mPublicGroupsListBox = std::make_unique<SonoAccessibility::SpeakingListBox>("publicgroupslist", TRANS("No active public groups right now. Use Create Group to start one."));
     mPublicGroupsListBox->setColour (ListBox::outlineColourId, Colour::fromFloatRGBA(0.7, 0.7, 0.7, 0.0));
     mPublicGroupsListBox->setColour (ListBox::backgroundColourId, Colour::fromFloatRGBA(0.1, 0.12, 0.1, 0.0f));
     mPublicGroupsListBox->setColour (ListBox::textColourId, Colours::whitesmoke.withAlpha(0.8f));
-    mPublicGroupsListBox->setTitle(TRANS("Public Groups List"));
+    mPublicGroupsListBox->setTitle(TRANS("Active Public Groups"));
+    mPublicGroupsListBox->setDescription(TRANS("Use the arrow keys to move through the groups, and Enter to join one"));
     mPublicGroupsListBox->setOutlineThickness (1);
 #if JUCE_IOS || JUCE_ANDROID
     mPublicGroupsListBox->getViewport()->setScrollOnDragEnabled(true);
@@ -283,16 +290,18 @@ publicGroupsListModel(this)
 
 
     mPublicServerHostEditor = std::make_unique<TextEditor>("pubsrvaddredit");
-    mPublicServerHostEditor->setTitle(TRANS("Connection Server:"));
+    mPublicServerHostEditor->setTitle(TRANS("Connection Server"));
     mPublicServerHostEditor->setFont(Font(14 * SonoLookAndFeel::getFontScale()));
     configEditor(mPublicServerHostEditor.get());
     mPublicServerHostEditor->setTooltip(servaudioinfo);
 
     mPublicServerHostStaticLabel = std::make_unique<Label>("pubaddrst", TRANS("Connection Server:"));
     configServerLabel(mPublicServerHostStaticLabel.get());
+    mPublicServerHostStaticLabel->setAccessible(false); // the text field next to it carries this name
 
     mPublicServerUserStaticLabel = std::make_unique<Label>("pubuserst", TRANS("Your Displayed Name:"));
     configServerLabel(mPublicServerUserStaticLabel.get());
+    mPublicServerUserStaticLabel->setAccessible(false); // the text field next to it carries this name
     mPublicServerUserStaticLabel->setMinimumHorizontalScale(0.8);
 
     mPublicServerStatusInfoLabel = std::make_unique<Label>("pubsrvinfo", "");
@@ -300,7 +309,7 @@ publicGroupsListModel(this)
     mPublicServerStatusInfoLabel->setJustificationType(Justification::centredLeft);
 
     mPublicServerUsernameEditor = std::make_unique<TextEditor>("pubsrvaddredit");
-    mPublicServerUsernameEditor->setTitle(TRANS("Your Displayed Name:"));
+    mPublicServerUsernameEditor->setTitle(TRANS("Your Displayed Name"));
     mPublicServerUsernameEditor->setFont(Font(16 * SonoLookAndFeel::getFontScale()));
     mPublicServerUsernameEditor->setText(processor.getCurrentUsername(), false);
     configEditor(mPublicServerUsernameEditor.get());
@@ -403,6 +412,11 @@ publicGroupsListModel(this)
 }
 
 ConnectView::~ConnectView() {}
+
+std::unique_ptr<ComponentTraverser> ConnectView::createKeyboardFocusTraverser()
+{
+    return std::make_unique<SonoAccessibility::ScrollingKeyboardFocusTraverser>();
+}
 
 juce::Rectangle<int> ConnectView::getMinimumContentBounds() const {
     int defWidth = 200;
@@ -803,7 +817,8 @@ void ConnectView::connectTabChanged (int newCurrentTabIndex)
     if (adjindex == 2) {
         // put focus somewhere a text editor won't activate on ios
         if (mPublicServerAddGroupButton->isShowing()) {
-            mPublicServerAddGroupButton->grabKeyboardFocus();
+            SonoAccessibility::scrollIntoView(mPublicServerAddGroupButton.get());
+        mPublicServerAddGroupButton->grabKeyboardFocus();
         }
         publicGroupLogin();
         
@@ -944,11 +959,13 @@ void ConnectView::textEditorReturnKeyPressed (TextEditor& ed)
 
     if (isVisible() && mServerConnectButton->isShowing()) {
         //mServerConnectButton->setWantsKeyboardFocus(true);
+        SonoAccessibility::scrollIntoView(mServerConnectButton.get());
         mServerConnectButton->grabKeyboardFocus();
         //mServerConnectButton->setWantsKeyboardFocus(false);
     }
     else if (isVisible() && mPublicServerAddGroupButton->isShowing()) {
         //mServerConnectButton->setWantsKeyboardFocus(true);
+        SonoAccessibility::scrollIntoView(mPublicServerAddGroupButton.get());
         mPublicServerAddGroupButton->grabKeyboardFocus();
         //mServerConnectButton->setWantsKeyboardFocus(false);
     }
@@ -964,6 +981,7 @@ void ConnectView::textEditorEscapeKeyPressed (TextEditor& ed)
     DBG("escape pressed");
     if (isVisible()) {
         //mServerConnectButton->setWantsKeyboardFocus(true);
+        SonoAccessibility::scrollIntoView(mServerConnectButton.get());
         mServerConnectButton->grabKeyboardFocus();
         //mServerConnectButton->setWantsKeyboardFocus(false);
     }
@@ -1535,8 +1553,21 @@ int ConnectView::RecentsListModel::getNumRows()
 
 String ConnectView::RecentsListModel::getNameForRow (int rowNumber)
 {
-    if (rowNumber < recents.size()) {
-        return recents.getReference(rowNumber).groupName;
+    if (isPositiveAndBelow(rowNumber, recents.size())) {
+        const auto & info = recents.getReference(rowNumber);
+        String text = info.groupName;
+        text << ", " << (info.groupIsPublic ? TRANS("public") : TRANS("private"));
+        if (info.groupPassword.isNotEmpty()) {
+            text << ", " << TRANS("password protected");
+        }
+        if (info.userName.isNotEmpty()) {
+            text << ", " << TRANS("as") << " " << info.userName;
+        }
+        if (info.serverHost != DEFAULT_SERVER_HOST) {
+            text << ", " << TRANS("on server") << " " << info.serverHost;
+        }
+        text << ", " << Time(info.timestamp).toString(true, true, false);
+        return text;
     }
     return ListBoxModel::getNameForRow(rowNumber);
 }
@@ -1711,8 +1742,14 @@ void ConnectView::PublicGroupsListModel::paintListBoxItem (int rowNumber, Graphi
 
 String ConnectView::PublicGroupsListModel::getNameForRow (int rowNumber)
 {
-    if (rowNumber < groups.size()) {
-        return groups.getReference(rowNumber).groupName;
+    if (isPositiveAndBelow(rowNumber, groups.size())) {
+        const auto & info = groups.getReference(rowNumber);
+        String text = info.groupName;
+        text << ", " << info.activeCount << (info.activeCount == 1 ? TRANS(" active user") : TRANS(" active users"));
+        if (parent->processor.isConnectedToServer() && info.groupName == parent->processor.getCurrentJoinedGroup()) {
+            text << ", " << TRANS("joined");
+        }
+        return text;
     }
     return ListBoxModel::getNameForRow(rowNumber);
 }
