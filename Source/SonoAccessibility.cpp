@@ -435,8 +435,59 @@ void AudioDeviceSelectorHelper::restoreFocusIfLost()
     }
 }
 
+namespace
+{
+    // Speaks a channel row like "Input 1 + 2, checked, 1 of 4".
+    // The row names from JUCE end with ", selected" when the channel is on.
+    void speakChannelRow (ListBox& list, int row, AccessibilityHandler::AnnouncementPriority priority)
+    {
+        auto* model = list.getListBoxModel();
+        const auto numRows = model != nullptr ? model->getNumRows() : 0;
+
+        if (numRows <= 0)
+        {
+            announce (list.getTitle() + ", " + TRANS ("no channels"), priority);
+            return;
+        }
+
+        if (! isPositiveAndBelow (row, numRows))
+            return;
+
+        const auto suffix = ", " + TRANS ("selected");
+        auto name = model->getNameForRow (row);
+        const bool isOn = name.endsWith (suffix);
+
+        if (isOn)
+            name = name.dropLastCharacters (suffix.length());
+
+        announce (name + ", " + (isOn ? TRANS ("checked") : TRANS ("not checked"))
+                    + ", " + String (row + 1) + " " + TRANS ("of") + " " + String (numRows),
+                  priority);
+    }
+}
+
 void AudioDeviceSelectorHelper::globalFocusChanged (Component* focused)
 {
+    // Arriving on a channel list: pick a channel if none is picked, and say which one
+    // and whether it's on (the list name itself is read by the screen reader).
+    if (auto* list = dynamic_cast<ListBox*> (focused))
+    {
+        if (selector != nullptr && selector->isParentOf (list)
+             && list->getProperties().contains ("sonoA11yKeys") && list != lastFocused.getComponent())
+        {
+            auto* model = list->getListBoxModel();
+
+            if (model != nullptr && model->getNumRows() > 0 && list->getSelectedRow() < 0)
+                list->selectRow (0);
+
+            Timer::callAfterDelay (200, [safe = Component::SafePointer<ListBox> (list)]
+            {
+                if (safe != nullptr && safe->hasKeyboardFocus (true))
+                    speakChannelRow (*safe, safe->getSelectedRow(), AccessibilityHandler::AnnouncementPriority::medium);
+            });
+        }
+    }
+
     if (focused != nullptr && selector != nullptr && selector->isParentOf (focused))
     {
         lastFocused = focused;
@@ -470,12 +521,34 @@ bool AudioDeviceSelectorHelper::keyPressed (const KeyPress& key, Component* orig
     if (list == nullptr || key.getModifiers().isAnyModifierKeyDown())
         return false;
 
-    if (! (key.isKeyCode (KeyPress::spaceKey) || key.isKeyCode (KeyPress::returnKey)))
-        return false;
-
     auto* model = list->getListBoxModel();
 
     if (model == nullptr || model->getNumRows() <= 0)
+        return false;
+
+    const bool isToggle = key.isKeyCode (KeyPress::spaceKey) || key.isKeyCode (KeyPress::returnKey);
+    const bool isMove   = key.isKeyCode (KeyPress::upKey)     || key.isKeyCode (KeyPress::downKey)
+                       || key.isKeyCode (KeyPress::homeKey)   || key.isKeyCode (KeyPress::endKey)
+                       || key.isKeyCode (KeyPress::pageUpKey) || key.isKeyCode (KeyPress::pageDownKey);
+
+    if (isMove)
+    {
+        // Let the list move its selection, then say where we are (JAWS is silent otherwise)
+        const auto before = list->getSelectedRow();
+        list->keyPressed (key);
+        const auto after = list->getSelectedRow();
+
+        if (after >= 0)
+        {
+            list->scrollToEnsureRowIsOnscreen (after);
+            speakChannelRow (*list, after, after != before ? AccessibilityHandler::AnnouncementPriority::medium
+                                                           : AccessibilityHandler::AnnouncementPriority::low);
+        }
+
+        return true;
+    }
+
+    if (! isToggle)
         return false;
 
     auto row = list->getSelectedRow();
@@ -487,19 +560,9 @@ bool AudioDeviceSelectorHelper::keyPressed (const KeyPress& key, Component* orig
     }
 
     model->returnKeyPressed (row); // turns the channel on or off
-
-    // The row name ends with ", selected" when the channel is on
-    const auto suffix = ", " + TRANS ("selected");
-    auto name = model->getNameForRow (row);
-    const bool isOn = name.endsWith (suffix);
-
-    if (isOn)
-        name = name.dropLastCharacters (suffix.length());
-
     list->repaintRow (row);
-    announce (name + ", " + (isOn ? TRANS ("checked") : TRANS ("not checked")),
-              AccessibilityHandler::AnnouncementPriority::high);
 
+    speakChannelRow (*list, row, AccessibilityHandler::AnnouncementPriority::high);
     return true;
 }
 
